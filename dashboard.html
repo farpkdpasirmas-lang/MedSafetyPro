@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MedSafety Pro</title>
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com;">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/vendor/chart.umd.js"></script>
+    <script src="js/preload_reports.js"></script>
+    <script src="js/security.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/db.js"></script>
+
+    <script src="js/app.js"></script>
+    <style>
+        .notification-bell {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e11d48;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .notification-panel {
+            position: absolute;
+            top: 40px;
+            right: 0;
+            width: 350px;
+            max-height: 450px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+        }
+
+        .notification-header {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-list {
+            overflow-y: auto;
+            max-height: 350px;
+            padding: 10px;
+        }
+
+        .notification-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            border-left: 3px solid #0d9488;
+        }
+
+        .notification-item.read {
+            background: #f9fafb;
+            border-left-color: #e5e7eb;
+        }
+
+        .notification-item.unread {
+            background: #eff6ff;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Notification Bell -->
+    <div class="notification-bell" id="notification-bell" onclick="toggleUserNotifications()">
+        <span style="font-size: 24px;">🔔</span>
+        <span id="notification-badge" class="notification-badge">0</span>
+        <div id="notification-panel" class="notification-panel">
+            <div class="notification-header">
+                <h3 style="margin: 0; font-size: 16px;">Your Notifications</h3>
+                <button onclick="markAllUserNotificationsRead(event)"
+                    style="background: none; border: none; color: #0d9488; cursor: pointer; font-size: 12px;">Mark all
+                    read</button>
+            </div>
+            <div id="notification-list" class="notification-list"></div>
+        </div>
+    </div>
+
+    <div id="app"></div>
+
+    <script>
+        // Guard: Require Auth
+        AuthService.requireAuth();
+
+        function updateUserNotificationBell() {
+            const user = AuthService.getCurrentUser();
+            if (!user || !user.email) return;
+            const unreadCount = UserNotifications.getUnreadCount(user.email);
+            const badge = document.getElementById('notification-badge');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function toggleUserNotifications() {
+            const panel = document.getElementById('notification-panel');
+            panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'flex' : 'none';
+            if (panel.style.display === 'flex') renderUserNotifications();
+        }
+
+        function renderUserNotifications() {
+            const user = AuthService.getCurrentUser();
+            if (!user || !user.email) return;
+            const notifications = UserNotifications.getForUser(user.email);
+            const listContainer = document.getElementById('notification-list');
+            if (notifications.length === 0) {
+                listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;"><p>No notifications</p></div>';
+                return;
+            }
+            listContainer.innerHTML = notifications.slice(0, 20).map(n => `
+                <div onclick="markUserNotificationRead('${n.id}')" class="notification-item ${n.read ? 'read' : 'unread'}">
+                    <div style="display: flex; align-items: start; gap: 10px;">
+                        <span style="font-size: 20px;">⚠️</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: ${n.read ? 'normal' : 'bold'}; font-size: 14px; margin-bottom: 4px;">${n.title}</div>
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">${n.message}</div>
+                            <div style="font-size: 11px; color: #9ca3af;">${UserNotifications.getRelativeTime(n.timestamp)}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function markUserNotificationRead(notificationId) {
+            const user = AuthService.getCurrentUser();
+            if (!user || !user.email) return;
+            UserNotifications.markAsRead(user.email, notificationId);
+            updateUserNotificationBell();
+            renderUserNotifications();
+        }
+
+        function markAllUserNotificationsRead(event) {
+            event.stopPropagation();
+            const user = AuthService.getCurrentUser();
+            if (!user || !user.email) return;
+            UserNotifications.markAllAsRead(user.email);
+            updateUserNotificationBell();
+            renderUserNotifications();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            Components.renderLayout('app', 'dashboard', 'Statistik');
+            const user = AuthService.getCurrentUser();
+            App.initDashboard(user ? user.role : 'user');
+            updateUserNotificationBell();
+            document.addEventListener('click', (e) => {
+                const bell = document.getElementById('notification-bell');
+                const panel = document.getElementById('notification-panel');
+                if (bell && panel && !bell.contains(e.target)) panel.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+
+</html>

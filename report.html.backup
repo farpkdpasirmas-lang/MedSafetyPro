@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Error - MedSafety Pro</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/staff_data.js"></script>
+    <style>
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nested-group {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid #e2e8f0;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        AuthService.requireAuth();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            Components.renderLayout('app', 'report', 'Lapor Kesilapan Pengubatan');
+
+            const mainBody = document.getElementById('main-body');
+            const user = AuthService.getCurrentUser();
+
+            mainBody.innerHTML = `
+                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h2 style="font-size: 1.5rem; color: var(--color-text-main);">MEDICATION ERROR REPORTING FORM</h2>
+                        <p style="color: var(--color-text-muted);">PKD PASIR MAS</p>
+                    </div>
+
+                    <form id="report-form">
+                        <!-- Event Details -->
+                        <div class="form-section">
+                            <h3 class="section-title">Event Details</h3>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Date and Time of Event</label>
+                                <input type="datetime-local" id="event-date" class="input-field" required>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Facility where the medication error occurred</label>
+                                <select id="facility" class="input-field" required>
+                                    <option value="">Select Facility</option>
+                                    <option>KK Bandar Pasir Mas</option>
+                                    <option>KK Rantau Panjang</option>
+                                    <option>KK Meranti</option>
+                                    <option>KK Tendong</option>
+                                    <option>KK Kangkong</option>
+                                    <option>KK Chekok</option>
+                                    <option>KK To' Uban</option>
+                                    <option>KK Kasar</option>
+                                    <option>KK Gual Periok</option>
+                                    <option>KK Pangkal Kala</option>
+                                    <option>KK Sungai Keladi</option>
+                                    <option>KK Cherang Hangus</option>
+                                    <option>KK Baroh Pial</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Setting of Event</label>
+                                <select class="input-field" id="setting-select" required>
+                                    <option value="">Select Setting</option>
+                                    <option value="ae">A&E</option>
+                                    <option value="outpatient">Outpatient</option>
+                                    <option value="pharmacy">Pharmacy</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Error Detection</label>
+                                <select id="error-detection" class="input-field" required>
+                                    <option value="">Select Detection Method</option>
+                                    <option>Manual Prescription</option>
+                                    <option>ACM</option>
+                                    <option>CCMS</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Pharmacy Error Types -->
+                        <div id="pharmacy-errors" class="form-section hidden">
+                            <h3 class="section-title">Type of error in Pharmacy</h3>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Data Entry</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong drug"> Wrong drug</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong dose/ frequency/ dosage form"> Wrong dose/ frequency/ dosage form</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong patient's name"> Wrong patient's name</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Omission of drug"> Omission of drug</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Labelling</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong drug"> Wrong drug</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong dose/ frequency/ dosage form"> Wrong dose/ frequency/ dosage form</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong instruction"> Wrong instruction</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong patient's name"> Wrong patient's name</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Filling</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong drug"> Wrong drug</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong strength/ dosage form"> Wrong strength/ dosage form</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong quantity"> Wrong quantity</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Unfilled drug"> Unfilled drug</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clinic Error Types -->
+                        <div id="clinic-errors" class="form-section hidden">
+                            <h3 class="section-title">Type of error in Emergency and Outpatient Clinic</h3>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Incomplete Prescription</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Patient data"> Patient data</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Medication"> Medication</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Dose"> Dose</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Frequency"> Frequency</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Duration"> Duration</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Signature/Stamp/Proxy signature"> Signature/Stamp/Proxy signature</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Inappropriate Regimen</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Medication"> Medication</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Dose"> Dose</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Frequency"> Frequency</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Duration"> Duration</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Inappropriate Prescription</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Wrong patient"> Wrong patient</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Polypharmacy"> Polypharmacy</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Contraindications"> Contraindications</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Drug interactions"> Drug interactions</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Incompatibility"> Incompatibility</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Others</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Medication not in the list"> Medication not in the list</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Illegible handwriting"> Illegible handwriting</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Authenticity"> Authenticity</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Outcome & Staff -->
+                        <div class="form-section">
+                            <h3 class="section-title">Outcome & Responsibility</h3>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Error Outcome Category (NCC MERP 2001)</label>
+                                <div style="margin-bottom: 1rem;">
+                                    <img src="images/ncc_merp_category.jpg" alt="NCC MERP Category Reference" style="max-width: 100%; border-radius: var(--radius-md); border: 1px solid #e2e8f0;">
+                                </div>
+                                <select id="outcome-category" class="input-field" required>
+                                    <option value="">Select Category</option>
+                                    <optgroup label="No Error">
+                                        <option value="Category A">Category A - Potential error</option>
+                                    </optgroup>
+                                    <optgroup label="Error, No Harm">
+                                        <option value="Category B">Category B - Error did not reach patient</option>
+                                        <option value="Category C">Category C - Reached patient, no harm</option>
+                                        <option value="Category D">Category D - Reached patient, monitoring required</option>
+                                    </optgroup>
+                                    <optgroup label="Error, Harm">
+                                        <option value="Category E">Category E - Temporary harm, intervention required</option>
+                                        <option value="Category F">Category F - Temporary harm, hospitalization</option>
+                                        <option value="Category G">Category G - Permanent patient harm</option>
+                                        <option value="Category H">Category H - Intervention to sustain life</option>
+                                    </optgroup>
+                                    <optgroup label="Error, Death">
+                                        <option value="Category I">Category I - Patient death</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Which category made the error?</label>
+                                <select id="staff-category" class="input-field" required>
+                                    <option value="">Select Staff Category</option>
+                                    <option>Medical Specialist / FMS</option>
+                                    <option>Medical Officer (MO)</option>
+                                    <option>Assistant Medical Officer (MA)</option>
+                                    <option>Pharmacist (PF)</option>
+                                    <option>Assistant Pharmacist (PPF)</option>
+                                    <option>Provisionally Registered Pharmacist (PRP)</option>
+                                    <option>Nurse</option>
+                                    <option>Others</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Description & Details -->
+                        <div class="form-section">
+                            <h3 class="section-title">Description & Details</h3>
+                            
+                            <div style="margin-bottom: 1.5rem;">
+                                <label class="input-label" style="margin-bottom: 0.5rem; display: block;">Example of Summary Report</label>
+                                <img src="images/example_summary_report.jpg" alt="Example of Summary Report" style="max-width: 100%; border-radius: var(--radius-md); border: 1px solid #e2e8f0;">
+                            </div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Describe the error briefly</label>
+                                <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Include what happened, when it occurred, and any relevant work conditions.</p>
+                                <textarea id="error-description" class="input-field" rows="4" required></textarea>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Name of individual who made the error</label>
+                                <input type="text" id="staff-name" class="input-field" placeholder="Full Name" list="staff-list">
+                                <datalist id="staff-list"></datalist>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Email of individual who made the error</label>
+                                <input type="email" id="staff-email" class="input-field" placeholder="email@moh.gov.my">
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Prescription Image / Related Image</label>
+                                <input type="file" id="evidence-upload" class="input-field" accept="image/*">
+                                <div id="image-preview" style="margin-top: 1rem; display: none;">
+                                    <img src="" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: var(--radius-md); border: 1px solid #e2e8f0;">
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Reporter's Name</label>
+                                <input type="text" id="reporter-name" class="input-field" value="${user ? user.fullname : ''}" readonly style="background: #f1f5f9;">
+                            </div>
+                        </div>
+
+                        <div style="text-align: right;">
+                            <button type="submit" class="btn btn-primary">Submit Report</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            // Logic for showing/hiding error types
+            const settingSelect = document.getElementById('setting-select');
+            const pharmacyErrors = document.getElementById('pharmacy-errors');
+            const clinicErrors = document.getElementById('clinic-errors');
+
+            settingSelect.addEventListener('change', (e) => {
+                const value = e.target.value;
+
+                // Reset visibility
+                pharmacyErrors.classList.add('hidden');
+                clinicErrors.classList.add('hidden');
+
+                if (value === 'pharmacy') {
+                    pharmacyErrors.classList.remove('hidden');
+                } else if (value === 'ae' || value === 'outpatient') {
+                    clinicErrors.classList.remove('hidden');
+                }
+            });
+
+            // Image Preview Logic
+            outcome: document.getElementById('outcome-category').value,
+                staffCategory: document.getElementById('staff-category').value,
+                    description: document.getElementById('error-description').value,
+                        staffName: document.getElementById('staff-name').value,
+                            staffEmail: document.getElementById('staff-email').value,
+                                reporterName: document.getElementById('reporter-name').value,
+                                    pharmacyErrors: Array.from(document.querySelectorAll('input[name="pharmacy_err"]:checked')).map(el => el.value),
+                                        clinicErrors: Array.from(document.querySelectorAll('input[name="clinic_err"]:checked')).map(el => el.value),
+                                            hasImage: !!uploadedImageBase64
+        };
+
+        // 2. Save to LocalStorage
+        const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+        reports.push(reportData);
+        localStorage.setItem('medsafety_reports_db', JSON.stringify(reports));
+
+        // 3. Generate PDF
+        await generatePDF();
+
+        // 4. Simulate submission
+        setTimeout(() => {
+            alert('Report submitted successfully! PDF report downloaded.');
+            window.location.href = 'dashboard-reporter.html';
+        }, 1000);
+                });
+
+        async function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Gather Data
+            const date = document.getElementById('event-date').value;
+            const facility = document.getElementById('facility').value;
+            const setting = document.getElementById('setting-select').value;
+            const detection = document.getElementById('error-detection').value;
+            const outcome = document.getElementById('outcome-category').value;
+            const staffCategory = document.getElementById('staff-category').value;
+            const description = document.getElementById('error-description').value;
+            const staffName = document.getElementById('staff-name').value;
+            const staffEmail = document.getElementById('staff-email').value;
+            const reporterName = document.getElementById('reporter-name').value;
+
+            // Gather Errors
+            let errors = [];
+            document.querySelectorAll('input[name="pharmacy_err"]:checked').forEach(el => errors.push(el.value));
+            document.querySelectorAll('input[name="clinic_err"]:checked').forEach(el => errors.push(el.value));
+            const errorString = errors.length > 0 ? errors.join(', ') : 'None specified';
+
+            // Header
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("PHARMACY DIVISION", 105, 20, null, null, "center");
+            doc.text("PASIR MAS DISTRICT HEALTH OFFICE", 105, 27, null, null, "center");
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+
+            // Recipient Info
+            let yPos = 40;
+            doc.text(`To: Medical Officer In-Charge, ${facility}`, 20, yPos);
+            yPos += 7;
+            doc.text("From: District Health Pharmacist", 20, yPos);
+            yPos += 7;
+            doc.text(`Date: ${new Date().toLocaleString()}`, 20, yPos);
+            yPos += 10;
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Subject: Medication Error Report at PKD Pasir Mas Health Facility", 20, yPos);
+            yPos += 10;
+
+            doc.setFont("helvetica", "normal");
+            doc.text("With all due respect, I refer to the matter above.", 20, yPos);
+            yPos += 7;
+            doc.text(`2. Please be informed that a medication error has occurred at ${facility}.`, 20, yPos);
+            yPos += 7;
+            doc.text("The details of the report are as follows:", 20, yPos);
+            yPos += 10;
+
+            // Table
+            doc.autoTable({
+                startY: yPos,
+                head: [['Field', 'Details']],
+                body: [
+                    ['Unit Involved', setting.toUpperCase()],
+                    ['Clinic/Facility', facility],
+                    ['Date and Time', date],
+                    ['Error Detection', detection],
+                    ['Staff Involved', `${staffName} (${staffEmail})`],
+                    ['Staff Category', staffCategory],
+                    ['Outcome Category', outcome],
+                    ['Error Type', errorString]
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.1 },
+                bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.1 },
+                columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60 } }
+            });
+
+            yPos = doc.lastAutoTable.finalY + 10;
+
+            // Description
+            doc.setFont("helvetica", "bold");
+            doc.text("Summary of medication error report:", 20, yPos);
+            yPos += 7;
+            doc.setFont("helvetica", "normal");
+
+            const splitDescription = doc.splitTextToSize(description, 170);
+            doc.text(splitDescription, 20, yPos);
+            yPos += (splitDescription.length * 7) + 10;
+
+            // Image
+            if (uploadedImageBase64) {
+                // Check if we need a new page
+                if (yPos > 200) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                doc.setFont("helvetica", "bold");
+                doc.text("Prescription/Related Image:", 20, yPos);
+                yPos += 10;
+
+                try {
+                    doc.addImage(uploadedImageBase64, 'JPEG', 20, yPos, 100, 100, undefined, 'FAST');
+                    yPos += 110;
+                } catch (e) {
+                    console.error("Error adding image to PDF", e);
+                    doc.text("[Image could not be included]", 20, yPos);
+                    yPos += 10;
+                }
+            }
+
+            // Closing
+            if (yPos > 240) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            doc.text("3. In this regard, it is requested that your side emphasizes medication procedures", 20, yPos);
+            yPos += 5;
+            doc.text("to improve the quality of health services. Your cooperation and immediate action", 20, yPos);
+            yPos += 5;
+            doc.text("regarding this matter are highly appreciated.", 20, yPos);
+            yPos += 15;
+
+            doc.text("Thank you.", 20, yPos);
+            yPos += 15;
+
+            doc.text("I who carry out the trust,", 20, yPos);
+            yPos += 20;
+
+            doc.text("_______________________", 20, yPos);
+            yPos += 5;
+            doc.text(user ? user.fullname : "Reporter", 20, yPos);
+            yPos += 5;
+            doc.text("Reporter", 20, yPos);
+            yPos += 5;
+            doc.text(facility, 20, yPos);
+            yPos += 10;
+
+            doc.setFontSize(8);
+            doc.text("**This report is digitally generated, no signature is required.", 20, yPos);
+
+            doc.save('Medication_Error_Report.pdf');
+        }
+        });
+    </script>
+</body>
+
+</html>

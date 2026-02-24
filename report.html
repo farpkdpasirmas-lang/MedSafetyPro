@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Error - MedSafety Pro</title>
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+    <script src="js/security.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/staff_data.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/notifications.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <!-- App Data Layer -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/db.js"></script>
+
+    <!-- EmailJS SDK for Email Notifications -->
+    <!-- EmailJS SDK (Local) -->
+    <script src="js/vendor/email.min.js"></script>
+
+    <style>
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nested-group {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid #e2e8f0;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script src="js/vendor/jspdf.umd.min.js"></script>
+    <script src="js/vendor/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        // Initialize EmailJS safely
+        let emailJsAvailable = false;
+        try {
+            if (typeof emailjs !== 'undefined') {
+                emailjs.init({
+                    publicKey: "YOUR_PUBLIC_KEY",
+                });
+                emailJsAvailable = true;
+                console.log('EmailJS initialized successfully.');
+            } else {
+                console.warn('EmailJS library not loaded. Email notifications will be disabled.');
+            }
+        } catch (e) {
+            console.error('Error initializing EmailJS:', e);
+        }
+
+        // Global variable for image
+        let uploadedImageBase64 = null;
+
+        // Verify loaded dependencies
+        if (typeof AuthService === 'undefined') {
+            console.error('CRITICAL: AuthService not loaded. Check js/auth.js');
+            alert('System Error: Authentication service failed to load. Please refresh or contact support.');
+        } else {
+            AuthService.requireAuth();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof Components === 'undefined') {
+                console.error('CRITICAL: Components not loaded. Check js/components.js');
+                document.body.innerHTML = '<h1 style="color:red; padding: 20px;">System Error: Components failed to load.</h1>';
+                return;
+            }
+
+            Components.renderLayout('app', 'report', 'Lapor Kesilapan Pengubatan');
+
+            const mainBody = document.getElementById('main-body');
+            const user = AuthService ? AuthService.getCurrentUser() : null;
+
+            // Render Form HTML
+            mainBody.innerHTML = `
+                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h2 style="font-size: 1.5rem; color: var(--color-text-main);">MEDICATION ERROR REPORTING FORM</h2>
+                        <p style="color: var(--color-text-muted);">PKD PASIR MAS</p>
+                    </div>
+
+                    <form id="report-form">
+                        <!-- Event Details -->
+                        <div class="form-section">
+                            <h3 class="section-title">Event Details</h3>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Date and Time of Event</label>
+                                <input type="datetime-local" id="event-date" class="input-field" required>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Facility where the medication error occurred</label>
+                                <select id="facility" class="input-field" required>
+                                    <option value="">Select Facility</option>
+                                    <option>KK Bandar Pasir Mas</option>
+                                    <option>KK Rantau Panjang</option>
+                                    <option>KK Meranti</option>
+                                    <option>KK Tendong</option>
+                                    <option>KK Kangkong</option>
+                                    <option>KK Chekok</option>
+                                    <option>KK To' Uban</option>
+                                    <option>KK Kasar</option>
+                                    <option>KK Gual Periok</option>
+                                    <option>KK Pangkal Kala</option>
+                                    <option>KK Sungai Keladi</option>
+                                    <option>KK Cherang Hangus</option>
+                                    <option>KK Baroh Pial</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Setting of Event</label>
+                                <select class="input-field" id="setting-select" required>
+                                    <option value="">Select Setting</option>
+                                    <option value="ae">A&E</option>
+                                    <option value="outpatient">Outpatient</option>
+                                    <option value="pharmacy">Pharmacy</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Error Detection</label>
+                                <select id="error-detection" class="input-field" required>
+                                    <option value="">Select Detection Method</option>
+                                    <option>Manual Prescription</option>
+                                    <option>ACM</option>
+                                    <option>CCMS</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Pharmacy Error Types -->
+                        <div id="pharmacy-errors" class="form-section hidden">
+                            <h3 class="section-title">Type of error in Pharmacy</h3>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Data Entry</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong drug"> Wrong drug</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong dose/ frequency/ dosage form"> Wrong dose/ frequency/ dosage form</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong patient's name"> Wrong patient's name</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Omission of drug"> Omission of drug</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Labelling</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong drug"> Wrong drug</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong dose/ frequency/ dosage form"> Wrong dose/ frequency/ dosage form</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong instruction"> Wrong instruction</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong patient's name"> Wrong patient's name</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Filling</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong drug"> Wrong drug</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong strength/ dosage form"> Wrong strength/ dosage form</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Wrong quantity"> Wrong quantity</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="pharmacy_err" value="Unfilled drug"> Unfilled drug</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clinic Error Types -->
+                        <div id="clinic-errors" class="form-section hidden">
+                            <h3 class="section-title">Type of error in Emergency and Outpatient Clinic</h3>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Incomplete Prescription</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Patient data"> Patient data</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Medication"> Medication</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Dose"> Dose</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Frequency"> Frequency</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Duration"> Duration</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Signature/Stamp/Proxy signature"> Signature/Stamp/Proxy signature</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Inappropriate Regimen</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Medication"> Medication</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Dose"> Dose</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Frequency"> Frequency</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Duration"> Duration</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Inappropriate Prescription</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Wrong patient"> Wrong patient</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Polypharmacy"> Polypharmacy</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Contraindications"> Contraindications</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Drug interactions"> Drug interactions</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Incompatibility"> Incompatibility</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Others</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Medication not in the list"> Medication not in the list</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Illegible handwriting"> Illegible handwriting</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="clinic_err" value="Authenticity"> Authenticity</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Outcome & Staff -->
+                        <div class="form-section">
+                            <h3 class="section-title">Outcome & Responsibility</h3>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Error Outcome Category (NCC MERP 2001)</label>
+                                <div style="margin-bottom: 1rem;">
+                                    <img src="images/ncc_merp_category.jpg" alt="NCC MERP Category Reference" style="max-width: 100%; border-radius: var(--radius-md); border: 1px solid #e2e8f0;">
+                                </div>
+                                <select id="outcome-category" class="input-field" required>
+                                    <option value="">Select Category</option>
+                                    <optgroup label="No Error">
+                                        <option value="Category A">Category A - Potential error</option>
+                                    </optgroup>
+                                    <optgroup label="Error, No Harm">
+                                        <option value="Category B">Category B - Error did not reach patient</option>
+                                        <option value="Category C">Category C - Reached patient, no harm</option>
+                                        <option value="Category D">Category D - Reached patient, monitoring required</option>
+                                    </optgroup>
+                                    <optgroup label="Error, Harm">
+                                        <option value="Category E">Category E - Temporary harm, intervention required</option>
+                                        <option value="Category F">Category F - Temporary harm, hospitalization</option>
+                                        <option value="Category G">Category G - Permanent patient harm</option>
+                                        <option value="Category H">Category H - Intervention to sustain life</option>
+                                    </optgroup>
+                                    <optgroup label="Error, Death">
+                                        <option value="Category I">Category I - Patient death</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Which category made the error?</label>
+                                <select id="staff-category" class="input-field" required>
+                                    <option value="">Select Staff Category</option>
+                                    <option>Medical Specialist / FMS</option>
+                                    <option>Medical Officer (MO)</option>
+                                    <option>Assistant Medical Officer (MA)</option>
+                                    <option>Pharmacist (PF)</option>
+                                    <option>Assistant Pharmacist (PPF)</option>
+                                    <option>Provisionally Registered Pharmacist (PRP)</option>
+                                    <option>Nurse</option>
+                                    <option>Others</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Description & Details -->
+                        <div class="form-section">
+                            <h3 class="section-title">Description & Details</h3>
+                            
+                            <div style="margin-bottom: 1.5rem;">
+                                <label class="input-label" style="margin-bottom: 0.5rem; display: block;">Example of Summary Report</label>
+                                <img src="images/example_summary_report.jpg" alt="Example of Summary Report" style="max-width: 100%; border-radius: var(--radius-md); border: 1px solid #e2e8f0;">
+                            </div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Describe the error briefly</label>
+                                <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Include what happened, when it occurred, and any relevant work conditions.</p>
+                                <textarea id="error-description" class="input-field" rows="4" required></textarea>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Name of individual who made the error</label>
+                                <input type="text" id="staff-name" class="input-field" placeholder="Full Name" list="staff-list">
+                                <datalist id="staff-list"></datalist>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Email of individual who made the error</label>
+                                <input type="email" id="staff-email" class="input-field" placeholder="email@moh.gov.my">
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Prescription Image / Related Image</label>
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <input type="file" id="evidence-upload" class="input-field" accept="image/*" style="flex: 1;">
+                                    <button type="button" id="start-camera" class="btn btn-outline" style="display: flex; align-items: center; gap: 5px;">
+                                        <span>📷</span> Take Photo
+                                    </button>
+                                </div>
+
+                                <!-- Camera Interface -->
+                                <div id="camera-container" style="display: none; margin-top: 1rem; border: 1px solid #e2e8f0; padding: 0.5rem; border-radius: var(--radius-md);">
+                                    <video id="camera-feed" autoplay playsinline style="width: 100%; max-height: 400px; object-fit: cover; background: #000; border-radius: var(--radius-sm);"></video>
+                                    <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 0.5rem;">
+                                        <button type="button" id="capture-photo" class="btn btn-primary">Capture</button>
+                                        <button type="button" id="stop-camera" class="btn btn-outline">Cancel</button>
+                                    </div>
+                                    <canvas id="camera-canvas" style="display: none;"></canvas>
+                                </div>
+
+                                <div id="image-preview" style="margin-top: 1rem; display: none;">
+                                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem;">Selected Image:</p>
+                                    <img src="" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: var(--radius-md); border: 1px solid #e2e8f0;">
+                                    <button type="button" id="remove-image" class="btn btn-sm btn-outline" style="margin-top: 0.5rem; color: #ef4444; border-color: #ef4444;">Remove Image</button>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Reporter's Name</label>
+                                <input type="text" id="reporter-name" class="input-field" value="${user ? user.fullname : ''}" readonly style="background: #f1f5f9;">
+                            </div>
+                        </div>
+
+                        <div style="text-align: right;">
+                            <button type="submit" class="btn btn-primary">Submit Report</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            // Logic for showing/hiding error types
+            const settingSelect = document.getElementById('setting-select');
+            const pharmacyErrors = document.getElementById('pharmacy-errors');
+            const clinicErrors = document.getElementById('clinic-errors');
+
+            settingSelect.addEventListener('change', (e) => {
+                const value = e.target.value;
+
+                // Reset visibility
+                if (pharmacyErrors) pharmacyErrors.classList.add('hidden');
+                if (clinicErrors) clinicErrors.classList.add('hidden');
+
+                if (value === 'pharmacy') {
+                    if (pharmacyErrors) pharmacyErrors.classList.remove('hidden');
+                } else if (value === 'ae' || value === 'outpatient') {
+                    if (clinicErrors) clinicErrors.classList.remove('hidden');
+                }
+            });
+
+            // Image Handling Logic (File & Camera)
+            const imageInput = document.getElementById('evidence-upload');
+            const imagePreviewDiv = document.getElementById('image-preview');
+            const imagePreviewImg = imagePreviewDiv ? imagePreviewDiv.querySelector('img') : null;
+            const removeImageBtn = document.getElementById('remove-image');
+
+            const startCameraBtn = document.getElementById('start-camera');
+            const stopCameraBtn = document.getElementById('stop-camera');
+            const capturePhotoBtn = document.getElementById('capture-photo');
+            const cameraContainer = document.getElementById('camera-container');
+            const cameraFeed = document.getElementById('camera-feed');
+            const cameraCanvas = document.getElementById('camera-canvas');
+
+            let mediaStream = null;
+
+            // Helper: display image from base64
+            function displayImage(base64) {
+                uploadedImageBase64 = base64;
+                if (imagePreviewImg) imagePreviewImg.src = base64;
+                if (imagePreviewDiv) imagePreviewDiv.style.display = 'block';
+                // Hide camera UI if open
+                stopCameraStream();
+            }
+
+            // Helper: Clear image
+            function clearImage() {
+                uploadedImageBase64 = null;
+                if (imageInput) imageInput.value = ''; // Reset file input
+                if (imagePreviewDiv) imagePreviewDiv.style.display = 'none';
+                if (imagePreviewImg) imagePreviewImg.src = '';
+            }
+
+            if (removeImageBtn) {
+                removeImageBtn.addEventListener('click', clearImage);
+            }
+
+            // 1. File Input Handler
+            if (imageInput) {
+                imageInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            displayImage(e.target.result);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            // 2. Camera Handlers
+            if (startCameraBtn && cameraFeed) {
+                startCameraBtn.addEventListener('click', async () => {
+                    try {
+                        mediaStream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: 'environment' }
+                        });
+                        cameraFeed.srcObject = mediaStream;
+                        cameraContainer.style.display = 'block';
+                        imagePreviewDiv.style.display = 'none'; // Hide preview while taking new photo
+                    } catch (err) {
+                        console.error("Error accessing camera:", err);
+                        alert("Could not access camera. Please ensure you have granted permission.");
+                    }
+                });
+            }
+
+            function stopCameraStream() {
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                    mediaStream = null;
+                }
+                cameraFeed.srcObject = null;
+                cameraContainer.style.display = 'none';
+            }
+
+            if (stopCameraBtn) {
+                stopCameraBtn.addEventListener('click', stopCameraStream);
+            }
+
+            if (capturePhotoBtn && cameraCanvas) {
+                capturePhotoBtn.addEventListener('click', () => {
+                    if (!mediaStream) return;
+
+                    const context = cameraCanvas.getContext('2d');
+                    // Set canvas dimensions to match video stream
+                    cameraCanvas.width = cameraFeed.videoWidth;
+                    cameraCanvas.height = cameraFeed.videoHeight;
+
+                    // Draw video frame to canvas
+                    context.drawImage(cameraFeed, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+                    // Convert to base64
+                    const dataURL = cameraCanvas.toDataURL('image/jpeg', 0.8); // 0.8 quality
+                    displayImage(dataURL);
+                });
+            }
+
+            // Facility-based Staff Autocomplete Logic
+            const facilityInput = document.getElementById('facility');
+            const staffNameInput = document.getElementById('staff-name');
+            const staffDatalist = document.getElementById('staff-list');
+            const staffEmailInput = document.getElementById('staff-email');
+            const staffCategoryInput = document.getElementById('staff-category');
+
+            if (facilityInput && staffNameInput && staffDatalist && typeof STAFF_DATA !== 'undefined') {
+
+                let debounceTimer;
+
+                function checkAutoFill() {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const selectedFacility = facilityInput.value;
+                        const enteredName = staffNameInput.value.trim();
+                        const staffList = STAFF_DATA[selectedFacility] || [];
+
+                        if (!enteredName || !selectedFacility) return;
+
+                        // Try exact match first
+                        let matchedStaff = staffList.find(s => s.name === enteredName);
+
+                        // If no exact match, try case-insensitive
+                        if (!matchedStaff) {
+                            const enteredLower = enteredName.toLowerCase();
+                            matchedStaff = staffList.find(s => s.name.toLowerCase() === enteredLower);
+                        }
+
+                        if (matchedStaff) {
+                            staffEmailInput.value = matchedStaff.email || '';
+                            staffCategoryInput.value = matchedStaff.category || '';
+
+                            // Visual feedback
+                            if (matchedStaff.email) {
+                                staffEmailInput.style.backgroundColor = "#dcfce7"; // Green
+                                staffCategoryInput.style.backgroundColor = "#dcfce7";
+                                setTimeout(() => {
+                                    staffEmailInput.style.backgroundColor = "";
+                                    staffCategoryInput.style.backgroundColor = "";
+                                }, 1500);
+                            } else {
+                                staffEmailInput.style.backgroundColor = "#fef3c7"; // Yellow warning
+                                setTimeout(() => staffEmailInput.style.backgroundColor = "", 2000);
+                            }
+                        }
+                    }, 100); // Small delay to handle rapid events
+                }
+
+                // Update datalist when facility changes
+                facilityInput.addEventListener('change', () => {
+                    const selectedFacility = facilityInput.value;
+                    const staffList = STAFF_DATA[selectedFacility] || [];
+
+                    // Clear existing options
+                    staffDatalist.innerHTML = '';
+
+                    // Add new options
+                    staffList.forEach(staff => {
+                        const option = document.createElement('option');
+                        option.value = staff.name;
+                        staffDatalist.appendChild(option);
+                    });
+
+                    staffNameInput.value = '';
+                    staffEmailInput.value = '';
+                    staffCategoryInput.value = '';
+                });
+
+                // Trigger autofill on multiple events to catch all selection methods
+                staffNameInput.addEventListener('input', checkAutoFill);
+                staffNameInput.addEventListener('change', checkAutoFill);
+                staffNameInput.addEventListener('blur', checkAutoFill);
+
+                // Auto-select user's facility AFTER event listeners are attached
+                if (user && user.facility) {
+                    facilityInput.value = user.facility;
+                    // Trigger change event to populate staff list
+                    facilityInput.dispatchEvent(new Event('change'));
+                }
+            }
+
+
+            // Form Submission Handler
+            const form = document.getElementById('report-form');
+            if (form) {
+                console.log('Attaching submit listener to form');
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    console.log('Form submission started');
+
+                    // Rate limiting check (1 minute)
+                    if (typeof Security !== 'undefined' && !Security.checkRateLimit('report_submit', 60000)) {
+                        const waitTime = Security.getRateLimitWait('report_submit', 60000);
+                        UI.showToast(`Please wait ${waitTime} seconds before submitting another report.`, 'warning');
+                        return;
+                    }
+
+                    const submitBtn = document.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.textContent;
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting...';
+                    UI.showSpinner('Processing Report & Generating PDF...');
+
+                    try {
+                        // 1. Gather Data for Storage
+                        console.log('Gathering form data...');
+                        const formData = {
+                            id: Date.now().toString(),
+                            timestamp: new Date().toISOString(),
+                            date: document.getElementById('event-date').value,
+                            facility: document.getElementById('facility').value,
+                            setting: document.getElementById('setting-select').value,
+                            detection: document.getElementById('error-detection').value,
+                            outcome: document.getElementById('outcome-category').value,
+                            staffCategory: document.getElementById('staff-category').value,
+                            description: document.getElementById('error-description').value,
+                            staffName: document.getElementById('staff-name').value,
+                            staffEmail: document.getElementById('staff-email').value,
+                            reporterName: document.getElementById('reporter-name').value,
+                            pharmacyErrors: Array.from(document.querySelectorAll('input[name="pharmacy_err"]:checked')).map(el => el.value),
+                            clinicErrors: Array.from(document.querySelectorAll('input[name="clinic_err"]:checked')).map(el => el.value),
+                            hasImage: !!uploadedImageBase64
+                        };
+                        console.log('Form Data acquired:', formData);
+
+                        // 2. Save to Data Layer (Firebase or LocalStorage)
+                        await DB.saveReport(formData);
+                        console.log('Saved to DB');
+
+                        // 2.5. Create admin notification
+                        // 2.5. Create admin notification
+                        if (typeof AdminNotifications !== 'undefined') {
+                            const user = AuthService.getCurrentUser();
+                            const notificationMessage = `Reporter: ${user ? user.fullname : formData.reporterName} - Facility: ${formData.facility}`;
+                            AdminNotifications.create(
+                                'report',
+                                'New Medication Error Report',
+                                notificationMessage,
+                                formData.id
+                            );
+                        }
+
+                        // 2.6. Create notification for the REPORTED STAFF member
+                        if (typeof UserNotifications !== 'undefined' && formData.staffEmail) {
+                            UserNotifications.create(
+                                formData.staffEmail,
+                                'report_involved',
+                                'You have been mentioned in a report',
+                                `A medication error report involving you has been submitted. ID: ${formData.id}`,
+                                formData.id
+                            );
+                        }
+
+                        // 3. Send Email Notification via EmailJS (if available)
+                        if (emailJsAvailable) {
+                            try {
+                                const user = AuthService.getCurrentUser();
+                                const errorTypes = formData.setting === 'pharmacy' ?
+                                    formData.pharmacyErrors.join(', ') :
+                                    formData.clinicErrors.join(', ');
+
+                                const templateParams = {
+                                    to_email: formData.staffEmail, // Send to the reported staff member
+                                    report_id: formData.id,
+                                    reporter_name: user ? user.fullname : formData.reporterName,
+                                    reporter_email: user ? user.email : 'Not provided',
+                                    submission_date: new Date(formData.timestamp).toLocaleString('en-MY', {
+                                        dateStyle: 'full',
+                                        timeStyle: 'short'
+                                    }),
+                                    event_date: formData.date,
+                                    facility: formData.facility,
+                                    setting: formData.setting,
+                                    error_detection: formData.detection,
+                                    error_types: errorTypes || 'Not specified',
+                                    outcome: formData.outcome,
+                                    staff_name: formData.staffName,
+                                    staff_email: formData.staffEmail,
+                                    staff_category: formData.staffCategory,
+                                    description: formData.description,
+                                    has_image: formData.hasImage ? 'Yes' : 'No'
+                                };
+
+                                await emailjs.send(
+                                    "YOUR_SERVICE_ID", // Replace with real ID
+                                    "YOUR_TEMPLATE_ID", // Replace with real ID
+                                    templateParams
+                                );
+                                console.log('Email notification sent successfully to ' + formData.staffEmail);
+                            } catch (error) {
+                                console.error('Email sending failed:', error);
+                                // Non-blocking
+                            }
+                        }
+
+                        // 4. Generate PDF
+                        try {
+                            await generatePDF(formData);
+                            console.log('PDF generated successfully');
+                        } catch (pdfError) {
+                            console.error('PDF Generation failed:', pdfError);
+                            UI.showToast('Report saved, but PDF generation failed.', 'warning');
+                        }
+
+                        // 5. Show success message and redirect
+                        const emailStatus = emailJsAvailable ? ' Admin has been notified.' : '';
+                        UI.hideSpinner();
+                        UI.showToast('Report submitted successfully!' + emailStatus, 'success', 3000);
+
+                        window.location.href = 'dashboard.html';
+
+                    } catch (error) {
+                        console.error('Submission error:', error);
+                        UI.hideSpinner();
+                        UI.showToast('Error: ' + error.message, 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalBtnText;
+                    }
+                });
+            } else {
+                console.error('CRITICAL: Report form element not found!');
+            }
+        });
+
+        async function generatePDF(data) {
+            // Safe access to jsPDF
+            if (!window.jspdf) {
+                console.error('jsPDF not loaded');
+                throw new Error('PDF library not loaded');
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const user = AuthService ? AuthService.getCurrentUser() : null;
+
+            // Mapping data fields
+            const date = data.date;
+            const facility = data.facility;
+            const setting = data.setting;
+            const detection = data.detection;
+            const outcome = data.outcome;
+            const staffCategory = data.staffCategory;
+            const description = data.description;
+            const staffName = data.staffName;
+            const staffEmail = data.staffEmail;
+            const reporterName = data.reporterName;
+            const pharmacyErrors = data.pharmacyErrors || [];
+            const clinicErrors = data.clinicErrors || [];
+
+            const pharmacyErrorString = pharmacyErrors.length > 0 ? pharmacyErrors.join(', ') : '-';
+            const clinicErrorString = clinicErrors.length > 0 ? clinicErrors.join(', ') : '-';
+
+            // Fetch Logo Base64
+            const logoBase64 = await new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    // Resize canvas properly to avoid too large images if necessary, 
+                    // but we just need base64.
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                img.onerror = () => resolve(null);
+                img.src = 'images/logo.png';
+            });
+
+            // Header - Center Logo if loaded
+            if (logoBase64) {
+                // approximate Malaysia state logo ratio is slightly tall
+                doc.addImage(logoBase64, 'PNG', 95, 10, 20, 16);
+            }
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("BAHAGIAN FARMASI", 105, 33, null, null, "center");
+            doc.text("PEJABAT KESIHATAN DAERAH PASIR MAS", 105, 39, null, null, "center");
+
+            doc.setFontSize(10);
+
+            // Format dates
+            const objDate = new Date();
+            const pt1 = objDate.toLocaleDateString('en-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const pt2 = objDate.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const formattedDate = `${pt1} ${pt2}`;
+
+            // Metadata block
+            let yPos = 52;
+            doc.setFont("helvetica", "bold");
+            doc.text("Kepada", 20, yPos);
+            doc.setFont("helvetica", "normal");
+            doc.text(`: Pegawai Perubatan Y/M ${facility}`, 40, yPos);
+            yPos += 7;
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Daripada", 20, yPos);
+            doc.setFont("helvetica", "normal");
+            doc.text(": Pegawai Farmasi Kesihatan Daerah", 40, yPos);
+            yPos += 7;
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Tarikh", 20, yPos);
+            doc.setFont("helvetica", "normal");
+            doc.text(`: ${formattedDate}`, 40, yPos);
+            yPos += 7;
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Perkara", 20, yPos);
+            doc.setFont("helvetica", "normal");
+            doc.text(": Laporan Kesilapan Pengubatan di Fasiliti Kesihatan PKD Pasir Mas", 40, yPos);
+            yPos += 14;
+
+            // Salutation & Intro
+            doc.text("Dengan segala hormatnya saya diarah merujuk kepada perkara tersebut di atas.", 20, yPos);
+            yPos += 7;
+
+            const introText = doc.splitTextToSize(`2. Adalah dimaklumkan bahawa terdapat kesilapan pengubatan telah berlaku di ${facility}. Butiran laporan seperti berikut:`, 170);
+            doc.text(introText, 20, yPos);
+            yPos += (introText.length * 7) + 5;
+
+            // Format event date
+            let eventDateStr = date;
+            if (date) {
+                const edObj = new Date(date);
+                if (!isNaN(edObj)) {
+                    const ept1 = edObj.toLocaleDateString('en-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const ept2 = edObj.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                    eventDateStr = `${ept1} ${ept2}`;
+                }
+            }
+
+            // Table specific
+            let unitInvolved = "Kecemasan/OPD";
+            if (setting === 'pharmacy') unitInvolved = "Farmasi";
+
+            // Map outcomes and strings
+            doc.autoTable({
+                startY: yPos,
+                body: [
+                    ['Unit yang terlibat', unitInvolved],
+                    ['Klinik', facility],
+                    ['Tarikh dan Masa Kejadian', eventDateStr],
+                    ['Pengesanan Kesilapan', detection || '-'],
+                    ['Nama individu yang membuat kesilapan pengubatan', `${staffName}\n${staffEmail}`],
+                    ['Kategori kesilapan pengubatan', outcome || '-'],
+                    ['Jenis kesilapan pengubatan (Kecemasan/OPD)', clinicErrorString],
+                    ['Jenis kesilapan pengubatan (Farmasi)', pharmacyErrorString]
+                ],
+                theme: 'grid',
+                margin: { left: 20, right: 20 },
+                bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.1, textColor: [0, 0, 0] },
+                columnStyles: { 0: { cellWidth: 70 } },
+                styles: { font: 'helvetica', fontSize: 10 }
+            });
+
+            yPos = doc.lastAutoTable.finalY + 10;
+
+            // Summary
+            doc.setFont("helvetica", "bold");
+            doc.text("Ringkasan laporan kesilapan pengubatan:", 20, yPos);
+            yPos += 7;
+            doc.setFont("helvetica", "normal");
+
+            const splitDescription = doc.splitTextToSize(description || '-', 170);
+            doc.text(splitDescription, 20, yPos);
+            yPos += (splitDescription.length * 7) + 10;
+
+            // Image
+            doc.setFont("helvetica", "bold");
+            doc.text("Gambar preskripsi/ gambar berkaitan yang menunjukkan kesilapan pengubatan", 20, yPos);
+            yPos += 10;
+
+            if (data.hasImage && uploadedImageBase64) {
+                // Check if we need a new page
+                if (yPos > 180) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                try {
+                    doc.addImage(uploadedImageBase64, 'JPEG', 20, yPos, 140, 100, undefined, 'FAST');
+                    yPos += 110;
+                } catch (e) {
+                    console.error("Error adding image to PDF", e);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("[Gambar tidak dapat disertakan]", 20, yPos);
+                    yPos += 10;
+                }
+            } else {
+                yPos += 10;
+            }
+
+            // Conclusion
+            if (yPos > 210) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            const concText = doc.splitTextToSize("3. Sehubungan itu, mohon pihak tuan/puan menitikberatkan prosedur pengubatan supaya dapat meningkatkan lagi mutu perkhidmatan kesihatan. Segala kerjasama dan tindakan segera dari pihak tuan/puan berhubung perkara ini amatlah dihargai.", 170);
+            doc.setFont("helvetica", "normal");
+            doc.text(concText, 20, yPos);
+            yPos += (concText.length * 4) + 10;
+
+            doc.text("Sekian, terima kasih.", 20, yPos);
+            yPos += 15;
+
+            doc.text("Saya yang menjalankan amanah.", 20, yPos);
+            yPos += 25;
+
+            doc.text(user ? user.fullname : (reporterName || "Pegawai Farmasi"), 20, yPos);
+            yPos += 5;
+            doc.text("Pegawai Farmasi", 20, yPos);
+            yPos += 5;
+            doc.text(facility, 20, yPos);
+            yPos += 10;
+
+            doc.text("b.p Pegawai Farmasi Kesihatan Daerah, PKD Pasir Mas.", 20, yPos);
+            yPos += 15;
+
+            doc.setFontSize(8);
+            doc.text("**laporan dijana secara digital, tandatangan tidak diperlukan.", 20, yPos);
+
+            doc.save('Laporan_Kesilapan_Pengubatan.pdf');
+        }
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - MedSafety Pro</title>
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com;">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/db.js"></script>
+
+    <script src="js/security.js"></script>
+    <script src="js/auth.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--color-bg-body) 0%, #e0f2f1 100%);
+            padding: 1rem;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--color-primary);
+        }
+
+        .auth-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+        }
+
+        .auth-footer a {
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .error-message {
+            color: var(--color-accent);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            display: none;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .role-option {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .role-option.active {
+            border-color: var(--color-primary);
+            background-color: var(--color-primary-light);
+            color: var(--color-primary-dark);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-card">
+        <h1 class="brand">MedSafety Pro</h1>
+        <h2 style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--color-text-main);">Create
+            Account</h2>
+
+        <div id="error-msg" class="error-message"></div>
+
+        <form id="register-form">
+            <div class="input-group">
+                <label class="input-label" for="fullname">Full Name</label>
+                <input type="text" id="fullname" class="input-field" placeholder="John Doe" required>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="email">Email Address</label>
+                <input type="email" id="email" class="input-field" placeholder="name@example.com" required>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="password">Password</label>
+                <input type="password" id="password" class="input-field" placeholder="••••••••" required>
+            </div>
+
+            <input type="hidden" id="role" value="reporter">
+
+            <div class="input-group">
+                <label class="input-label" for="facility">My Facility</label>
+                <select id="facility" class="input-field" required>
+                    <option value="">Select Your Facility</option>
+                    <option value="KK Bandar Pasir Mas">KK Bandar Pasir Mas</option>
+                    <option value="KK Rantau Panjang">KK Rantau Panjang</option>
+                    <option value="KK Meranti">KK Meranti</option>
+                    <option value="KK Tendong">KK Tendong</option>
+                    <option value="KK Kangkong">KK Kangkong</option>
+                    <option value="KK Chekok">KK Chekok</option>
+                    <option value="KK To' Uban">KK To' Uban</option>
+                    <option value="KK Kasar">KK Kasar</option>
+                    <option value="KK Gual Periok">KK Gual Periok</option>
+                    <option value="KK Pangkal Kala">KK Pangkal Kala</option>
+                    <option value="KK Sungai Keladi">KK Sungai Keladi</option>
+                    <option value="KK Cherang Hangus">KK Cherang Hangus</option>
+                    <option value="KK Baroh Pial">KK Baroh Pial</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;" id="register-btn">Register</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="login.html">Login</a>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        AuthService.redirectIfAuthenticated();
+
+        const registerForm = document.getElementById('register-form');
+        const errorMsg = document.getElementById('error-msg');
+        const roleInput = document.getElementById('role');
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('register-btn');
+            btn.textContent = 'Registering...';
+            btn.disabled = true;
+
+            const fullname = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = roleInput.value;
+            const facility = document.getElementById('facility').value;
+
+            try {
+                const result = await AuthService.register({
+                    fullname,
+                    email,
+                    password,
+                    role,
+                    facility
+                });
+
+                if (result.success) {
+                    AuthService.redirectIfAuthenticated();
+                } else {
+                    errorMsg.textContent = result.message;
+                    errorMsg.style.display = 'block';
+                    btn.textContent = 'Register';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                errorMsg.textContent = 'An error occurred during registration.';
+                errorMsg.style.display = 'block';
+                btn.textContent = 'Register';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

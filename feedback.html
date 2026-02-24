@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maklumbalas - MedSafety Pro</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Medication Error Reporting System for PKD Pasir Mas">
+    <meta name="theme-color" content="#0d9488">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
+
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+    <script src="js/components.js"></script>
+
+    <!-- Admin Notifications -->
+    <script src="js/notifications.js"></script>
+
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script>
+        AuthService.requireAuth();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            Components.renderLayout('app', 'feedback', 'Maklumbalas');
+
+            const mainBody = document.getElementById('main-body');
+
+            mainBody.innerHTML = `
+                <div class="card">
+                    <h2 style="margin-bottom: 1.5rem; color: var(--color-text-main);">Factors Contributing to Error</h2>
+                    <p style="color: var(--color-text-muted); margin-bottom: 2rem;">
+                        Please tick the relevant factors and provide a simple explanation for each selected factor.
+                    </p>
+
+                    <form id="feedback-form" style="display: flex; flex-direction: column; gap: 2rem;">
+                        
+                        <!-- Staff Factor -->
+                        <div class="factor-section">
+                            <label class="factor-checkbox">
+                                <input type="checkbox" name="factor" value="staff" onchange="toggleExplanation('staff')">
+                                <span class="factor-label">Staff Factor</span>
+                            </label>
+                            <div id="staff-explanation" class="explanation-box" style="display: none;">
+                                <label for="staff-text">Explanation:</label>
+                                <textarea id="staff-text" name="staff-explanation" rows="3" placeholder="Provide a simple explanation about staff-related factors..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Medication Related -->
+                        <div class="factor-section">
+                            <label class="factor-checkbox">
+                                <input type="checkbox" name="factor" value="medication" onchange="toggleExplanation('medication')">
+                                <span class="factor-label">Medication Related</span>
+                            </label>
+                            <div id="medication-explanation" class="explanation-box" style="display: none;">
+                                <label for="medication-text">Explanation:</label>
+                                <textarea id="medication-text" name="medication-explanation" rows="3" placeholder="Provide a simple explanation about medication-related factors..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Task & Technology -->
+                        <div class="factor-section">
+                            <label class="factor-checkbox">
+                                <input type="checkbox" name="factor" value="task" onchange="toggleExplanation('task')">
+                                <span class="factor-label">Task & Technology</span>
+                            </label>
+                            <div id="task-explanation" class="explanation-box" style="display: none;">
+                                <label for="task-text">Explanation:</label>
+                                <textarea id="task-text" name="task-explanation" rows="3" placeholder="Provide a simple explanation about task and technology-related factors..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Work Environment -->
+                        <div class="factor-section">
+                            <label class="factor-checkbox">
+                                <input type="checkbox" name="factor" value="environment" onchange="toggleExplanation('environment')">
+                                <span class="factor-label">Work Environment</span>
+                            </label>
+                            <div id="environment-explanation" class="explanation-box" style="display: none;">
+                                <label for="environment-text">Explanation:</label>
+                                <textarea id="environment-text" name="environment-explanation" rows="3" placeholder="Provide a simple explanation about work environment-related factors..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Team Factors -->
+                        <div class="factor-section">
+                            <label class="factor-checkbox">
+                                <input type="checkbox" name="factor" value="team" onchange="toggleExplanation('team')">
+                                <span class="factor-label">Team Factors</span>
+                            </label>
+                            <div id="team-explanation" class="explanation-box" style="display: none;">
+                                <label for="team-text">Explanation:</label>
+                                <textarea id="team-text" name="team-explanation" rows="3" placeholder="Provide a simple explanation about team-related factors..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Others -->
+                        <div class="factor-section">
+                            <label class="factor-checkbox">
+                                <input type="checkbox" name="factor" value="others" onchange="toggleExplanation('others')">
+                                <span class="factor-label">Others</span>
+                            </label>
+                            <div id="others-explanation" class="explanation-box" style="display: none;">
+                                <label for="others-text">Explanation:</label>
+                                <textarea id="others-text" name="others-explanation" rows="3" placeholder="Provide a simple explanation about other contributing factors..."></textarea>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                            <button type="reset" class="btn btn-outline" onclick="resetForm()">Reset</button>
+                        </div>
+                    </form>
+                </div>
+
+                <style>
+                    .factor-section {
+                        padding: 1.5rem;
+                        background: #f8fafc;
+                        border-radius: var(--radius-md);
+                        border-left: 4px solid var(--color-primary);
+                    }
+
+                    .factor-checkbox {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        cursor: pointer;
+                        font-size: 1rem;
+                    }
+
+                    .factor-checkbox input[type="checkbox"] {
+                        width: 20px;
+                        height: 20px;
+                        cursor: pointer;
+                    }
+
+                    .factor-label {
+                        font-weight: 600;
+                        color: var(--color-text-main);
+                        font-size: 1.1rem;
+                    }
+
+                    .explanation-box {
+                        margin-top: 1rem;
+                        padding: 1rem;
+                        background: white;
+                        border-radius: var(--radius-md);
+                        border: 1px solid #e2e8f0;
+                    }
+
+                    .explanation-box label {
+                        display: block;
+                        font-weight: 500;
+                        color: var(--color-text-main);
+                        margin-bottom: 0.5rem;
+                    }
+
+                    .explanation-box textarea {
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 1px solid #e2e8f0;
+                        border-radius: var(--radius-md);
+                        font-family: inherit;
+                        font-size: 0.875rem;
+                        resize: vertical;
+                        transition: border-color 0.2s;
+                    }
+
+                    .explanation-box textarea:focus {
+                        outline: none;
+                        border-color: var(--color-primary);
+                    }
+                </style>
+            `;
+
+            // ============= EmailJS Configuration =============
+            // IMPORTANT: Replace these with your actual EmailJS credentials
+            // See EMAILJS_SETUP.md for detailed setup instructions
+            const EMAILJS_CONFIG = {
+                publicKey: 'YOUR_PUBLIC_KEY',      // Replace with your Public Key from EmailJS dashboard
+                serviceId: 'YOUR_SERVICE_ID',      // Replace with your Service ID
+                templateId: 'YOUR_TEMPLATE_ID'     // Replace with your Template ID
+            };
+
+            // Initialize EmailJS
+            if (typeof emailjs !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+                emailjs.init(EMAILJS_CONFIG.publicKey);
+            }
+
+            // Form submission handler
+            document.getElementById('feedback-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const currentUser = AuthService.getCurrentUser();
+                const formData = {
+                    id: Date.now().toString(),
+                    submittedBy: currentUser.fullname,
+                    submittedEmail: currentUser.email,
+                    submittedAt: new Date().toISOString(),
+                    factors: []
+                };
+
+                // Collect checked factors and their explanations
+                const checkboxes = document.querySelectorAll('input[name="factor"]:checked');
+                checkboxes.forEach(checkbox => {
+                    const factorType = checkbox.value;
+                    const explanation = document.getElementById(`${factorType}-text`).value;
+
+                    formData.factors.push({
+                        type: factorType,
+                        label: checkbox.nextElementSibling.textContent,
+                        explanation: explanation
+                    });
+                });
+
+                if (formData.factors.length === 0) {
+                    alert('Please select at least one contributing factor.');
+                    return;
+                }
+
+                // Validate that all selected factors have explanations
+                const missingExplanation = formData.factors.find(f => !f.explanation.trim());
+                if (missingExplanation) {
+                    alert(`Please provide an explanation for ${missingExplanation.label}.`);
+                    return;
+                }
+
+                // Save to localStorage
+                const feedbacks = JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
+                feedbacks.push(formData);
+                localStorage.setItem('medsafety_feedback_db', JSON.stringify(feedbacks));
+
+                // Send email notification via EmailJS
+                if (typeof emailjs !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+                    try {
+                        // Prepare email template parameters
+                        const factorsList = formData.factors.map(f => f.label).join(', ');
+                        const templateParams = {
+                            user_name: formData.submittedBy,
+                            user_email: formData.submittedEmail || 'Not provided',
+                            submission_date: new Date(formData.submittedAt).toLocaleString('en-MY', {
+                                dateStyle: 'full',
+                                timeStyle: 'short'
+                            }),
+                            factors_list: factorsList,
+                            staff_explanation: '',
+                            medication_explanation: '',
+                            task_explanation: '',
+                            environment_explanation: '',
+                            team_explanation: '',
+                            others_explanation: ''
+                        };
+
+                        // Add explanations for selected factors
+                        formData.factors.forEach(factor => {
+                            switch (factor.type) {
+                                case 'staff':
+                                    templateParams.staff_explanation = factor.explanation;
+                                    break;
+                                case 'medication':
+                                    templateParams.medication_explanation = factor.explanation;
+                                    break;
+                                case 'task':
+                                    templateParams.task_explanation = factor.explanation;
+                                    break;
+                                case 'environment':
+                                    templateParams.environment_explanation = factor.explanation;
+                                    break;
+                                case 'team':
+                                    templateParams.team_explanation = factor.explanation;
+                                    break;
+                                case 'others':
+                                    templateParams.others_explanation = factor.explanation;
+                                    break;
+                            }
+                        });
+
+                        // Send email
+                        await emailjs.send(
+                            EMAILJS_CONFIG.serviceId,
+                            EMAILJS_CONFIG.templateId,
+                            templateParams
+                        );
+
+                        alert('Feedback submitted successfully! Admin has been notified via email.');
+                    } catch (error) {
+                        console.error('Email sending failed:', error);
+                        alert('Feedback submitted successfully! However, email notification failed. Please contact admin directly.');
+                    }
+                } else {
+                    // EmailJS not configured
+                    if (EMAILJS_CONFIG.publicKey === 'YOUR_PUBLIC_KEY') {
+                        console.warn('EmailJS not configured. Please update EMAILJS_CONFIG in feedback.html');
+                        alert('Feedback submitted successfully! (Email notifications not configured)');
+                    } else {
+                        alert('Feedback submitted successfully!');
+                    }
+                }
+
+                document.getElementById('feedback-form').reset();
+                resetForm();
+            });
+        });
+
+        function toggleExplanation(factorType) {
+            const explanationBox = document.getElementById(`${factorType}-explanation`);
+            const checkbox = document.querySelector(`input[value="${factorType}"]`);
+
+            if (checkbox.checked) {
+                explanationBox.style.display = 'block';
+            } else {
+                explanationBox.style.display = 'none';
+                document.getElementById(`${factorType}-text`).value = '';
+            }
+        }
+
+        function resetForm() {
+            // Hide all explanation boxes
+            const explanationBoxes = document.querySelectorAll('.explanation-box');
+            explanationBoxes.forEach(box => {
+                box.style.display = 'none';
+            });
+        }
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

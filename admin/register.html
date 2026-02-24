@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Register - MedSafety Pro</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Admin Registration - Medication Error Reporting System for PKD Pasir Mas">
+    <meta name="theme-color" content="#e11d48">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
+
+    <link rel="stylesheet" href="../css/style.css">
+
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com;">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/db.js"></script>
+
+    <script src="../js/security.js"></script>
+    <script src="../js/auth.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--color-bg-body) 0%, #e0f2f1 100%);
+            padding: 1rem;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-lg);
+            border-top: 4px solid #e11d48;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #e11d48;
+        }
+
+        .auth-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+        }
+
+        .auth-footer a {
+            color: #e11d48;
+            font-weight: 600;
+        }
+
+        .error-message {
+            color: var(--color-accent);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-card">
+        <h1 class="brand">MedSafety Admin</h1>
+        <h2 style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--color-text-main);">Create
+            Admin Account</h2>
+
+        <div id="error-msg" class="error-message"></div>
+
+        <div id="admin-slots"
+            style="margin-bottom: 1.5rem; padding: 1rem; background: #f0fdf4; border: 2px solid #86efac; border-radius: 8px; text-align: center;">
+            <div style="font-size: 0.875rem; color: #166534; font-weight: 600; margin-bottom: 0.5rem;">Admin
+                Registration Slots</div>
+            <div id="slots-indicator" style="display: flex; gap: 0.5rem; justify-content: center;"></div>
+            <div id="slots-text" style="margin-top: 0.5rem; font-size: 0.75rem; color: #15803d;"></div>
+        </div>
+
+        <form id="register-form">
+            <div class="input-group">
+                <label class="input-label" for="fullname">Full Name</label>
+                <input type="text" id="fullname" class="input-field" placeholder="Admin Name" required>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="email">Email Address</label>
+                <input type="email" id="email" class="input-field" placeholder="admin@example.com" required>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="password">Password</label>
+                <input type="password" id="password" class="input-field" placeholder="••••••••" required>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Role</label>
+                <div
+                    style="padding: 0.75rem; background: #e0e7ff; color: #4338ca; border-radius: var(--radius-md); text-align: center; font-weight: 600;">
+                    ADMINISTRATOR
+                </div>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; background-color: #e11d48; color: white;">Register
+                Admin</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="login.html">Login Here</a>
+        </div>
+    </div>
+
+    <script>
+        // Set base path for admin pages
+        AuthService.setBasePath('../');
+
+        // Check if already logged in
+        AuthService.redirectIfAuthenticated();
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', updateAdminSlots);
+
+        // Update admin slots indicator
+        async function updateAdminSlots() {
+            const adminCount = await AuthService.getAdminCount();
+            const slotsIndicator = document.getElementById('slots-indicator');
+            const slotsText = document.getElementById('slots-text');
+            const adminSlotsContainer = document.getElementById('admin-slots');
+            const submitBtn = document.querySelector('#register-form button');
+
+            // Clear previous indicators
+            slotsIndicator.innerHTML = '';
+
+            // Create 3 slot indicators
+            for (let i = 0; i < 3; i++) {
+                const slot = document.createElement('div');
+                slot.style.cssText = 'width: 50px; height: 50px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; transition: all 0.3s ease;';
+
+                if (i < adminCount) {
+                    // Filled slot
+                    slot.style.background = '#dc2626';
+                    slot.style.color = 'white';
+                    slot.textContent = '✓';
+                } else {
+                    // Available slot
+                    slot.style.background = '#fee2e2';
+                    slot.style.color = '#dc2626';
+                    slot.style.border = '2px dashed #dc2626';
+                    slot.textContent = i + 1;
+                }
+
+                slotsIndicator.appendChild(slot);
+            }
+
+            // Update text
+            const remainingSlots = 3 - adminCount;
+            if (remainingSlots > 0) {
+                slotsText.textContent = `${remainingSlots} slot(s) available`;
+                slotsText.style.color = '#15803d';
+                adminSlotsContainer.style.background = '#f0fdf4';
+                adminSlotsContainer.style.borderColor = '#86efac';
+            } else {
+                slotsText.textContent = 'All admin slots are filled';
+                slotsText.style.color = '#991b1b';
+                adminSlotsContainer.style.background = '#fee2e2';
+                adminSlotsContainer.style.borderColor = '#fca5a5';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+        }
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = registerForm.querySelector('button');
+            const originalText = btn.textContent;
+            const errorMsg = document.getElementById('error-msg');
+
+            // Check if admin limit reached (maximum 3 admins)
+            const canRegister = await AuthService.canRegisterAdmin();
+
+            if (!canRegister) {
+                errorMsg.textContent = '⚠️ Admin registration limit reached. Maximum 3 administrators allowed.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Show loading state
+            btn.textContent = 'Creating Admin Account...';
+            btn.disabled = true;
+            errorMsg.style.display = 'none';
+
+            const fullname = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = 'admin'; // Hardcoded role
+
+            try {
+                const result = await AuthService.register({
+                    fullname,
+                    email,
+                    password,
+                    role
+                });
+
+                if (result.success) {
+                    // Show success message briefly before redirect
+                    btn.textContent = '✓ Admin Account Created!';
+                    btn.style.background = '#10b981';
+                    setTimeout(() => {
+                        window.location.href = '../admin/index.html';
+                    }, 500);
+                } else {
+                    errorMsg.textContent = result.message;
+                    errorMsg.style.display = 'block';
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error('Registration error:', err);
+                errorMsg.textContent = 'An error occurred during registration.';
+                errorMsg.style.display = 'block';
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then((registration) => {
+                        console.log('Admin ServiceWorker registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('Admin ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

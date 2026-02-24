@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sheet Generator - MedSafety Pro</title>
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        .test-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .test-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .test-table th,
+        .test-table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .test-table th {
+            background-color: #f8fafc;
+            color: var(--color-text-main);
+            font-weight: 600;
+        }
+
+        .badge-category {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .cat-auth {
+            background-color: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .cat-pwa {
+            background-color: #f0fdf4;
+            color: #16a34a;
+        }
+
+        .cat-report {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .cat-admin {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-download {
+            background-color: var(--color-primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-download:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-container">
+        <div class="header-actions">
+            <div>
+                <h1>UAT Test Sheet</h1>
+                <p style="color: var(--color-text-muted);">MedSafety Pro - Acceptance Testing Checklist</p>
+            </div>
+            <button onclick="generatePDF('download')" class="btn-download">
+                <span>📄</span> Download PDF
+            </button>
+            <button onclick="generatePDF('preview')" class="btn-download"
+                style="background-color: #64748b; margin-left: 0.5rem;">
+                <span>👁️</span> Preview
+            </button>
+        </div>
+
+        <div id="preview-area">
+            <!-- Table will be populated here for preview -->
+        </div>
+        <div id="debug-log" style="margin-top: 1rem; color: red; font-family: monospace; white-space: pre-wrap;"></div>
+    </div>
+
+    <script>
+        const TEST_CASES = [
+            { id: "TC-01", category: "Authentication", feature: "User Registration", steps: "1. Navigate to Register page\n2. Fill all details\n3. Select facility\n4. Submit", expected: "Account created, redirects to User Dashboard" },
+            { id: "TC-02", category: "Authentication", feature: "User Login", steps: "1. Enter valid email/pass\n2. Click Login", expected: "Redirects to User Dashboard" },
+            { id: "TC-03", category: "Authentication", feature: "Admin Login", steps: "1. Go to Admin Portal\n2. Enter Admin credentials", expected: "Redirects to distinct Admin Dashboard" },
+
+            { id: "TC-04", category: "PWA System", feature: "Main App Install", steps: "1. Open in browser\n2. Click 'Install MedSafety Pro'", expected: "Installs with Teal Icon, opens standalone" },
+            { id: "TC-05", category: "PWA System", feature: "Admin App Install", steps: "1. Go to /admin/\n2. Click 'Install MedSafety Admin'", expected: "Installs with Red Icon, distinct app entry" },
+
+            { id: "TC-06", category: "Reporting", feature: "Staff Autocomplete", steps: "1. Select Facility\n2. Type Staff Name", expected: "Shows filtered suggestions, auto-fills email" },
+            { id: "TC-07", category: "Reporting", feature: "Dynamic Error Form", steps: "1. Select 'Pharmacy' setting\n2. Select 'Outpatient' setting", expected: "Shows Pharmacy checkboxes\nShows Clinic checkboxes" },
+            { id: "TC-08", category: "Reporting", feature: "Submit Report", steps: "1. Fill all required fields\n2. Submit", expected: "Success alert, PDF report downloads automatically" },
+
+            { id: "TC-09", category: "Admin", feature: "Dashboard Stats", steps: "1. Login as Admin\n2. Check charts", expected: "Charts reflect real data from DB" },
+            { id: "TC-10", category: "Admin", feature: "View Reports", steps: "1. Check 'Jadual Am'\n2. Verify recent report", expected: "Report details match submission" }
+        ];
+
+        // Render Preview
+        function renderPreview() {
+            const table = document.createElement('table');
+            table.className = 'test-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th style="width: 120px;">Category</th>
+                        <th style="width: 150px;">Feature</th>
+                        <th>Test Steps</th>
+                        <th>Expected Result</th>
+                        <th style="width: 60px;">Pass?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${TEST_CASES.map(tc => {
+                let catClass = 'cat-auth';
+                if (tc.category.includes('PWA')) catClass = 'cat-pwa';
+                if (tc.category.includes('Reporting')) catClass = 'cat-report';
+                if (tc.category.includes('Admin')) catClass = 'cat-admin';
+
+                return `
+                        <tr>
+                            <td><strong>${tc.id}</strong></td>
+                            <td><span class="badge-category ${catClass}">${tc.category}</span></td>
+                            <td>${tc.feature}</td>
+                            <td style="white-space: pre-line;">${tc.steps}</td>
+                            <td style="white-space: pre-line;">${tc.expected}</td>
+                            <td style="text-align: center;"><div style="width: 20px; height: 20px; border: 1px solid #ccc; margin: 0 auto;"></div></td>
+                        </tr>
+                        `
+            }).join('')}
+                </tbody>
+            `;
+            document.getElementById('preview-area').appendChild(table);
+        }
+
+        // Generate PDF
+        async function generatePDF(action = 'download') {
+            const debugLog = document.getElementById('debug-log');
+            debugLog.innerText = `Initializing PDF generation (${action})...`;
+
+            try {
+                if (!window.jspdf) throw new Error("jsPDF library not loaded");
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: "landscape" });
+                debugLog.innerText += "\nDoc created...";
+
+                // Header
+                doc.setFontSize(20);
+                doc.text("MedSafety Pro - User Acceptance Test (UAT)", 14, 22);
+
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+                doc.text("Tester Name: __________________________", 140, 30);
+                doc.setTextColor(0);
+
+                debugLog.innerText += "\nHeader added...";
+
+                // Table
+                const headings = [['ID', 'Category', 'Feature', 'Test Steps', 'Expected Result', 'Status']];
+                const data = TEST_CASES.map(tc => [
+                    tc.id,
+                    tc.category,
+                    tc.feature,
+                    tc.steps,
+                    tc.expected,
+                    '' // For manual tick mark
+                ]);
+
+                debugLog.innerText += "\nGenerating table...";
+
+                doc.autoTable({
+                    head: headings,
+                    body: data,
+                    startY: 40,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [13, 148, 136], // Teal theme
+                        textColor: 255,
+                        fontSize: 10
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 15, fontStyle: 'bold' },
+                        1: { cellWidth: 25 },
+                        2: { cellWidth: 30 },
+                        3: { cellWidth: 50 },
+                        4: { cellWidth: 50 },
+                        5: { cellWidth: 15 }
+                    },
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 3,
+                        overflow: 'linebreak'
+                    },
+                    didDrawCell: function (data) {
+                        // Draw checkbox in the Status column
+                        if (data.section === 'body' && data.column.index === 5) {
+                            doc.setDrawColor(150);
+                            doc.rect(data.cell.x + 4, data.cell.y + 4, 6, 6);
+                        }
+                    }
+                });
+
+                debugLog.innerText += "\nTable generated...";
+
+                // Footer
+                const finalY = doc.lastAutoTable.finalY + 10;
+                doc.setFontSize(8);
+                doc.setTextColor(150);
+                doc.text("MedSafety Pro UAT Sheet - Confidential", 14, finalY);
+
+                if (action === 'download') {
+                    debugLog.innerText += "\nSaving file...";
+                    doc.save('MedSafety_Pro_UAT_Sheet.pdf');
+                    debugLog.innerText += "\nDone! Check downloads.";
+                } else if (action === 'preview') {
+                    debugLog.innerText += "\nOpening preview...";
+                    window.open(doc.output('bloburl'), '_blank');
+                    debugLog.innerText += "\nPreview opened.";
+                }
+
+                debugLog.style.color = "green";
+
+            } catch (e) {
+                console.error(e);
+                debugLog.innerText += "\nERROR: " + e.message;
+                debugLog.style.color = "red";
+            }
+        }
+
+        renderPreview();
+    </script>
+</body>
+
+</html>

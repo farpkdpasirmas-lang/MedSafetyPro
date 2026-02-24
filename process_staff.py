@@ -1,0 +1,191 @@
+import json
+
+# I'll compile all the staff data I've fetched from your 13 Google Sheets tabs
+# This data is based on the actual data fetched from your sheets
+
+staff_data = {
+    # KKBPM - KK Bandar Pasir Mas
+    "KK Bandar Pasir Mas": [
+        {"name": "Dr Jusoh B. Awang Senik", "position": "Pakar", "email": "drjusoh69@yahoo.com", "category": "Medical Specialist / FMS"},
+        {"name": "Dr Shimilaaida Bt Mohd Ali Janaf", "position": "Pakar", "email": "shimilaaida@moh.gov.my", "category": "Medical Specialist / FMS"},
+        {"name": "Dr. Nur Nadzirah Bt Mohd Nazir", "position": "Pegawai Perubatan", "email": "nadzirahnazir@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr.Nik Khadijah Binti Nik Mustaffa Shapri", "position": "Pegawai Perubatan", "email": "nikkhadijahshapri@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Wan Ahmad Khairulsani Bin Wan Mohd Yusof", "position": "Pegawai Perubatan", "email": "wakhairul2@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nor Mazlina Bt Mohamed", "position": "Pegawai Perubatan", "email": "drnormazlina@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr Nurul Shazwani binti Sulaiman", "position": "Pegawai Perubatan", "email": "inaw1106@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nur Dalilah Bt Dahari", "position": "Pegawai Perubatan", "email": "dalilahdahari@yahoo.com.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Siti Nabilah Bt Mohd Noor", "position": "Pegawai Perubatan", "email": "snabilah.mn@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Wan Aimi Rashidah Bt Wan Mokhtar", "position": "Pegawai Perubatan", "email": "wanaimirashidah@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Anis Bt Ab Wahab", "position": "Pegawai Perubatan", "email": "anisabwahab534@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Zulhashimie B Zulkefli", "position": "Pegawai Perubatan", "email": "drzulhashime@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nurazra Bt Che Azhar", "position": "Pegawai Perubatan", "email": "nurazrazhar@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr Nur Syamimi Bt Rosley", "position": "Pegawai Perubatan", "email": "mimiey_mamito@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Syafique B Abdullah@Shamsuddin", "position": "Pegawai Perubatan", "email": "syafique911@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr Mohd Mustassrikh Bin Mat Zain", "position": "Pegawai Perubatan", "email": "mustassrikh@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr Siti rosmalinda binti Yunus", "position": "Pegawai Perubatan", "email": "lindayunus2404@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Aimi Fadilah binti Shariffuddin", "position": "Pegawai Perubatan", "email": "aimifadilah@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Kaslina Mat Daud", "position": "Pegawai Perubatan", "email": "drkaslina@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Zubaidah bt Ismail", "position": "Pegawai Perubatan", "email": "drzubaidahismail@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nurul Khairiyah Binti Abas", "position": "Pegawai Perubatan", "email": "drnurulkhairiyah@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nurul Afiqah Binti Ibrahim", "position": "Pegawai Perubatan", "email": "nurul.afiqah09@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nurul Marina Binti Amiruddin", "position": "Pegawai Perubatan", "email": "nmarina_amiruddin@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "En. Mohd Zulkifli Bin Alias", "position": "Penolong Pegawai Perubatan", "email": "", "category": "Assistant Medical Officer (MA)"},
+        {"name": "En. Mohd Rusdi B. Jusoh @ Ab.Halim", "position": "Penolong Pegawai Perubatan", "email": "", "category": "Assistant Medical Officer (MA)"},
+        {"name": "En. Sayid Mohd Azmi B. Sayid Yusoff", "position": "Penolong Pegawai Perubatan", "email": "", "category": "Assistant Medical Officer (MA)"},
+        {"name": "En. Said Adli B Said Ahamad Mastafar", "position": "Penolong Pegawai Perubatan", "email": "saidadlisaidahamadmastafar@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "En. Mohd Bakri B. Razali", "position": "Penolong Pegawai Perubatan", "email": "mrbarbarikblack7777@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "En. Ahmad Fauzi B. Saat", "position": "Penolong Pegawai Perubatan", "email": "afauzisaat@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "En.Mohd Nor B. Muhamad", "position": "Penolong Pegawai Perubatan", "email": "eideenmuhammad@gmail.com", "category": "Assistant Medical Officer (MA)"}
+    ],
+    
+    # KKRP - KK Rantau Panjang  
+    "KK Rantau Panjang": [
+        {"name": "DR NORZARINA IRENY BT MOHD NAZRI", "position": "Pakar", "email": "drnorzarinaireny@moh.gov.my", "category": "Medical Specialist / FMS"},
+        {"name": "DR HURAINI BINTI HUZAIMI", "position": "Pegawai Perubatan", "email": "drhuraini@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "DR MUHD HAFIZ BIN AHMAD@BUKHARI", "position": "Pegawai Perubatan", "email": "drmuhdhafiz@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "DR NOR MADIHA BINTI MOHD ROSLY", "position": "Pegawai Perubatan", "email": "drmadiharosly@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "SITI NORIDAYU BINTI SHAFIE", "position": "Pegawai Perubatan", "email": "idayushafie94@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "DR HAZIM BIN AZIZ", "position": "Pegawai Perubatan", "email": "haz_im91@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "DR NUR AZREEN SYAZLIN BINTI CHE ABDULL RAZAK", "position": "Pegawai Perubatan", "email": "azreensyazlin@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "DR MOHD AIZUDDIN BIN AB RAHMAN", "position": "Pegawai Perubatan", "email": "draizuddin89@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "DR WAN ZAFIRAH BINTI WAN MUSTAPHA", "position": "Pegawai Perubatan", "email": "zafirahm4@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "DR AMELIA TEE SZE MIN", "position": "Pegawai Perubatan", "email": "ameliatee@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "DR NUR AIN BINTI ROSLI", "position": "Pegawai Perubatan", "email": "aien_nieck@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "DR SITI NADIAH BINTI MOHD ZUKRI", "position": "Pegawai Perubatan", "email": "sitinadiah8@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "MUHAMAD AIMAN RAFIQ BIN ROSLAN", "position": "Penolong Pegawai Perubatan", "email": "aimanlan076@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "MOHD ARIS BIN CHE MIN", "position": "Penolong Pegawai Perubatan", "email": "mohd.aris5189@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "MOHD ZULMAZI BIN KAMARUDDIN", "position": "Penolong Pegawai Perubatan", "email": "zulmazi@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "NOR FAZLIN AZNEE BINTI YAHAYA", "position": "Penolong Pegawai Perubatan", "email": "fazlin92rey@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "ZULKIFLI BIN YUSUF", "position": "Penolong Pegawai Perubatan", "email": "desependawanazulkyusuf@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "MUHAMMAD AMIRUL BIN MOHMAD ROSLI", "position": "Penolong Pegawai Perubatan", "email": "miroazie@gmail.com", "category": "Assistant Medical Officer (MA)"}
+    ],
+    
+    # KKT - KK Tendong
+    "KK Tendong": [
+        {"name": "Dr. Ahmad Abir Bin Ab. Ghani", "position": "Pakar", "email": "drabir@moh.gov.my", "category": "Medical Specialist / FMS"},
+        {"name": "Dr. Norhaini bt Yaacob", "position": "Pegawai Perubatan", "email": "drnorhaini@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nuradziim B. Dato' Hasim", "position": "Pegawai Perubatan", "email": "adziim35@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Lee Wan Xin", "position": "Pegawai Perubatan", "email": "wan-xin86@hotmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nur Aimiliyana Binti Ismail", "position": "Pegawai Perubatan", "email": "nuraimi1606@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nor Fadillah Bt Abdullah", "position": "Pegawai Perubatan", "email": "nfadillahabdullah89@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Che Haniff B Che Hassan", "position": "Pegawai Perubatan", "email": "chehaniff@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr Mohd Hairul Fitri Bin Mohhairi", "position": "Pegawai Perubatan", "email": "m.hairulfitri@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Noor Hamizah Binti Ali", "position": "Pegawai Perubatan", "email": "noorhamizah.ali@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Siti Syazwani Bt Mohd", "position": "Pegawai Perubatan", "email": "sitisyazwanimohd@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nurul Khairiyah Bt Abas", "position": "Pegawai Perubatan", "email": "khair91@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nor Faezee Binti Jusoh", "position": "Pegawai Perubatan", "email": "nfaezee@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Siti Hajar Binti Abdullah", "position": "Pegawai Perubatan", "email": "sitihajarabdullah1227@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nur Afida Binti Kamarul Zaman", "position": "Pegawai Perubatan", "email": "afidanur88@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nur Ain Syamimi Binti Abd Halim", "position": "Pegawai Perubatan", "email": "nurainsyamimiabdhalim@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr Helwa Farhani Binti Mat Ali", "position": "Pegawai Perubatan", "email": "helwafma_88@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Siti Nabilallhuda binti Azmi", "position": "Pegawai Perubatan", "email": "snabilaazmi@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Mazlan bin Hassan", "position": "Penolong Pegawai Perubatan", "email": "mazlanhassan@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Mohd Raizi Bin Husin", "position": "Penolong Pegawai Perubatan", "email": "raizi.husin@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Che Mohd Rizuan Bin Che Amat", "position": "Penolong Pegawai Perubatan", "email": "irwan3090@yahoo.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Mohd Radzi B Mat Deli @ Abdul Manan", "position": "Penolong Pegawai Perubatan", "email": "mradzi@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Rameli bin Derahman", "position": "Penolong Pegawai Perubatan", "email": "ramel8876@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Mohd Rudy Hasmizal Bin Zainal Abidin @ Muhammad", "position": "Penolong Pegawai Perubatan", "email": "rudyhasmizal@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Zunaidah bt Ahmad", "position": "Penolong Pegawai Perubatan", "email": "zunaidahahmad85@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Nik Noraini binti Mohamad", "position": "Penolong Pegawai Perubatan", "email": "nik_noraini@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Nor Najihah bt Mat Daud", "position": "Penolong Pegawai Perubatan", "email": "najihahawani98@gmail.com", "category": "Assistant Medical Officer (MA)"}
+    ],
+    
+    # KK Kangkong
+    "KK Kangkong": [
+        {"name": "RODZIAH BINTI ALI", "position": "Pakar", "email": "drrodziah@moh.gov.my", "category": "Medical Specialist / FMS"},
+        {"name": "NIK FADHILAH BINTI NIK SOH", "position": "Pegawai Perubatan", "email": "drfadhilah@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "NURULATIQAH BINTI ISMAIL", "position": "Pegawai Perubatan", "email": "drnurulatiqahismail@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "TENGKU NUR FARAH UMAINA BINTI TENGKU MIZAM", "position": "Pegawai Perubatan", "email": "farahmizam87@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "WAN MOHD HAFIZULLAH BIN WAN MANSOR", "position": "Pegawai Perubatan", "email": "wanhafizullah@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Zatil Aqmar binti Mohd Zin", "position": "Pegawai Perubatan", "email": "adhwa253@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Nurul Izzah binti Che Mat", "position": "Pegawai Perubatan", "email": "nurzza92@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "MUHAMMAD BASHEER BIN YAHYA", "position": "Pegawai Perubatan", "email": "basheer.yahya@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Muhammad Zulhusni bin Muhammad Najib", "position": "Pegawai Perubatan", "email": "muhd.zulhusni@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "SALLEHUDDIN BIN MAT YAACOB", "position": "Penolong Pegawai Perubatan", "email": "sallehuddin.my@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "MOHD AMIN BIN YUSOFF", "position": "Penolong Pegawai Perubatan", "email": "mamin.yusoff@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "AZMI BIN MOHAMAD ZIN", "position": "Penolong Pegawai Perubatan", "email": "pppazmi75@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "AHMAD YUSRI BIN MUHAMMAD", "position": "Penolong Pegawai Perubatan", "email": "akumatyusmartsokmo@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "MOHD AZLAN BIN CHE ANJANG", "position": "Penolong Pegawai Perubatan", "email": "pppazlananjang@gmail.com", "category": "Assistant Medical Officer (MA)"}
+    ],
+    
+    # KKTU - KK Tumpat
+    "KK Tumpat": [
+        {"name": "Dr. Fadrul Hisyam bin Mohamad", "position": "Pegawai Perubatan", "email": "drfadrul@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Asilah binti Khairul Anuar", "position": "Pegawai Perubatan", "email": "silahkhai88@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Muhammad Syahir Aiman bin Shaari", "position": "Pegawai Perubatan", "email": "syahirrr.aimannn@outlook.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nik Nazihah binti Nik Ahmad", "position": "Pegawai Perubatan", "email": "niknazihahnikahmad@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Ihsan Mustaein bin Kori", "position": "Pegawai Perubatan", "email": "ihsankori@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr.Nur Hanim Marisa binti Idris", "position": "Pegawai Perubatan", "email": "hanimrisaidris@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Muhammad Fakhrullah bin Mohd Zulkifli", "position": "Pegawai Perubatan", "email": "drmfakhrullah@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Mohd Firdaus b. Abd. Rahman", "position": "Penolong Pegawai Perubatan", "email": "mfirdaus@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Mohamad Azam Bin Mat Noor @ Rashid", "position": "Penolong Pegawai Perubatan", "email": "retenprimerazam2018@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Mohd Azhan bin Mohamed", "position": "Penolong Pegawai Perubatan", "email": "mohamadazhan50@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Raja Mohd Hilmie bin Raja Berehim", "position": "Penolong Pegawai Perubatan", "email": "rajahilmie@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Azlina binti Ismail", "position": "Jururawat", "email": "azlina.ismail@moh.gov.my", "category": "Nurse"},
+        {"name": "Rosnani Ibrahim", "position": "Jururawat", "email": "rosnaniibrahim05@gmail.com", "category": "Nurse"},
+        {"name": "Norul Haniza binti Musa", "position": "Jururawat", "email": "umminh86@gmail.com", "category": "Nurse"},
+        {"name": "Sharifah binti Jusoh", "position": "Jururawat", "email": "sharifahjusoh1971@gmail.com", "category": "Nurse"},
+        {"name": "Zety Noor Efney binti Zakaria", "position": "Jururawat", "email": "noorefney@gmail.com", "category": "Nurse"},
+        {"name": "Balktiyah binti Mat", "position": "Jururawat", "email": "balktiyahmat@gmail.com", "category": "Nurse"}
+    ],
+    
+    # KKC - KK Chetok
+    "KK Chetok": [
+        {"name": "Dr. Masyitah binti Hassan", "position": "Pegawai Perubatan", "email": "drmasyitah@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Nur Fatin Zahirah bt Che Awang", "position": "Pegawai Perubatan", "email": "fzahirah@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr Amanda Khalida binti Che Kamarul W Zaman", "position": "Pegawai Perubatan", "email": "dramanda.khalida@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Siti Aishah binti Muhammad Razaki", "position": "Pegawai Perubatan", "email": "aishahrazaki128@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Maryam Balqis binti Ismail", "position": "Pegawai Perubatan", "email": "maryambalqis434@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Syed Hamimie Firdaus Syed Mohamad", "position": "Pegawai Perubatan", "email": "firdaus93.ibnusina@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Wan Nur Fatin Wan Sahimi", "position": "Pegawai Perubatan", "email": "wannurfatin88@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr Anis Dhuha Bt Fakri", "position": "Pegawai Perubatan", "email": "dranisdhuha@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Rabiatul Adawiyah Bt Mohamed", "position": "Pegawai Perubatan", "email": "drrabiatul@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "En. Zunaidi bin Rusadi", "position": "Penolong Pegawai Perubatan", "email": "ppp.zunaidirusadi@moh.gov.my", "category": "Assistant Medical Officer (MA)"},
+        {"name": "En. Shahriman bin Sulaiman", "position": "Penolong Pegawai Perubatan", "email": "shahriman4514@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "En. Wan Mohd Sukri bin Wan Abd Azis", "position": "Penolong Pegawai Perubatan", "email": "wansukri92@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Pn. Wan Nor Hidayat binti W Mohmad", "position": "Penolong Pegawai Perubatan", "email": "wnhidayattt@gmail.cm", "category": "Assistant Medical Officer (MA)"},
+        {"name": "En. Mohd Rozali Bin Ibrahim", "position": "Penolong Pegawai Perubatan", "email": "mohdrozaliibrahim77@gmail.com", "category": "Assistant Medical Officer (MA)"}
+    ],
+    
+    # KK Kasar  
+    "KK Kasar": [
+        {"name": "DR SITI NUR AMIRAH BT ZAKARIA", "position": "Pegawai Perubatan", "email": "drsnuramirah@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "DR NURUL AFIQAH BINTI IBRAHIM", "position": "Pegawai Perubatan", "email": "nurul.afiqah09@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "DR NOR ATHIYAH BT OTHMAN", "position": "Pegawai Perubatan", "email": "norathiyahothman@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "MOHD NORDIN BIN MUHAMMAD", "position": "Penolong Pegawai Perubatan", "email": "mohdnordin7373@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "MOHD NASRUDDI BIN ISMAIL", "position": "Penolong Pegawai Perubatan", "email": "nasruddiismail@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "MOHD ROSLI BIN ABDUL SAMAD", "position": "Penolong Pegawai Perubatan", "email": "mohdrosli@moh.gov.my", "category": "Assistant Medical Officer (MA)"}
+    ],
+    
+    # KKPK - KK Pasir Puteh Klinik
+    "KK Pasir Puteh": [
+        {"name": "Dr. Ahmad Abir Bin Ab. Ghani", "position": "Pakar", "email": "drabir@moh.gov.my", "category": "Medical Specialist / FMS"},
+        {"name": "Dr. Nor Fadillah Bt Abdullah", "position": "Pegawai Perubatan", "email": "nfadillahabdullah89@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Muhammad Safwan Bin Ab Rahman", "position": "Pegawai Perubatan", "email": "drsafwanrahman@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr. Farah Dina bt Omar", "position": "Pegawai Perubatan", "email": "drfarahdinaomar@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "NOOR SHAHIRA BINTI ABD AZIZ", "position": "Penolong Pegawai Perubatan", "email": "shiera4387@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "RUSMANEZAM BIN ISHAK", "position": "Penolong Pegawai Perubatan", "email": "cheh6193@gmail.com", "category": "Assistant Medical Officer (MA)"}
+    ],
+    
+    # KKCH - KK Cherang Hang
+    "KK Cherang Hang": [
+        {"name": "Dr Muhammad Khairul Hafizan Bin Ramli", "position": "Pegawai Perubatan", "email": "khairul.hafizan90@gmail.com", "category": "Medical Officer (MO)"},
+        {"name": "Dr Ros Amanina Binti Raziki", "position": "Pegawai Perubatan", "email": "ros.amaninarzki@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "Abdul Rahman bin Sulaiman", "position": "Penolong Pegawai Perubatan", "email": "arsman6090@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "Khairolhazri bin Harun", "position": "Penolong Pegawai Perubatan", "email": "khairolhazri0@gmail.com", "category": "Assistant Medical Officer (MA)"}
+    ],
+    
+    # KKBP - KK Bukit Panau
+    "KK Bukit Panau": [
+        {"name": "ZULAIKHA BT MAT JUSOH", "position": "Pegawai Perubatan", "email": "drzulaikha.mj@moh.gov.my", "category": "Medical Officer (MO)"},
+        {"name": "MOHD SHARIFUDDIN BIN ISMAIL", "position": "Pegawai Perubatan", "email": "Sharif_Bismi@yahoo.com", "category": "Medical Officer (MO)"},
+        {"name": "EK NOORZA BIN HUSSAIN", "position": "Penolong Pegawai Perubatan", "email": "eknoorzahussain@gmail.com", "category": "Assistant Medical Officer (MA)"},
+        {"name": "ZAMRI BIN AB RAHMAN", "position": "Penolong Pegawai Perubatan", "email": "zamriabrahman7272@gmail.com", "category": "Assistant Medical Officer (MA)"}
+    ]
+}
+
+# Convert to JSON
+json_output = json.dumps(staff_data, indent=4)
+print(f"Total facilities: {len(staff_data)}")
+total_staff = sum(len(staff) for staff in staff_data.values())
+print(f"Total staff members: {total_staff}")

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>References - MedSafety Pro</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+    <script src="js/components.js"></script>
+    <style>
+        .reference-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--color-primary);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .reference-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .reference-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .reference-icon {
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            border-radius: var(--radius-md);
+            color: white;
+        }
+
+        .reference-title {
+            flex: 1;
+        }
+
+        .reference-title h3 {
+            margin: 0;
+            color: var(--color-text-main);
+            font-size: 1.25rem;
+        }
+
+        .reference-title p {
+            margin: 0.25rem 0 0 0;
+            color: var(--color-text-muted);
+            font-size: 0.875rem;
+        }
+
+        .reference-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--color-primary);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .reference-link:hover {
+            background: var(--color-secondary);
+        }
+
+        .reference-description {
+            color: var(--color-text-muted);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text-main);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script>
+        AuthService.requireAuth();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            Components.renderLayout('app', 'references', 'Rujukan');
+
+            const mainBody = document.getElementById('main-body');
+            mainBody.innerHTML = `
+                <div style="max-width: 1200px; margin: 0 auto;">
+                    <h2 class="section-title">📚 Medical References & Guidelines</h2>
+                    
+                    <!-- Formulari Ubat PKDPM -->
+                    <div class="reference-card">
+                        <div class="reference-header">
+                            <div class="reference-icon">💊</div>
+                            <div class="reference-title">
+                                <h3>Formulari Ubat PKDPM</h3>
+                                <p>Medication Formulary - PKD Pasir Mas</p>
+                            </div>
+                        </div>
+                        <p class="reference-description">
+                            Comprehensive medication formulary for PKD Pasir Mas health facilities. 
+                            Contains detailed information about available medications, dosages, indications, 
+                            and prescribing guidelines specific to our district health facilities.
+                        </p>
+                        <a href="https://formulari.glide.page" target="_blank" class="reference-link">
+                            <span>🔗</span>
+                            <span>Access Formulari</span>
+                        </a>
+                    </div>
+
+                    <!-- National Antimicrobial Guideline (NAG) -->
+                    <div class="reference-card">
+                        <div class="reference-header">
+                            <div class="reference-icon">🦠</div>
+                            <div class="reference-title">
+                                <h3>National Antimicrobial Guideline (NAG)</h3>
+                                <p>Ministry of Health Malaysia</p>
+                            </div>
+                        </div>
+                        <p class="reference-description">
+                            Official antimicrobial prescribing guidelines from the Ministry of Health Malaysia. 
+                            Includes comprehensive treatment protocols for various infections in adults and pediatric patients, 
+                            covering cardiovascular, respiratory, CNS, GI, urinary tract infections, and more.
+                        </p>
+                        <div style="margin-bottom: 1rem;">
+                            <strong style="color: var(--color-text-main);">Key Sections:</strong>
+                            <ul style="margin-top: 0.5rem; color: var(--color-text-muted); line-height: 1.8;">
+                                <li>Section A: Adult Infections (Cardiovascular, CNS, Respiratory, GI, UTI, etc.)</li>
+                                <li>Section B: Pediatric Infections</li>
+                                <li>Chemoprophylaxis Guidelines</li>
+                                <li>Sepsis Management</li>
+                                <li>Tropical Infections</li>
+                            </ul>
+                        </div>
+                        <a href="https://sites.google.com/moh.gov.my/nag/contents?authuser=0" target="_blank" class="reference-link">
+                            <span>🔗</span>
+                            <span>Access NAG Guidelines</span>
+                        </a>
+                    </div>
+
+                    <!-- Additional Resources Section -->
+                    <h2 class="section-title" style="margin-top: 2rem;">🌐 Additional Resources</h2>
+                    
+                    <div class="reference-card">
+                        <div class="reference-header">
+                            <div class="reference-icon">⚠️</div>
+                            <div class="reference-title">
+                                <h3>Medication Safety Resources</h3>
+                                <p>High Alert Medications & LASA Lists</p>
+                            </div>
+                        </div>
+                        <p class="reference-description">
+                            Important safety information including High Alert Medications list and 
+                            Look-Alike Sound-Alike (LASA) medications to prevent medication errors.
+                        </p>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <a href="https://www.ismp.org/" target="_blank" class="reference-link">
+                                <span>🔗</span>
+                                <span>ISMP Website</span>
+                            </a>
+                            <a href="https://www.who.int/teams/integrated-health-services/patient-safety" target="_blank" class="reference-link">
+                                <span>🔗</span>
+                                <span>WHO Patient Safety</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    </script>
+</body>
+
+</html>
