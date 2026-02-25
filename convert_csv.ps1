@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
 try {
     Write-Host "Reading CSV..."
@@ -56,6 +56,7 @@ try {
                 date: dateStr,
                 facility: get('Fasiliti dimana kejadian kesilapan pengubatan berlaku'),
                 setting: get('Unit dimana kejadian kesilapan pengubatan berlaku'),
+                detection: get('Pengesanan Kesilapan'),
                 outcome: get('Kategori'), // e.g. Kategori B
                 staffCategory: get('Kategori individu yang membuat kesilapan'),
                 clinicErrors: clinicErrors,
@@ -86,7 +87,8 @@ try {
     Set-Content "js/preload_reports.js" $finalContent -Encoding UTF8
     
     Write-Host "Done."
-} catch {
+}
+catch {
     Write-Error $_
     exit 1
 }
