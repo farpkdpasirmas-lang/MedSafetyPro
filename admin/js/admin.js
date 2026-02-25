@@ -19,6 +19,11 @@ const AdminService = {
         AdminApp.renderUserList();
     },
 
+    // ============= FEEDBACK MANAGEMENT =============
+    getAllFeedback: () => {
+        return JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
+    },
+
     // ============= REPORT MANAGEMENT =============
     getAllReports: async () => {
         try {
@@ -574,6 +579,7 @@ const AdminApp = {
         await AdminApp.renderReportList();
         AdminApp.renderUserList();
         AdminApp.renderStaffList();
+        AdminApp.renderFeedbackManagement();
 
         AdminApp.setupEventListeners();
         AdminApp.updateBulkActions();
@@ -1180,22 +1186,130 @@ const AdminApp = {
                 <td style="padding: 0.75rem; font-size: 0.875rem; color: var(--color-text-muted);">${Security.sanitize(staff.category) || '-'}</td>
             </tr>
         `).join('');
+        `).join('');
     },
+
+    renderFeedbackManagement: async () => {
+        const pendingTbody = document.getElementById('pending-feedback-table-body');
+        const submittedTbody = document.getElementById('submitted-feedback-table-body');
+
+        if (!pendingTbody || !submittedTbody) return;
+
+        try {
+            const allUsers = await AdminService.getAllUsers();
+            const allFeedback = AdminService.getAllFeedback();
+
+            // Filter out admins - we assume only regular reporters need to submit feedback
+            const regularUsers = allUsers.filter(u => u.role !== 'admin');
+
+            // Get emails of users who HAVE submitted feedback
+            const submittedEmails = new Set(allFeedback.map(f => f.submittedEmail));
+
+            // Users who haven't submitted
+            const pendingUsers = regularUsers.filter(u => !submittedEmails.has(u.email));
+
+            // Render Pending Users Table
+            if (pendingUsers.length === 0) {
+                pendingTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 2rem;">All reporters have submitted their feedback.</td></tr>';
+            } else {
+                pendingTbody.innerHTML = pendingUsers.map(u => `
+            < tr >
+                        <td>${Security.sanitize(u.fullname)}</td>
+                        <td>${Security.sanitize(u.email)}</td>
+                        <td>${Security.sanitize(u.facility || 'N/A')}</td>
+                    </tr >
+    `).join('');
+            }
+
+            // Render Submitted Feedback Table
+            if (allFeedback.length === 0) {
+                submittedTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem;">No feedback has been submitted yet.</td></tr>';
+            } else {
+                // Sort feedback by newest first
+                const sortedFeedback = [...allFeedback].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+                submittedTbody.innerHTML = sortedFeedback.map(f => {
+                    const factorsList = (f.factors || []).map(factor => factor.label).join(', ');
+                    const dateStr = new Date(f.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                    return `
+    < tr >
+                        <td>${dateStr}</td>
+                        <td>${Security.sanitize(f.submittedBy)}</td>
+                        <td>${Security.sanitize(f.submittedEmail)}</td>
+                        <td>${Security.sanitize(factorsList)}</td>
+                        <td style="text-align: right;">
+                            <button onclick="AdminApp.viewFeedbackDetails('${f.id}')" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
+                                👁️ View Details
+                            </button>
+                        </td>
+                    </tr >
+    `;
+                }).join('');
+            }
+        } catch (error) {
+            console.error('Error rendering feedback management:', error);
+            pendingTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Error loading data.</td></tr>';
+            submittedTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error loading data.</td></tr>';
+        }
+    },
+
+    viewFeedbackDetails: (feedbackId) => {
+        const allFeedback = AdminService.getAllFeedback();
+        const feedback = allFeedback.find(f => f.id === feedbackId);
+
+        if (!feedback) return;
+
+        const modal = document.getElementById('report-modal');
+        const modalBody = document.getElementById('modal-body');
+
+        // Change title
+        const modalHeaderTitle = modal.querySelector('.modal-header h3');
+        if (modalHeaderTitle) modalHeaderTitle.innerHTML = '🗣️ Feedback Details';
+
+        const dateStr = new Date(feedback.submittedAt).toLocaleString('en-MY', {
+            dateStyle: 'full',
+            timeStyle: 'short'
+        });
+
+        let factorsHtml = '<p>No specific factors selected.</p>';
+        if (feedback.factors && feedback.factors.length > 0) {
+            factorsHtml = feedback.factors.map(f => `
+    < div style = "background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #10b981;" >
+                    <h4 style="margin: 0 0 0.5rem 0; color: #0f172a;">${Security.sanitize(f.label)}</h4>
+                    <p style="margin: 0; color: #475569; white-space: pre-wrap;">${Security.sanitize(f.explanation)}</p>
+                </div >
+    `).join('');
+        }
+
+        modalBody.innerHTML = `
+    < div style = "margin-bottom: 1.5rem;" >
+        <strong>Submitted By:</strong> ${ Security.sanitize(feedback.submittedBy) } <br>
+            <strong>Email:</strong> ${Security.sanitize(feedback.submittedEmail)}<br>
+                <strong>Date:</strong> ${dateStr}
+            </div>
+
+            <h4 style="border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem;">Identified Factors & Explanations</h4>
+            ${factorsHtml}
+            `;
+
+            modal.style.display = 'flex';
+    }
 };
 
-// Expose to window object for global access
-window.AdminApp = AdminApp;
-window.AdminService = AdminService;
+            // Expose to window object for global access
+            window.AdminApp = AdminApp;
+            window.AdminService = AdminService;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     // Check if user is logged in
     const user = AuthService.getCurrentUser();
-    if (!user || user.role !== 'admin') {
-        window.location.href = '../login.html';
-        return;
+            if (!user || user.role !== 'admin') {
+                window.location.href = '../login.html';
+            return;
     }
 
-    // Initialize app
-    AdminApp.init();
+            // Initialize app
+            AdminApp.init();
 });
