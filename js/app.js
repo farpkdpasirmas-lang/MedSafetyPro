@@ -4,6 +4,9 @@
  */
 
 const App = {
+    allReports: [],
+    chartInstances: {},
+
     initDashboard: async (role) => {
         const mainBody = document.getElementById('main-body');
 
@@ -11,6 +14,7 @@ const App = {
         let reports = [];
         try {
             reports = await DB.getAllReports();
+            App.allReports = reports; // Store for filtering
         } catch (e) {
             console.error('Error fetching reports:', e);
             if (typeof UI !== 'undefined') UI.showToast('Failed to load reports', 'error');
@@ -27,11 +31,15 @@ const App = {
                         <div class="stat-label">Jumlah Kes</div>
                         <div class="stat-value">${reports.length}</div>
                     </div>
-                    <div class="filter-bar">
-                        <select class="filter-select"><option>Fasiliti dimana...</option></select>
-                        <select class="filter-select"><option>Unit</option></select>
-                        <select class="filter-select"><option>Pengesanan</option></select>
-                        <button class="date-range-btn">Select date range</button>
+                    <div class="filter-bar" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <select id="filter-facility" class="filter-select"><option value="">Semua Fasiliti</option></select>
+                        <select id="filter-unit" class="filter-select"><option value="">Semua Unit</option></select>
+                        <select id="filter-detection" class="filter-select"><option value="">Semua Pengesanan</option></select>
+                        <span style="font-size: 0.9rem; color: #64748b;">Dari:</span>
+                        <input type="date" id="filter-date-start" class="filter-select">
+                        <span style="font-size: 0.9rem; color: #64748b;">Hingga:</span>
+                        <input type="date" id="filter-date-end" class="filter-select">
+                        <button id="btn-reset-filters" class="btn btn-outline btn-sm" style="padding: 0.5rem 1rem;">Reset</button>
                     </div>
                 </div>
 
@@ -171,6 +179,121 @@ const App = {
 
         // Initialize Charts with Real Data
         App.initCharts(stats);
+
+        // Populate Filters and Add Event Listeners
+        App.populateFilters();
+        App.setupFilterListeners();
+    },
+
+    populateFilters: () => {
+        const facilities = new Set();
+        const units = new Set();
+        const detections = new Set();
+
+        App.allReports.forEach(r => {
+            if (r.facility) facilities.add(r.facility);
+            if (r.setting) units.add(r.setting);
+            if (r.detection) detections.add(r.detection);
+        });
+
+        const populateSelect = (id, items) => {
+            const select = document.getElementById(id);
+            if (!select) return;
+            Array.from(items).sort().forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                // Friendly names for settings if possible
+                if (item === 'ae') option.textContent = 'A&E';
+                else if (item === 'outpatient') option.textContent = 'Outpatient';
+                else if (item === 'pharmacy') option.textContent = 'Pharmacy';
+                else option.textContent = item;
+                select.appendChild(option);
+            });
+        };
+
+        populateSelect('filter-facility', facilities);
+        populateSelect('filter-unit', units);
+        populateSelect('filter-detection', detections);
+    },
+
+    setupFilterListeners: () => {
+        const filterElements = [
+            'filter-facility', 'filter-unit', 'filter-detection',
+            'filter-date-start', 'filter-date-end'
+        ];
+
+        filterElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('change', App.applyFilters);
+            }
+        });
+
+        const resetBtn = document.getElementById('btn-reset-filters');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                filterElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                App.applyFilters();
+            });
+        }
+    },
+
+    applyFilters: () => {
+        const facility = document.getElementById('filter-facility').value;
+        const unit = document.getElementById('filter-unit').value;
+        const detection = document.getElementById('filter-detection').value;
+        const dateStart = document.getElementById('filter-date-start').value;
+        const dateEnd = document.getElementById('filter-date-end').value;
+
+        const filteredReports = App.allReports.filter(r => {
+            let match = true;
+            if (facility && r.facility !== facility) match = false;
+            if (unit && r.setting !== unit) match = false;
+            if (detection && r.detection !== detection) match = false;
+
+            if (dateStart || dateEnd) {
+                const reportDate = new Date(r.date); // Assuming r.date is YYYY-MM-DD or parseable
+                if (dateStart && new Date(dateStart) > reportDate) match = false;
+                if (dateEnd) {
+                    const end = new Date(dateEnd);
+                    end.setHours(23, 59, 59, 999);
+                    if (end < reportDate) match = false;
+                }
+            }
+            return match;
+        });
+
+        // Update total cases count in DOM
+        const totalCasesEl = document.querySelector('.total-cases .stat-value');
+        if (totalCasesEl) {
+            totalCasesEl.textContent = filteredReports.length;
+        }
+
+        // Re-render charts and tables
+        const stats = App.calculateStats(filteredReports);
+
+        // Update Frequency Table
+        const tbodyFreq = document.querySelector('.chart-box .data-table tbody');
+        if (tbodyFreq && tbodyFreq.parentElement.parentElement.previousElementSibling.textContent.includes('Kekerapan')) {
+            tbodyFreq.innerHTML = App.renderFrequencyRows(stats.frequencyData);
+        } else {
+            // Fallback to find by query selector correctly
+            const tables = document.querySelectorAll('.data-table');
+            if (tables.length > 0) {
+                tables[0].querySelector('tbody').innerHTML = App.renderFrequencyRows(stats.frequencyData);
+            }
+        }
+
+        // Update General Table
+        const tablesList = document.querySelectorAll('.data-table');
+        if (tablesList.length > 1) {
+            tablesList[1].querySelector('tbody').innerHTML = App.renderGeneralRows(filteredReports);
+        }
+
+        App.initCharts(stats);
     },
 
     calculateStats: (reports) => {
@@ -268,148 +391,113 @@ const App = {
             data: Object.values(obj)
         });
 
+        // Helper to destroy and replace chart instance
+        const createOrUpdateChart = (id, type, data, options) => {
+            const ctx = document.getElementById(id);
+            if (!ctx) return;
+            if (App.chartInstances[id]) {
+                App.chartInstances[id].destroy();
+            }
+            App.chartInstances[id] = new Chart(ctx, { type, data, options });
+        };
+
         // 1. Facility (Bar)
         const facilityData = getData(stats.facility);
-        new Chart(document.getElementById('chartFacility'), {
-            type: 'bar',
-            data: {
-                labels: facilityData.labels,
-                datasets: [{
-                    label: 'Klinik Kesihatan',
-                    data: facilityData.data,
-                    backgroundColor: '#1976d2'
-                }]
-            },
-            options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
+        createOrUpdateChart('chartFacility', 'bar', {
+            labels: facilityData.labels,
+            datasets: [{
+                label: 'Klinik Kesihatan',
+                data: facilityData.data,
+                backgroundColor: '#1976d2'
+            }]
+        }, { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } });
 
         // 2. Unit (Donut)
         const unitData = getData(stats.unit);
-        new Chart(document.getElementById('chartUnit'), {
-            type: 'doughnut',
-            data: {
-                labels: unitData.labels,
-                datasets: [{
-                    data: unitData.data,
-                    backgroundColor: ['#00bcd4', '#1976d2', '#e91e63']
-                }]
-            },
-            options: commonOptions
-        });
+        createOrUpdateChart('chartUnit', 'doughnut', {
+            labels: unitData.labels,
+            datasets: [{
+                data: unitData.data,
+                backgroundColor: ['#00bcd4', '#1976d2', '#e91e63']
+            }]
+        }, commonOptions);
 
-        // 3. Clinic Errors (Split into categories loosely based on names for demo, or just aggregate)
-        // For this demo, we'll visualize the top clinic errors in the first chart and others as placeholders
-        // In a real app, we'd need precise mapping of error strings to these specific charts
+        // 3. Clinic Errors
         const clinicErrData = getData(stats.clinicErrors);
 
-        new Chart(document.getElementById('chartPrescriptionIncomplete'), {
-            type: 'doughnut',
-            data: {
-                labels: clinicErrData.labels.slice(0, 5), // Top 5
-                datasets: [{
-                    data: clinicErrData.data.slice(0, 5),
-                    backgroundColor: ['#1976d2', '#ff5722', '#7b1fa2', '#388e3c', '#c2185b']
-                }]
-            },
-            options: commonOptions
-        });
+        createOrUpdateChart('chartPrescriptionIncomplete', 'doughnut', {
+            labels: clinicErrData.labels.slice(0, 5), // Top 5
+            datasets: [{
+                data: clinicErrData.data.slice(0, 5),
+                backgroundColor: ['#1976d2', '#ff5722', '#7b1fa2', '#388e3c', '#c2185b']
+            }]
+        }, commonOptions);
 
-        // Placeholders for other clinic charts (using same data for demo visual completeness)
-        new Chart(document.getElementById('chartRegimen'), {
-            type: 'doughnut',
-            data: {
-                labels: clinicErrData.labels.slice(5, 10),
-                datasets: [{
-                    data: clinicErrData.data.slice(5, 10),
-                    backgroundColor: ['#ff5722', '#1976d2', '#e91e63', '#fbc02d', '#388e3c']
-                }]
-            },
-            options: commonOptions
-        });
-        new Chart(document.getElementById('chartPrescriptionInvalid'), {
-            type: 'doughnut',
-            data: {
-                labels: clinicErrData.labels.slice(0, 3),
-                datasets: [{
-                    data: clinicErrData.data.slice(0, 3),
-                    backgroundColor: ['#00bcd4', '#1976d2', '#e91e63']
-                }]
-            },
-            options: commonOptions
-        });
-        new Chart(document.getElementById('chartOthers'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Others'],
-                datasets: [{
-                    data: [1],
-                    backgroundColor: ['#e91e63']
-                }]
-            },
-            options: commonOptions
-        });
+        createOrUpdateChart('chartRegimen', 'doughnut', {
+            labels: clinicErrData.labels.slice(5, 10),
+            datasets: [{
+                data: clinicErrData.data.slice(5, 10),
+                backgroundColor: ['#ff5722', '#1976d2', '#e91e63', '#fbc02d', '#388e3c']
+            }]
+        }, commonOptions);
+
+        createOrUpdateChart('chartPrescriptionInvalid', 'doughnut', {
+            labels: clinicErrData.labels.slice(0, 3),
+            datasets: [{
+                data: clinicErrData.data.slice(0, 3),
+                backgroundColor: ['#00bcd4', '#1976d2', '#e91e63']
+            }]
+        }, commonOptions);
+
+        createOrUpdateChart('chartOthers', 'doughnut', {
+            labels: ['Others'],
+            datasets: [{
+                data: [1],
+                backgroundColor: ['#e91e63']
+            }]
+        }, commonOptions);
 
 
         // 4. Pharmacy Errors
         const pharmErrData = getData(stats.pharmacyErrors);
-        new Chart(document.getElementById('chartDataEntry'), {
-            type: 'bar',
-            data: {
-                labels: pharmErrData.labels,
-                datasets: [{
-                    label: 'Count',
-                    data: pharmErrData.data,
-                    backgroundColor: ['#e91e63', '#1976d2', '#00bcd4']
-                }]
-            },
-            options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
+        createOrUpdateChart('chartDataEntry', 'bar', {
+            labels: pharmErrData.labels,
+            datasets: [{
+                label: 'Count',
+                data: pharmErrData.data,
+                backgroundColor: ['#e91e63', '#1976d2', '#00bcd4']
+            }]
+        }, { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } });
 
-        // Placeholders for other pharmacy charts
-        new Chart(document.getElementById('chartLabelling'), {
-            type: 'bar',
-            data: {
-                labels: pharmErrData.labels,
-                datasets: [{ label: 'Count', data: pharmErrData.data, backgroundColor: '#00838f' }]
-            },
-            options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
-        new Chart(document.getElementById('chartFilling'), {
-            type: 'bar',
-            data: {
-                labels: pharmErrData.labels,
-                datasets: [{ label: 'Count', data: pharmErrData.data, backgroundColor: '#1976d2' }]
-            },
-            options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
+        createOrUpdateChart('chartLabelling', 'bar', {
+            labels: pharmErrData.labels,
+            datasets: [{ label: 'Count', data: pharmErrData.data, backgroundColor: '#00838f' }]
+        }, { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } });
+
+        createOrUpdateChart('chartFilling', 'bar', {
+            labels: pharmErrData.labels,
+            datasets: [{ label: 'Count', data: pharmErrData.data, backgroundColor: '#1976d2' }]
+        }, { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } });
 
 
         // 5. Staff
         const staffData = getData(stats.staff);
-        new Chart(document.getElementById('chartStaff'), {
-            type: 'doughnut',
-            data: {
-                labels: staffData.labels,
-                datasets: [{
-                    data: staffData.data,
-                    backgroundColor: ['#1976d2', '#ff9800', '#fbc02d', '#ff5722', '#e91e63']
-                }]
-            },
-            options: commonOptions
-        });
+        createOrUpdateChart('chartStaff', 'doughnut', {
+            labels: staffData.labels,
+            datasets: [{
+                data: staffData.data,
+                backgroundColor: ['#1976d2', '#ff9800', '#fbc02d', '#ff5722', '#e91e63']
+            }]
+        }, commonOptions);
 
         // 6. Outcome
         const outcomeData = getData(stats.outcome);
-        new Chart(document.getElementById('chartOutcome'), {
-            type: 'pie',
-            data: {
-                labels: outcomeData.labels,
-                datasets: [{
-                    data: outcomeData.data,
-                    backgroundColor: ['#ff5722', '#4caf50', '#e91e63', '#1976d2']
-                }]
-            },
-            options: commonOptions
-        });
+        createOrUpdateChart('chartOutcome', 'pie', {
+            labels: outcomeData.labels,
+            datasets: [{
+                data: outcomeData.data,
+                backgroundColor: ['#ff5722', '#4caf50', '#e91e63', '#1976d2']
+            }]
+        }, commonOptions);
     }
 };
