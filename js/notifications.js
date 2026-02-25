@@ -89,7 +89,7 @@ const AdminNotifications = {
         if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
         if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
         if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-        return then.toLocaleDateString();
+        return then.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 };
 

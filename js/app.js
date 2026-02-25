@@ -367,7 +367,7 @@ const App = {
         return reports.slice(-10).reverse().map(r => `
             <tr>
                 <td>${Security.sanitize(r.facility)}</td>
-                <td>${new Date(r.date).toLocaleDateString()}</td>
+                <td>${new Date(r.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                 <td>${Security.sanitize(r.outcome)}</td>
                 <td>${Security.sanitize(r.setting)}</td>
                 <td>${Security.sanitize([...(r.pharmacyErrors || []), ...(r.clinicErrors || [])].join(', ') || '-')}</td>

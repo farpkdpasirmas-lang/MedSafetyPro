@@ -952,7 +952,7 @@ const AdminApp = {
             <tr>
                 <td><input type="checkbox" class="report-checkbox" value="${r.id}" onchange="AdminApp.toggleSelectReport('${r.id}')"></td>
                 <td>${Security.sanitize(r.facility)}</td>
-                <td>${new Date(r.timestamp).toLocaleDateString()}</td>
+                <td>${new Date(r.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                 <td>${Security.sanitize(r.setting)}</td>
                 <td>${Security.sanitize(r.reporterName)}</td>
                 <td>${Security.sanitize(r.staffName)}</td>
