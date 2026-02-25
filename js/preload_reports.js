@@ -30,11 +30,23 @@ try {
             ];
 
             // Date parsing (basic)
-            let dateStr = get('Tarikh dan Masa Kejadian') || get('Timestamp');
-            // Ensure format is ISO or distinct enough for new Date()
-            // If DD/MM/YYYY HH:mm:ss, JS might default to US MM/DD.
-            // But let's assume the dashboard handles standard strings or we fix it here.
-            // For now, pass as is.
+            let rawDateStr = get('Tarikh dan Masa Kejadian') || get('Timestamp');
+            let dateStr = rawDateStr;
+            
+            // If dateStr is in DD/MM/YYYY HH:mm:ss format, convert to ISO 8601 YYYY-MM-DDTHH:mm:ss
+            if (rawDateStr) {
+                const parts = rawDateStr.split(' ');
+                if (parts.length > 0) {
+                    const dateParts = parts[0].split('/');
+                    if (dateParts.length === 3) {
+                        const day = dateParts[0].padStart(2, '0');
+                        const month = dateParts[1].padStart(2, '0');
+                        const year = dateParts[2];
+                        const timePart = parts[1] || '00:00:00';
+                        dateStr = ${year}--T;
+                    }
+                }
+            }
 
             return {
                 id: 'csv_' + index,
