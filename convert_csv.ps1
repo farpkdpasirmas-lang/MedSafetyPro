@@ -13,7 +13,7 @@ try {
     $jsPrefix = "const RAW_CSV_DATA = "
     $jsSuffix = ";"
     
-    $jsLogic = @"
+    $jsLogic = @'
 
 // Parsing Logic
 try {
@@ -91,7 +91,7 @@ try {
 } catch (e) {
     console.error('MedSafety Pro: Error processing CSV data', e);
 }
-"@
+'@
 
     $finalContent = $jsPrefix + $json + $jsSuffix + "`n" + $jsLogic
     

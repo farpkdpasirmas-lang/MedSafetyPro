@@ -43,7 +43,7 @@ try {
                         const month = dateParts[1].padStart(2, '0');
                         const year = dateParts[2];
                         const timePart = parts[1] || '00:00:00';
-                        dateStr = ${year}--T;
+                        dateStr = `${year}-${month}-${day}T${timePart}`;
                     }
                 }
             }
