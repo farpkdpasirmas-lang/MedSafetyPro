@@ -185,10 +185,11 @@
             }
         }
 
-        registerForm.addEventListener('submit', async (e) => {
+        const formElement = document.getElementById('register-form');
+        formElement.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const btn = registerForm.querySelector('button');
+            const btn = formElement.querySelector('button');
             const originalText = btn.textContent;
             const errorMsg = document.getElementById('error-msg');
 
