@@ -934,19 +934,47 @@ const AdminApp = {
             reports = await AdminService.getAllReports();
         }
 
+        // Helper function to safely parse dates that might be in DD/MM/YYYY format
+        const parseReportDate = (dateStr) => {
+            if (!dateStr) return new Date(0);
+
+            // Check if it's strictly DD/MM/YYYY (or DD/MM/YYYY HH:mm)
+            if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(dateStr)) {
+                // Split date and optional time parts
+                const parts = dateStr.split(' ');
+                const dateParts = parts[0].split('/');
+
+                // Construct ISO string YYYY-MM-DD
+                const isoDateStr = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+
+                if (parts[1]) {
+                    return new Date(`${isoDateStr}T${parts[1]}`);
+                }
+                return new Date(isoDateStr);
+            }
+
+            // Fallback to standard parsing
+            const parsed = new Date(dateStr);
+            return isNaN(parsed.getTime()) ? new Date(0) : parsed;
+        };
+
         // Sort by date desc
-        reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        reports.sort((a, b) => parseReportDate(b.timestamp) - parseReportDate(a.timestamp));
 
         if (reports.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem;">No reports found</td></tr>';
             return;
         }
 
-        tbody.innerHTML = reports.map(r => `
+        tbody.innerHTML = reports.map(r => {
+            const dateObj = parseReportDate(r.timestamp);
+            const dateDisplay = dateObj.getTime() === 0 ? '-' : dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+            return `
             <tr>
                 <td><input type="checkbox" class="report-checkbox" value="${r.id}" onchange="AdminApp.toggleSelectReport('${r.id}')"></td>
                 <td>${Security.sanitize(r.facility || '-')}</td>
-                <td>${new Date(r.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                <td>${dateDisplay}</td>
                 <td>${Security.sanitize(r.setting || '-')}</td>
                 <td>${Security.sanitize(r.reporterName || '-')}</td>
                 <td>${Security.sanitize(r.staffName || '-')}</td>
@@ -957,12 +985,13 @@ const AdminApp = {
                     <button class="btn-sm btn-outline" style="margin-left: 0.25rem;" onclick="AdminApp.downloadReportPDF('${r.id}')">📥 PDF</button>
                 </td>
             </tr>
-         `).join('');
+         `;
+        }).join('');
     },
 
     downloadReportPDF: async (id) => {
         try {
-            const reports = AdminService.getAllReports();
+            const reports = await AdminService.getAllReports();
             const report = reports.find(r => r.id === id);
 
             if (!report) {
@@ -1196,7 +1225,6 @@ const AdminApp = {
                 <td style="padding: 0.75rem; font-size: 0.875rem; color: var(--color-text-muted);">${Security.sanitize(staff.category) || '-'}</td>
             </tr>
         `).join('');
-        `).join('');
     },
 
     renderFeedbackManagement: async () => {
@@ -1294,7 +1322,7 @@ const AdminApp = {
 
         modalBody.innerHTML = `
     < div style = "margin-bottom: 1.5rem;" >
-        <strong>Submitted By:</strong> ${ Security.sanitize(feedback.submittedBy) } <br>
+        <strong>Submitted By:</strong> ${Security.sanitize(feedback.submittedBy)} <br>
             <strong>Email:</strong> ${Security.sanitize(feedback.submittedEmail)}<br>
                 <strong>Date:</strong> ${dateStr}
             </div>
@@ -1302,23 +1330,23 @@ const AdminApp = {
             <h4 style="border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem;">Identified Factors & Explanations</h4>
             ${factorsHtml}
             `;
-            modal.style.display = 'flex';
+        modal.style.display = 'flex';
     }
 };
 
-            // Expose to window object for global access
-            window.AdminApp = AdminApp;
-            window.AdminService = AdminService;
+// Expose to window object for global access
+window.AdminApp = AdminApp;
+window.AdminService = AdminService;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     // Check if user is logged in
     const user = AuthService.getCurrentUser();
-            if (!user || user.role !== 'admin') {
-                window.location.href = '../login.html';
-            return;
+    if (!user || user.role !== 'admin') {
+        window.location.href = '../login.html';
+        return;
     }
 
-            // Initialize app
-            AdminApp.init();
+    // Initialize app
+    AdminApp.init();
 });
