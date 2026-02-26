@@ -5,12 +5,13 @@
  */
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyAFn195fBVfpwlKNAirr12l7dpey3GQSHA",
+    authDomain: "med-safety-pro.firebaseapp.com",
+    projectId: "med-safety-pro",
+    storageBucket: "med-safety-pro.firebasestorage.app",
+    messagingSenderId: "1013374830917",
+    appId: "1:1013374830917:web:a0291eedb25a8c2418962c",
+    measurementId: "G-D4R3XDRNX6"
 };
 
 // Initialize only if keys are replaced

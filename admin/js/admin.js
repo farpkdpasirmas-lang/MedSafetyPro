@@ -218,7 +218,7 @@ const AdminService = {
     restoreFromBackup: (file) => {
         const reader = new FileReader();
 
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             try {
                 const backup = JSON.parse(e.target.result);
 
@@ -229,11 +229,48 @@ const AdminService = {
 
                 if (!confirm('This will replace all current data. Are you sure?')) return;
 
-                localStorage.setItem('medsafety_users_db', JSON.stringify(backup.users));
-                localStorage.setItem('medsafety_reports_db', JSON.stringify(backup.reports));
+                if (db) {
+                    alert('Migrating ' + backup.reports.length + ' reports to Cloud Database. Please leave this page open...');
 
-                alert('Data restored successfully! Refreshing page...');
-                window.location.reload();
+                    try {
+                        // Upload Users
+                        for (const user of backup.users) {
+                            await db.collection(DB.COLLECTION_USERS).doc(user.id).set(user);
+                        }
+
+                        // Upload Reports in Batches of 400
+                        const chunkSize = 400;
+                        for (let i = 0; i < backup.reports.length; i += chunkSize) {
+                            const chunk = backup.reports.slice(i, i + chunkSize);
+                            const batch = db.batch();
+
+                            chunk.forEach(r => {
+                                const ref = db.collection(DB.COLLECTION_REPORTS).doc(r.id || db.collection(DB.COLLECTION_REPORTS).doc().id);
+                                if (!r.id) r.id = ref.id;
+                                batch.set(ref, r);
+                            });
+
+                            await batch.commit();
+                        }
+
+                        // Sync LocalStorage as well to ensure fallback parity
+                        localStorage.setItem('medsafety_users_db', JSON.stringify(backup.users));
+                        localStorage.setItem('medsafety_reports_db', JSON.stringify(backup.reports));
+
+                        alert('Cloud Database migration successful! Refreshing page...');
+                        window.location.reload();
+
+                    } catch (uploadError) {
+                        console.error('Firebase Cloud upload failed:', uploadError);
+                        alert('Failed to migrate to Cloud (' + uploadError.message + '). Please check your internet connection or Firebase setup.');
+                    }
+                } else {
+                    localStorage.setItem('medsafety_users_db', JSON.stringify(backup.users));
+                    localStorage.setItem('medsafety_reports_db', JSON.stringify(backup.reports));
+
+                    alert('Data restored to browser cache successfully! Refreshing page...');
+                    window.location.reload();
+                }
             } catch (error) {
                 alert('Error reading backup file: ' + error.message);
             }
