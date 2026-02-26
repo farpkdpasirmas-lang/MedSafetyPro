@@ -1,4 +1,4 @@
-const CACHE_NAME = 'medsafety-admin-v2';
+const CACHE_NAME = 'medsafety-admin-v3';
 const urlsToCache = [
     './',
     './index.html',
