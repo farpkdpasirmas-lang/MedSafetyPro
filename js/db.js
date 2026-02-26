@@ -5,7 +5,7 @@
 
 const DB = {
     // Collection Names
-    COLLECTION_REPORTS: 'reports_v2', // Changed name to avoid conflict/ensure fresh start
+    COLLECTION_REPORTS: 'reports', // Restored name to pull primary 500 reports
     COLLECTION_USERS: 'users_v2',
 
     // --- Reports ---
@@ -33,9 +33,9 @@ const DB = {
             }
         } else {
             // LocalStorage Mode
-            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+            const reports = JSON.parse(localStorage.getItem('reports') || '[]');
             reports.push(reportData);
-            localStorage.setItem('medsafety_reports_db', JSON.stringify(reports));
+            localStorage.setItem('reports', JSON.stringify(reports));
             return reportData;
         }
     },
@@ -56,7 +56,7 @@ const DB = {
             }
         } else {
             // LocalStorage Mode
-            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+            const reports = JSON.parse(localStorage.getItem('reports') || '[]');
             // Sort desc
             return reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         }
