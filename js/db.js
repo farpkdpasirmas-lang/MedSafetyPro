@@ -33,9 +33,9 @@ const DB = {
             }
         } else {
             // LocalStorage Mode
-            const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
             reports.push(reportData);
-            localStorage.setItem('reports', JSON.stringify(reports));
+            localStorage.setItem('medsafety_reports_db', JSON.stringify(reports));
             return reportData;
         }
     },
@@ -56,7 +56,7 @@ const DB = {
             }
         } else {
             // LocalStorage Mode
-            const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
             // Sort desc
             return reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         }
