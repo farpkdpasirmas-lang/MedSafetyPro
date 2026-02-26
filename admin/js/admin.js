@@ -60,11 +60,11 @@ const AdminService = {
                 return false;
             }
         } else {
-            const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
             const index = reports.findIndex(r => r.id === id);
             if (index !== -1) {
                 reports[index] = { ...reports[index], ...data, updatedAt: new Date().toISOString() };
-                localStorage.setItem('reports', JSON.stringify(reports));
+                localStorage.setItem('medsafety_reports_db', JSON.stringify(reports));
                 return true;
             }
             return false;
@@ -85,9 +85,9 @@ const AdminService = {
                 return false;
             }
         } else {
-            const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
             const newReports = reports.filter(r => r.id !== id);
-            localStorage.setItem('reports', JSON.stringify(newReports));
+            localStorage.setItem('medsafety_reports_db', JSON.stringify(newReports));
             AdminApp.renderReportList();
             AdminApp.renderDashboardStats();
             return true;
@@ -109,9 +109,9 @@ const AdminService = {
             AdminApp.renderDashboardStats();
             return true;
         } else {
-            const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
             const newReports = reports.filter(r => !ids.includes(r.id));
-            localStorage.setItem('reports', JSON.stringify(newReports));
+            localStorage.setItem('medsafety_reports_db', JSON.stringify(newReports));
             AdminApp.renderReportList();
             AdminApp.renderDashboardStats();
             return true;
