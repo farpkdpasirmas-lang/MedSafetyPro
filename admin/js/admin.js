@@ -149,18 +149,6 @@ const AdminService = {
             reports = reports.filter(r => new Date(r.date) <= new Date(filters.dateTo));
         }
 
-        return reports;
-    },
-
-    // ============= DATA EXPORT =============
-    exportReportsToCSV: () => {
-        const reports = AdminService.getAllReports();
-
-        if (reports.length === 0) {
-            alert('No reports to export');
-            return;
-        }
-
         // CSV Headers
         const headers = ['ID', 'Date', 'Time', 'Facility', 'Setting', 'Error Types', 'Staff Name', 'Staff Email', 'Staff Category', 'Outcome', 'Description', 'Created At'];
 
@@ -957,18 +945,40 @@ const AdminApp = {
         tbody.innerHTML = reports.map(r => `
             <tr>
                 <td><input type="checkbox" class="report-checkbox" value="${r.id}" onchange="AdminApp.toggleSelectReport('${r.id}')"></td>
-                <td>${Security.sanitize(r.facility)}</td>
+                <td>${Security.sanitize(r.facility || '-')}</td>
                 <td>${new Date(r.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                <td>${Security.sanitize(r.setting)}</td>
-                <td>${Security.sanitize(r.reporterName)}</td>
-                <td>${Security.sanitize(r.staffName)}</td>
-                <td><span class="badge badge-${AdminApp.getOutcomeBadgeClass(r.outcome)}">${Security.sanitize(r.outcome)}</span></td>
+                <td>${Security.sanitize(r.setting || '-')}</td>
+                <td>${Security.sanitize(r.reporterName || '-')}</td>
+                <td>${Security.sanitize(r.staffName || '-')}</td>
+                <td><span class="badge badge-${AdminApp.getOutcomeBadgeClass(r.outcome)}">${Security.sanitize(r.outcome || '-')}</span></td>
                 <td>
                     <button class="btn-sm btn-outline" onclick="AdminApp.viewReport('${r.id}')">View</button>
                     <button class="btn-sm btn-danger" onclick="AdminService.deleteReport('${r.id}')">Delete</button>
+                    <button class="btn-sm btn-outline" style="margin-left: 0.25rem;" onclick="AdminApp.downloadReportPDF('${r.id}')">📥 PDF</button>
                 </td>
             </tr>
          `).join('');
+    },
+
+    downloadReportPDF: async (id) => {
+        try {
+            const reports = AdminService.getAllReports();
+            const report = reports.find(r => r.id === id);
+
+            if (!report) {
+                alert('Report not found!');
+                return;
+            }
+
+            // Let user know it's loading
+            UI.showToast('Generating PDF...', 'info');
+
+            // Set isFromAdmin to true so it knows where to find the logo relative path
+            await PDFService.generatePDF(report, true);
+        } catch (error) {
+            console.error('Error generating admin PDF:', error);
+            alert('Failed to generate PDF. Check console for details.');
+        }
     },
 
     getOutcomeBadgeClass: (outcome) => {
@@ -1292,7 +1302,6 @@ const AdminApp = {
             <h4 style="border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem;">Identified Factors & Explanations</h4>
             ${factorsHtml}
             `;
-
             modal.style.display = 'flex';
     }
 };
