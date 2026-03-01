@@ -1312,12 +1312,12 @@ const AdminApp = {
                 pendingTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 2rem;">All reporters have submitted their feedback.</td></tr>';
             } else {
                 pendingTbody.innerHTML = pendingUsers.map(u => `
-            < tr >
+                    <tr>
                         <td>${Security.sanitize(u.fullname)}</td>
                         <td>${Security.sanitize(u.email)}</td>
                         <td>${Security.sanitize(u.facility || 'N/A')}</td>
-                    </tr >
-    `).join('');
+                    </tr>
+                `).join('');
             }
 
             // Render Submitted Feedback Table
@@ -1332,7 +1332,7 @@ const AdminApp = {
                     const dateStr = new Date(f.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
                     return `
-    < tr >
+                    <tr>
                         <td>${dateStr}</td>
                         <td>${Security.sanitize(f.submittedBy)}</td>
                         <td>${Security.sanitize(f.submittedEmail)}</td>
@@ -1342,8 +1342,8 @@ const AdminApp = {
                                 👁️ View Details
                             </button>
                         </td>
-                    </tr >
-    `;
+                    </tr>
+                    `;
                 }).join('');
             }
         } catch (error) {
@@ -1374,23 +1374,23 @@ const AdminApp = {
         let factorsHtml = '<p>No specific factors selected.</p>';
         if (feedback.factors && feedback.factors.length > 0) {
             factorsHtml = feedback.factors.map(f => `
-    < div style = "background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #10b981;" >
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #10b981;">
                     <h4 style="margin: 0 0 0.5rem 0; color: #0f172a;">${Security.sanitize(f.label)}</h4>
                     <p style="margin: 0; color: #475569; white-space: pre-wrap;">${Security.sanitize(f.explanation)}</p>
-                </div >
-    `).join('');
+                </div>
+            `).join('');
         }
 
         modalBody.innerHTML = `
-    < div style = "margin-bottom: 1.5rem;" >
-        <strong>Submitted By:</strong> ${Security.sanitize(feedback.submittedBy)} <br>
-            <strong>Email:</strong> ${Security.sanitize(feedback.submittedEmail)}<br>
+            <div style="margin-bottom: 1.5rem;">
+                <strong>Submitted By:</strong> ${Security.sanitize(feedback.submittedBy)} <br>
+                <strong>Email:</strong> ${Security.sanitize(feedback.submittedEmail)}<br>
                 <strong>Date:</strong> ${dateStr}
             </div>
 
             <h4 style="border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem;">Identified Factors & Explanations</h4>
             ${factorsHtml}
-            `;
+        `;
         modal.style.display = 'flex';
     }
 };
