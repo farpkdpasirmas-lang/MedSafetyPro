@@ -190,6 +190,15 @@
         }
 
         const formElement = document.getElementById('register-form');
+        const fullnameInput = document.getElementById('fullname');
+
+        // Automatically convert full name to uppercase
+        if (fullnameInput) {
+            fullnameInput.addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
+        }
+
         formElement.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -211,7 +220,7 @@
             btn.disabled = true;
             errorMsg.style.display = 'none';
 
-            const fullname = document.getElementById('fullname').value;
+            const fullname = fullnameInput.value.toUpperCase();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const role = 'admin'; // Hardcoded role
