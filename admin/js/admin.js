@@ -1168,11 +1168,9 @@ const AdminApp = {
                         ✅
                     </button>
                     ` : ''}
-                    ${!isAdminTable ? `
-                    <button onclick="AdminService.deleteUser('${user.id}')" class="btn-icon" title="Delete User" style="color: #ef4444;">
+                    <button onclick="AdminService.deleteUser('${user.id}')" class="btn-icon" title="Delete ${isAdminTable ? 'Admin' : 'User'}" style="color: #ef4444;">
                         🗑️
                     </button>
-                    ` : ''}
                 </td>
             </tr>
         `;
