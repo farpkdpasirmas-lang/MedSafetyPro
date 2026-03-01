@@ -104,7 +104,12 @@
 
             <div class="input-group">
                 <label class="input-label" for="password">Password</label>
-                <input type="password" id="password" class="input-field" placeholder="••••••••" required>
+                <div style="position: relative;">
+                    <input type="password" id="password" class="input-field" placeholder="••••••••" required
+                        style="width: 100%; box-sizing: border-box; padding-right: 40px;">
+                    <button type="button" id="togglePassword"
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; padding: 0; font-size: 1.2rem;">👁️</button>
+                </div>
             </div>
 
             <div class="input-group">
@@ -240,6 +245,16 @@
                 btn.disabled = false;
             }
         });
+
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInputObj = document.getElementById('password');
+        if (togglePassword && passwordInputObj) {
+            togglePassword.addEventListener('click', function () {
+                const type = passwordInputObj.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInputObj.setAttribute('type', type);
+                this.textContent = type === 'password' ? '👁️' : '🙈';
+            });
+        }
 
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {

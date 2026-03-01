@@ -77,8 +77,7 @@ const AdminService = {
         if (db) {
             try {
                 await db.collection(DB.COLLECTION_REPORTS).doc(id).delete();
-                AdminApp.renderReportList();
-                AdminApp.renderDashboardStats();
+                // Real-time listener will auto-update UI
                 return true;
             } catch (e) {
                 console.error(e);
@@ -88,6 +87,7 @@ const AdminService = {
             const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
             const newReports = reports.filter(r => r.id !== id);
             localStorage.setItem('medsafety_reports_db', JSON.stringify(newReports));
+            // Local fallback manual trigger since onSnapshot doesn't bridge tabs locally
             AdminApp.renderReportList();
             AdminApp.renderDashboardStats();
             return true;
@@ -105,8 +105,7 @@ const AdminService = {
                 batch.delete(ref);
             });
             await batch.commit();
-            AdminApp.renderReportList();
-            AdminApp.renderDashboardStats();
+            // Real-time listener will auto-update UI
             return true;
         } else {
             const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
@@ -119,7 +118,7 @@ const AdminService = {
     },
 
     searchReports: (query) => {
-        const reports = AdminService.getAllReports();
+        const reports = AdminApp.allReports;
         const lowerQuery = query.toLowerCase();
 
         return reports.filter(r =>
@@ -131,7 +130,7 @@ const AdminService = {
     },
 
     filterReports: (filters) => {
-        let reports = AdminService.getAllReports();
+        let reports = AdminApp.allReports;
 
         if (filters.facility && filters.facility !== 'all') {
             reports = reports.filter(r => r.facility === filters.facility);
@@ -183,7 +182,7 @@ const AdminService = {
     },
 
     exportReportsToJSON: () => {
-        const reports = AdminService.getAllReports();
+        const reports = AdminApp.allReports;
 
         if (reports.length === 0) {
             alert('No reports to export');
@@ -597,11 +596,10 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
 const AdminApp = {
     currentView: 'dashboard',
     selectedReports: new Set(),
+    allReports: [], // Add real-time array
 
     init: async () => {
-        // Initial render
-        await AdminApp.renderDashboardStats();
-        await AdminApp.renderReportList();
+        // Initial static render
         AdminApp.renderUserList();
         AdminApp.renderStaffList();
         AdminApp.renderFeedbackManagement();
@@ -614,6 +612,23 @@ const AdminApp = {
 
         // Listen for hash changes
         window.addEventListener('hashchange', () => AdminApp.handleNavigation());
+
+        // Setup real-time listener for reports
+        DB.listenToAllReports((reports) => {
+            AdminApp.allReports = reports;
+
+            // Re-render views seamlessly
+            AdminApp.renderDashboardStats();
+
+            // Re-render report list using currently typed search filter
+            const searchInput = document.getElementById('report-search');
+            if (searchInput && searchInput.value) {
+                const results = AdminService.searchReports(searchInput.value);
+                AdminApp.renderReportList(results);
+            } else {
+                AdminApp.renderReportList(reports);
+            }
+        });
     },
 
     handleNavigation: () => {
@@ -695,8 +710,8 @@ const AdminApp = {
         const statsContainer = document.getElementById('dashboard-stats');
         if (!statsContainer) return;
 
-        // Fetch Real Data using AdminService logic
-        const reports = await AdminService.getAllReports();
+        // Fetch Real Data using AdminApp memory
+        const reports = AdminApp.allReports;
         const stats = AdminApp.calculateStats(reports);
         const users = await AdminService.getAllUsers();
 
@@ -962,14 +977,11 @@ const AdminApp = {
         });
     },
 
-    renderReportList: async (reportsToRender = null) => {
+    renderReportList: async (filteredReports = null) => {
         const tbody = document.getElementById('report-table-body');
         if (!tbody) return;
 
-        let reports = reportsToRender;
-        if (!reports) {
-            reports = await AdminService.getAllReports();
-        }
+        let reports = filteredReports || AdminApp.allReports;
 
         // Helper function to safely parse dates that might be in DD/MM/YYYY format
         const parseReportDate = (dateStr) => {

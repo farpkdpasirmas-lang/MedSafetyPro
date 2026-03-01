@@ -62,6 +62,30 @@ const DB = {
         }
     },
 
+    /**
+     * Listen to real-time changes of all reports
+     * @param {Function} callback 
+     * @returns {Function} Unsubscribe function
+     */
+    listenToAllReports: (callback) => {
+        if (db) {
+            // Firebase Mode - Realtime sync
+            return db.collection(DB.COLLECTION_REPORTS).orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                const reports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                callback(reports);
+            }, error => {
+                console.error("Error listening to reports: ", error);
+            });
+        } else {
+            // LocalStorage mode doesn't support built-in tabs sync easily without storage event listener
+            // We'll just call the callback once for fallback
+            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+            const sorted = reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            callback(sorted);
+            return () => { }; // return empty unsubscribe
+        }
+    },
+
     // --- Users ---
 
     /**

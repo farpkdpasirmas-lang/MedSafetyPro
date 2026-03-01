@@ -10,179 +10,190 @@ const App = {
     initDashboard: async (role) => {
         const mainBody = document.getElementById('main-body');
 
-        // 1. Fetch Real Data
-        let reports = [];
-        try {
-            reports = await DB.getAllReports();
-            App.allReports = reports; // Store for filtering
-        } catch (e) {
-            console.error('Error fetching reports:', e);
-            if (typeof UI !== 'undefined') UI.showToast('Failed to load reports', 'error');
-        }
+        // Show loading state briefly
+        mainBody.innerHTML = '<div style="text-align:center; padding: 40px;"><p>Loading dashboard data...</p></div>';
 
-        const stats = App.calculateStats(reports);
+        let isFirstLoad = true;
+        let unsubscribe = null;
 
-        // Dashboard HTML Structure matching the image
-        mainBody.innerHTML = `
-            <div class="dashboard-container">
-                <!-- Top Stats & Filters -->
-                <div class="dashboard-header-row">
-                    <div class="stat-box total-cases">
-                        <div class="stat-label">Jumlah Kes</div>
-                        <div class="stat-value">${reports.length}</div>
-                    </div>
-                    <div class="filter-bar" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <select id="filter-facility" class="filter-select"><option value="">Semua Fasiliti</option></select>
-                        <select id="filter-unit" class="filter-select"><option value="">Semua Unit</option></select>
-                        <select id="filter-detection" class="filter-select"><option value="">Semua Pengesanan</option></select>
-                        <span style="font-size: 0.9rem; color: #64748b;">Dari:</span>
-                        <input type="date" id="filter-date-start" class="filter-select">
-                        <span style="font-size: 0.9rem; color: #64748b;">Hingga:</span>
-                        <input type="date" id="filter-date-end" class="filter-select">
-                        <button id="btn-reset-filters" class="btn btn-outline btn-sm" style="padding: 0.5rem 1rem;">Reset</button>
-                    </div>
-                </div>
+        unsubscribe = DB.listenToAllReports((fetchedReports) => {
+            App.allReports = fetchedReports;
 
-                <!-- SECTION 1: FASILITI DAN UNIT -->
-                <div class="dashboard-section">
-                    <div class="section-header">FASILITI DAN UNIT</div>
-                    <div class="charts-row">
-                        <div class="chart-box">
-                            <h4 class="chart-title">Fasiliti</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartFacility"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Unit</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartUnit"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            if (isFirstLoad) {
+                isFirstLoad = false;
+                const reports = fetchedReports;
+                const stats = App.calculateStats(reports);
 
-                <!-- SECTION 2: KESILAPAN PENGUBATAN DI KECEMASAN / OPD -->
-                <div class="dashboard-section">
-                    <div class="section-header">KESILAPAN PENGUBATAN DI KECEMASAN / OPD</div>
-                    <div class="charts-grid-2x2">
-                        <div class="chart-box">
-                            <h4 class="chart-title">Preskripsi Tidak Lengkap</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartPrescriptionIncomplete"></canvas>
+                // Dashboard HTML Structure matching the image
+                mainBody.innerHTML = `
+                    <div class="dashboard-container">
+                        <!-- Top Stats & Filters -->
+                        <div class="dashboard-header-row">
+                            <div class="stat-box total-cases">
+                                <div class="stat-label">Jumlah Kes</div>
+                                <div class="stat-value">${reports.length}</div>
+                            </div>
+                            <div class="filter-bar" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <select id="filter-facility" class="filter-select"><option value="">Semua Fasiliti</option></select>
+                                <select id="filter-unit" class="filter-select"><option value="">Semua Unit</option></select>
+                                <select id="filter-detection" class="filter-select"><option value="">Semua Pengesanan</option></select>
+                                <span style="font-size: 0.9rem; color: #64748b;">Dari:</span>
+                                <input type="date" id="filter-date-start" class="filter-select">
+                                <span style="font-size: 0.9rem; color: #64748b;">Hingga:</span>
+                                <input type="date" id="filter-date-end" class="filter-select">
+                                <button id="btn-reset-filters" class="btn btn-outline btn-sm" style="padding: 0.5rem 1rem;">Reset</button>
                             </div>
                         </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Regimen Tidak Sesuai</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartRegimen"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Preskripsi Tidak Sesuai</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartPrescriptionInvalid"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Lain-lain</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartOthers"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- SECTION 3: KESILAPAN PENGUBATAN DI FARMASI -->
-                <div class="dashboard-section">
-                    <div class="section-header">KESILAPAN PENGUBATAN DI FARMASI</div>
-                    <div class="charts-grid-2x2">
-                        <div class="chart-box">
-                            <h4 class="chart-title">Data Entry</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartDataEntry"></canvas>
+                        <!-- SECTION 1: FASILITI DAN UNIT -->
+                        <div class="dashboard-section">
+                            <div class="section-header">FASILITI DAN UNIT</div>
+                            <div class="charts-row">
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Fasiliti</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartFacility"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Unit</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartUnit"></canvas>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Labelling</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartLabelling"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Filling</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartFilling"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Kategori Staff</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartStaff"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- SECTION 4: OUTCOME & TABLES -->
-                <div class="charts-row">
-                    <div class="chart-box" style="flex: 1;">
-                        <div class="section-header" style="margin: -1rem -1rem 1rem -1rem; border-radius: 4px 4px 0 0;">Kategori Error Outcome</div>
-                        <div class="chart-wrapper">
-                            <canvas id="chartOutcome"></canvas>
+                        <!-- SECTION 2: KESILAPAN PENGUBATAN DI KECEMASAN / OPD -->
+                        <div class="dashboard-section">
+                            <div class="section-header">KESILAPAN PENGUBATAN DI KECEMASAN / OPD</div>
+                            <div class="charts-grid-2x2">
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Preskripsi Tidak Lengkap</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartPrescriptionIncomplete"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Regimen Tidak Sesuai</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartRegimen"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Preskripsi Tidak Sesuai</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartPrescriptionInvalid"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Lain-lain</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartOthers"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 3: KESILAPAN PENGUBATAN DI FARMASI -->
+                        <div class="dashboard-section">
+                            <div class="section-header">KESILAPAN PENGUBATAN DI FARMASI</div>
+                            <div class="charts-grid-2x2">
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Data Entry</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartDataEntry"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Labelling</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartLabelling"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Filling</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartFilling"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-box">
+                                    <h4 class="chart-title">Kategori Staff</h4>
+                                    <div class="chart-wrapper">
+                                        <canvas id="chartStaff"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 4: OUTCOME & TABLES -->
+                        <div class="charts-row">
+                            <div class="chart-box" style="flex: 1;">
+                                <div class="section-header" style="margin: -1rem -1rem 1rem -1rem; border-radius: 4px 4px 0 0;">Kategori Error Outcome</div>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartOutcome"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-box" style="flex: 1;">
+                                <div class="section-header" style="margin: -1rem -1rem 1rem -1rem; border-radius: 4px 4px 0 0;">Kekerapan</div>
+                                <div class="table-wrapper">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>No.</th>
+                                                <th>Fasiliti</th>
+                                                <th>Unit</th>
+                                                <th>Kategori</th>
+                                                <th>Jumlah</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${App.renderFrequencyRows(stats.frequencyData)}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SECTION 5: JADUAL AM -->
+                        <div class="dashboard-section">
+                            <div class="section-header">Jadual Am</div>
+                            <div class="table-wrapper">
+                                <table class="data-table full-width">
+                                    <thead>
+                                        <tr>
+                                            <th>Fasiliti</th>
+                                            <th>Tarikh</th>
+                                            <th>Kategori</th>
+                                            <th>Setting</th>
+                                            <th>Error Type</th>
+                                            <th>Staff</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${App.renderGeneralRows(reports)}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                    <div class="chart-box" style="flex: 1;">
-                        <div class="section-header" style="margin: -1rem -1rem 1rem -1rem; border-radius: 4px 4px 0 0;">Kekerapan</div>
-                        <div class="table-wrapper">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>No.</th>
-                                        <th>Fasiliti</th>
-                                        <th>Unit</th>
-                                        <th>Kategori</th>
-                                        <th>Jumlah</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${App.renderFrequencyRows(stats.frequencyData)}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- SECTION 5: JADUAL AM -->
-                <div class="dashboard-section">
-                    <div class="section-header">Jadual Am</div>
-                    <div class="table-wrapper">
-                        <table class="data-table full-width">
-                            <thead>
-                                <tr>
-                                    <th>Fasiliti</th>
-                                    <th>Tarikh</th>
-                                    <th>Kategori</th>
-                                    <th>Setting</th>
-                                    <th>Error Type</th>
-                                    <th>Staff</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${App.renderGeneralRows(reports)}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        `;
+                `;
 
-        // Initialize Charts with Real Data
-        App.initCharts(stats);
+                // Initialize Charts with Real Data
+                App.initCharts(stats);
 
-        // Populate Filters and Add Event Listeners
-        App.populateFilters();
-        App.setupFilterListeners();
+                // Populate Filters and Add Event Listeners
+                App.populateFilters();
+                App.setupFilterListeners();
+            } else {
+                // For sub-sequent real-time updates (like another user adding a report), 
+                // quietly re-apply the current filters to re-render charts & tables!
+                App.applyFilters();
+            }
+        });
+
+        // Store unsubscribe if needed by UI to cleanup when leaving view
+        App._dashboardUnsubscribe = unsubscribe;
     },
 
     populateFilters: () => {

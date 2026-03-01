@@ -169,7 +169,12 @@
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="Enter admin password">
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password" required placeholder="Enter admin password"
+                            style="width: 100%; box-sizing: border-box; padding-right: 40px;">
+                        <button type="button" id="togglePassword"
+                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; padding: 0; font-size: 1.2rem;">👁️</button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary">Login as Admin</button>
@@ -232,6 +237,16 @@
                 btn.disabled = false;
             }
         });
+
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? '👁️' : '🙈';
+            });
+        }
 
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
