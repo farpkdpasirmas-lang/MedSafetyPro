@@ -124,5 +124,28 @@ const DB = {
             const newUsers = users.filter(u => u.id !== userId);
             localStorage.setItem('medsafety_users_db', JSON.stringify(newUsers));
         }
+    },
+
+    /**
+     * Approve a user
+     * @param {string} userId 
+     * @returns Promise<void>
+     */
+    approveUser: async (userId) => {
+        if (db) {
+            try {
+                await db.collection('users').doc(userId).update({ approved: true });
+            } catch (error) {
+                console.error("Error approving user: ", error);
+                throw error;
+            }
+        } else {
+            const users = JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
+            const index = users.findIndex(u => u.id === userId);
+            if (index !== -1) {
+                users[index].approved = true;
+                localStorage.setItem('medsafety_users_db', JSON.stringify(users));
+            }
+        }
     }
 };

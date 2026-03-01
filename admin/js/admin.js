@@ -19,6 +19,13 @@ const AdminService = {
         AdminApp.renderUserList();
     },
 
+    approveUser: async (userId) => {
+        if (!confirm('Are you sure you want to approve this user? They will be able to log in immediately.')) return;
+
+        await DB.approveUser(userId);
+        AdminApp.renderUserList();
+    },
+
     // ============= FEEDBACK MANAGEMENT =============
     getAllFeedback: () => {
         return JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
@@ -1152,8 +1159,15 @@ const AdminApp = {
                     <span class="status-badge status-${user.role === 'admin' ? 'admin' : 'reporter'}">
                         ${user.role ? user.role.toUpperCase() : 'USER'}
                     </span>
+                    ${!isAdminTable && !user.approved ? '<span class="status-badge" style="background:#fef08a; color:#854d0e; margin-left: 0.5rem;">PENDING</span>' : ''}
+                    ${!isAdminTable && user.approved ? '<span class="status-badge" style="background:#d1fae5; color:#065f46; margin-left: 0.5rem;">APPROVED</span>' : ''}
                 </td>
                 <td style="text-align: right;">
+                    ${!isAdminTable && !user.approved ? `
+                    <button onclick="AdminService.approveUser('${user.id}')" class="btn-icon" title="Approve User" style="color: #10b981; margin-right: 0.5rem;">
+                        ✅
+                    </button>
+                    ` : ''}
                     ${!isAdminTable ? `
                     <button onclick="AdminService.deleteUser('${user.id}')" class="btn-icon" title="Delete User" style="color: #ef4444;">
                         🗑️

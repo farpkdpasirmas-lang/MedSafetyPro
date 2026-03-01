@@ -25,6 +25,7 @@ const AuthService = {
                 const newUser = {
                     id: user.uid,
                     ...userData,
+                    approved: userData.role === 'admin',
                     createdAt: new Date().toISOString()
                 };
                 delete newUser.password; // Don't save password
@@ -49,6 +50,7 @@ const AuthService = {
                 id: Date.now().toString(),
                 ...userData,
                 password: hashedPassword,
+                approved: userData.role === 'admin',
                 createdAt: new Date().toISOString()
             };
             users.push(newUser);
@@ -75,6 +77,13 @@ const AuthService = {
                 }
 
                 const mergedUser = { ...userDetails, email: user.email, id: user.uid };
+
+                if (!mergedUser.approved && mergedUser.role !== 'admin') {
+                    // Sign out because they shouldn't actually be logged in
+                    await auth.signOut();
+                    return { success: false, message: 'Your account is pending admin approval.' };
+                }
+
                 localStorage.setItem(AUTH_KEY, JSON.stringify(mergedUser));
                 return { success: true, user: mergedUser };
             } catch (error) {
@@ -96,6 +105,10 @@ const AuthService = {
                 }
 
                 if (isValid) {
+                    if (!user.approved && user.role !== 'admin') {
+                        return { success: false, message: 'Your account is pending admin approval.' };
+                    }
+
                     const { password, ...userWithoutPass } = user;
                     localStorage.setItem(AUTH_KEY, JSON.stringify(userWithoutPass));
                     return { success: true, user: userWithoutPass };

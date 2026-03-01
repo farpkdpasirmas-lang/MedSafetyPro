@@ -18,6 +18,26 @@
 
     <script src="js/security.js"></script>
     <script src="js/auth.js"></script>
+
+    <!-- EmailJS SDK -->
+    <script src="js/vendor/email.min.js"></script>
+    <script>
+        // Initialize EmailJS safely
+        let emailJsAvailable = false;
+        try {
+            if (typeof emailjs !== 'undefined') {
+                emailjs.init({
+                    publicKey: "YOUR_PUBLIC_KEY", // Replace with your actual public key
+                });
+                emailJsAvailable = true;
+                console.log('EmailJS initialized successfully.');
+            } else {
+                console.warn('EmailJS library not loaded.');
+            }
+        } catch (e) {
+            console.error('Error initializing EmailJS:', e);
+        }
+    </script>
     <style>
         body {
             display: flex;
@@ -197,6 +217,31 @@
                 });
 
                 if (result.success) {
+                    // Send notification to admin if EmailJS is available
+                    if (emailJsAvailable) {
+                        try {
+                            const templateParams = {
+                                new_user_name: fullname,
+                                new_user_email: email,
+                                new_user_facility: facility,
+                                registration_date: new Date().toLocaleString('en-MY', { dateStyle: 'full', timeStyle: 'short' })
+                            };
+
+                            // Let the process run in the background so it doesn't delay redirect
+                            emailjs.send(
+                                "YOUR_SERVICE_ID",  // Replace with real Service ID
+                                "YOUR_TEMPLATE_ID", // Replace with real Template ID
+                                templateParams
+                            ).then(() => {
+                                console.log('Admin notified via email.');
+                            }).catch(err => {
+                                console.error('Failed to notify admin via email:', err);
+                            });
+                        } catch (error) {
+                            console.error('Email sending failed:', error);
+                        }
+                    }
+
                     AuthService.redirectIfAuthenticated();
                 } else {
                     errorMsg.textContent = result.message;
