@@ -1404,7 +1404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if user is logged in
     const user = AuthService.getCurrentUser();
     if (!user || user.role !== 'admin') {
-        window.location.replace(new URL('../login.html', window.location.href).href);
+        window.location.replace(AuthService.getAbsoluteUrl('login.html'));
         return;
     }
 

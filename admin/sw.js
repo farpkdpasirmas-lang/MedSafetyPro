@@ -1,4 +1,4 @@
-const CACHE_NAME = 'medsafety-admin-v5';
+const CACHE_NAME = 'medsafety-admin-v6';
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();

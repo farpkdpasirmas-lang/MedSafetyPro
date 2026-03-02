@@ -238,7 +238,7 @@
         AuthService.requireAuth('login.html');
         const user = AuthService.getCurrentUser();
         if (user && user.role !== 'admin') {
-            window.location.replace(AuthService.getAbsoluteUrl('../index.html'));
+            window.location.replace(AuthService.getAbsoluteUrl('index.html'));
         }
 
         document.addEventListener('DOMContentLoaded', () => {
