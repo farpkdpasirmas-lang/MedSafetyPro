@@ -139,9 +139,9 @@ PKD PASIR MAS,,,,
         email = row[4].strip()
         
         if position.startswith("UF"):
-            category = "Pf (reporter)"
+            category = "Pharmacist (PF)"
         elif position.startswith("U"):
-            category = "Ppf"
+            category = "Pharmacy Assistant (PPF)"
         else:
             category = "Support Staff"
             
