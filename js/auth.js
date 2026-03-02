@@ -14,34 +14,6 @@ const AuthService = {
         AuthService.basePath = path;
     },
 
-    // Helper to safely construct absolute URLs
-    getAbsoluteUrl: (relativePath) => {
-        // If it's already absolute
-        if (relativePath.startsWith('http')) return relativePath;
-
-        let origin = window.location.origin;
-        // Some older iOS webviews might not support window.location.origin
-        if (!origin) origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-
-        let pathArray = window.location.pathname.split('/');
-        pathArray.pop(); // Remove current file
-
-        // If basePath is provided (like '../') apply it
-        let parts = (AuthService.basePath + relativePath).split('/');
-
-        for (let part of parts) {
-            if (part === '') continue;
-            if (part === '.') continue;
-            if (part === '..') {
-                pathArray.pop();
-            } else {
-                pathArray.push(part);
-            }
-        }
-
-        return origin + pathArray.join('/') + window.location.search;
-    },
-
     // Register a new user
     register: async (userData) => {
         if (typeof auth !== 'undefined' && auth) {
@@ -154,7 +126,7 @@ const AuthService = {
         } catch (e) {
             console.error('LocalStorage error during logout:', e);
         }
-        window.location.replace(AuthService.getAbsoluteUrl('login.html'));
+        window.location.replace(AuthService.basePath + 'login.html');
     },
 
     // Get current user (Sync - relies on localStorage cache)
@@ -181,10 +153,12 @@ const AuthService = {
     // Route guard
     requireAuth: (loginPath) => {
         if (!AuthService.isAuthenticated()) {
-            const path = loginPath || 'login.html';
-            const absUrl = AuthService.getAbsoluteUrl(path);
-            if (window.location.href !== absUrl) {
-                window.location.replace(absUrl);
+            const loc = window.location.pathname;
+            const targetPath = loginPath || 'login.html';
+
+            // Check if we are already on the login page to prevent loop
+            if (!loc.endsWith('login.html')) {
+                window.location.replace(AuthService.basePath + targetPath);
             }
         }
     },
@@ -193,10 +167,12 @@ const AuthService = {
     redirectIfAuthenticated: () => {
         const user = AuthService.getCurrentUser();
         if (user) {
+            const loc = window.location.pathname;
             const targetPath = user.role === 'admin' ? 'admin/index.html' : 'dashboard.html';
-            const absUrl = AuthService.getAbsoluteUrl(targetPath);
-            if (window.location.href !== absUrl) {
-                window.location.replace(absUrl);
+
+            // Check if we are already on the target page
+            if (!loc.endsWith(targetPath) && (!loc.endsWith('admin/') || user.role !== 'admin')) {
+                window.location.replace(AuthService.basePath + targetPath);
             }
         }
     },

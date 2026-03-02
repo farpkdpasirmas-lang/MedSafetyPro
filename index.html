@@ -28,9 +28,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const user = AuthService.getCurrentUser();
             if (user) {
-                window.location.replace(AuthService.getAbsoluteUrl('dashboard.html'));
+                window.location.replace('dashboard.html');
             } else {
-                window.location.replace(AuthService.getAbsoluteUrl('login.html'));
+                window.location.replace('login.html');
             }
         });
     </script>

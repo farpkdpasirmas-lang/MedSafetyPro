@@ -78,9 +78,9 @@
         const user = AuthService.getCurrentUser();
         if (user) {
             if (user.role === 'admin') {
-                window.location.replace(new URL('admin/index.html', window.location.href).href);
+                window.location.replace('admin/index.html');
             } else {
-                window.location.replace(new URL('dashboard.html', window.location.href).href);
+                window.location.replace('dashboard.html');
             }
         }
 
@@ -101,9 +101,9 @@
 
                 if (result.success) {
                     if (result.user.role === 'admin') {
-                        window.location.replace(new URL('admin/index.html', window.location.href).href);
+                        window.location.replace('admin/index.html');
                     } else {
-                        window.location.replace(new URL('dashboard.html', window.location.href).href);
+                        window.location.replace('dashboard.html');
                     }
                 } else {
                     alert(result.message);
