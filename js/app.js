@@ -388,6 +388,52 @@ const App = {
     },
 
     initCharts: (stats) => {
+        // Custom plugin to draw the total number in the center of doughnut charts
+        const centerTotalPlugin = {
+            id: 'centerTotalPlugin',
+            beforeDraw: (chart) => {
+                if (chart.config.type === 'doughnut') {
+                    const ctx = chart.ctx;
+                    const chartArea = chart.chartArea;
+                    const meta = chart.getDatasetMeta(0);
+
+                    // Only draw if we have data and the chart area exists
+                    if (!meta.data.length || !chartArea) return;
+
+                    // Calculate total
+                    let total = 0;
+                    chart.data.datasets.forEach(dataset => {
+                        dataset.data.forEach(value => {
+                            total += (typeof value === 'number' ? value : 0);
+                        });
+                    });
+
+                    // Set up font for center text
+                    ctx.save();
+                    const fontSize = (chartArea.height / 6).toFixed(2); // Dynamic sizing based on chart height
+                    ctx.font = `bold ${fontSize}px sans-serif`;
+                    ctx.fillStyle = '#334155'; // Text color
+                    ctx.textBaseline = 'middle';
+                    ctx.textAlign = 'center';
+
+                    // Find exactly the center position of the doughnut
+                    const centerX = chartArea.left + (chartArea.right - chartArea.left) / 2;
+                    const centerY = chartArea.top + (chartArea.bottom - chartArea.top) / 2;
+
+                    // Draw the total
+                    ctx.fillText(total.toString(), centerX, centerY);
+
+                    // Draw a small label below the total if there is enough space (optional polish)
+                    const labelFontSize = (fontSize * 0.35).toFixed(2);
+                    ctx.font = `600 ${labelFontSize}px sans-serif`;
+                    ctx.fillStyle = '#64748b'; // Muted text color
+                    ctx.fillText('Total', centerX, centerY + parseInt(fontSize) * 0.6);
+
+                    ctx.restore();
+                }
+            }
+        };
+
         const commonOptions = {
             responsive: true,
             maintainAspectRatio: false,
@@ -395,6 +441,11 @@ const App = {
                 legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
             }
         };
+
+        // Register the global plugin for Chart.js if it hasn't been added
+        if (!Chart.registry.plugins.get('centerTotalPlugin')) {
+            Chart.register(centerTotalPlugin);
+        }
 
         // Helper to extract labels and data
         const getData = (obj) => ({
@@ -503,7 +554,7 @@ const App = {
 
         // 6. Outcome
         const outcomeData = getData(stats.outcome);
-        createOrUpdateChart('chartOutcome', 'pie', {
+        createOrUpdateChart('chartOutcome', 'doughnut', {
             labels: outcomeData.labels,
             datasets: [{
                 data: outcomeData.data,
