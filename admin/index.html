@@ -238,7 +238,7 @@
         AuthService.requireAuth('login.html');
         const user = AuthService.getCurrentUser();
         if (user && user.role !== 'admin') {
-            window.location.href = '../index.html';
+            window.location.replace(new URL('../index.html', window.location.href).href);
         }
 
         document.addEventListener('DOMContentLoaded', () => {

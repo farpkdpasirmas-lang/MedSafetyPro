@@ -121,25 +121,41 @@ const AuthService = {
     // Logout user
     logout: () => {
         if (typeof auth !== 'undefined' && auth) auth.signOut();
-        localStorage.removeItem(AUTH_KEY);
-        window.location.href = AuthService.basePath + 'login.html';
+        try {
+            localStorage.removeItem(AUTH_KEY);
+        } catch (e) {
+            console.error('LocalStorage error during logout:', e);
+        }
+        window.location.replace(new URL(AuthService.basePath + 'login.html', window.location.href).href);
     },
 
     // Get current user (Sync - relies on localStorage cache)
     getCurrentUser: () => {
-        const userStr = localStorage.getItem(AUTH_KEY);
-        return userStr ? JSON.parse(userStr) : null;
+        try {
+            const userStr = localStorage.getItem(AUTH_KEY);
+            return userStr ? JSON.parse(userStr) : null;
+        } catch (e) {
+            console.error('LocalStorage error in getCurrentUser:', e);
+            return null;
+        }
     },
 
     // Check if authenticated
     isAuthenticated: () => {
-        return !!localStorage.getItem(AUTH_KEY);
+        try {
+            return !!localStorage.getItem(AUTH_KEY);
+        } catch (e) {
+            console.error('LocalStorage error in isAuthenticated:', e);
+            return false;
+        }
     },
 
     // Route guard
     requireAuth: (loginPath) => {
         if (!AuthService.isAuthenticated()) {
-            window.location.href = loginPath || (AuthService.basePath + 'login.html');
+            const path = loginPath || (AuthService.basePath + 'login.html');
+            // Use replace to avoid back-button loops in iOS
+            window.location.replace(new URL(path, window.location.href).href);
         }
     },
 
@@ -148,9 +164,9 @@ const AuthService = {
         const user = AuthService.getCurrentUser();
         if (user) {
             if (user.role === 'admin') {
-                window.location.href = AuthService.basePath + 'admin/index.html';
+                window.location.replace(new URL(AuthService.basePath + 'admin/index.html', window.location.href).href);
             } else {
-                window.location.href = AuthService.basePath + 'dashboard.html';
+                window.location.replace(new URL(AuthService.basePath + 'dashboard.html', window.location.href).href);
             }
         }
     },

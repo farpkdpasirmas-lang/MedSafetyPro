@@ -77,7 +77,11 @@
         // Guard: Redirect if already logged in
         const user = AuthService.getCurrentUser();
         if (user) {
-            window.location.href = 'dashboard.html';
+            if (user.role === 'admin') {
+                window.location.replace(new URL('admin/index.html', window.location.href).href);
+            } else {
+                window.location.replace(new URL('dashboard.html', window.location.href).href);
+            }
         }
 
         // Login Form Handler
@@ -96,7 +100,11 @@
                 const result = await AuthService.login(email, password);
 
                 if (result.success) {
-                    window.location.href = 'dashboard.html';
+                    if (result.user.role === 'admin') {
+                        window.location.replace(new URL('admin/index.html', window.location.href).href);
+                    } else {
+                        window.location.replace(new URL('dashboard.html', window.location.href).href);
+                    }
                 } else {
                     alert(result.message);
                     btn.textContent = originalText;
