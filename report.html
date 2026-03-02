@@ -333,7 +333,7 @@
                             </div>
 
                             <div class="input-group">
-                                <label class="input-label">Prescription Image / Related Image</label>
+                                <label class="input-label">Prescription Image / Related Image <span style="color: red;">*</span></label>
                                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                     <input type="file" id="evidence-upload" class="input-field" accept="image/*" style="flex: 1;">
                                     <button type="button" id="start-camera" class="btn btn-outline" style="display: flex; align-items: center; gap: 5px;">
@@ -578,6 +578,12 @@
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     console.log('Form submission started');
+
+                    // Check if image is uploaded
+                    if (!uploadedImageBase64) {
+                        UI.showToast('Prescription Image / Related Image is required. Please upload or capture an image.', 'error');
+                        return;
+                    }
 
                     // Rate limiting check (1 minute)
                     if (typeof Security !== 'undefined' && !Security.checkRateLimit('report_submit', 60000)) {
