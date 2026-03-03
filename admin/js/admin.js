@@ -604,6 +604,7 @@ const AdminApp = {
     currentView: 'dashboard',
     selectedReports: new Set(),
     allReports: [], // Add real-time array
+    chartInstances: {},
 
     init: async () => {
         // Initial static render
@@ -717,123 +718,273 @@ const AdminApp = {
         const statsContainer = document.getElementById('dashboard-stats');
         if (!statsContainer) return;
 
-        // Fetch Real Data using AdminApp memory
         const reports = AdminApp.allReports;
-        const stats = AdminApp.calculateStats(reports);
-        const users = await AdminService.getAllUsers();
 
-        // Inject Full Dashboard Structure
-        statsContainer.innerHTML = `
-            <div class="dashboard-container" style="width: 100%;">
-                <!-- Top Stats & Filters -->
-                <div class="dashboard-header-row">
-                    <div class="stat-box total-cases">
-                        <div class="stat-label">Jumlah Kes</div>
-                        <div class="stat-value">${reports.length}</div>
+        if (!AdminApp._statsDomInitialized) {
+            AdminApp._statsDomInitialized = true;
+            const users = await AdminService.getAllUsers();
+            const stats = AdminApp.calculateStats(reports);
+
+            statsContainer.innerHTML = `
+                <div class="dashboard-container" style="width: 100%;">
+                    <!-- Top Stats & Filters -->
+                    <div class="dashboard-header-row">
+                        <div class="stat-box total-cases">
+                            <div class="stat-label">Jumlah Kes</div>
+                            <div class="stat-value">${reports.length}</div>
+                        </div>
+                        <div class="stat-box">
+                             <div class="stat-label">Total Users</div>
+                             <div class="stat-value">${users.length}</div>
+                        </div>
                     </div>
-                </div>
-
-                <div class="dashboard-header-row" style="margin-top: 1rem;">
-                    <div class="stat-box">
-                         <div class="stat-label">Total Users</div>
-                         <div class="stat-value">${users.length}</div>
+                    
+                    <div class="dashboard-header-row" style="margin-top: 1rem;">
+                        <div class="filter-bar" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background:white; padding:15px; border-radius:8px; width:100%; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                            <select id="filter-facility" class="filter-select"><option value="">Semua Fasiliti</option></select>
+                            <select id="filter-unit" class="filter-select"><option value="">Semua Unit</option></select>
+                            <select id="filter-detection" class="filter-select"><option value="">Semua Pengesanan</option></select>
+                            <span style="font-size: 0.9rem; color: #64748b;">Dari:</span>
+                            <input type="date" id="filter-date-start" class="filter-select">
+                            <span style="font-size: 0.9rem; color: #64748b;">Hingga:</span>
+                            <input type="date" id="filter-date-end" class="filter-select">
+                            <button id="btn-reset-filters" class="btn btn-outline btn-sm" style="padding: 0.5rem 1rem;">Reset</button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- SECTION 1: FASILITI DAN UNIT -->
-                <div class="dashboard-section">
-                    <div class="section-header">FASILITI DAN UNIT</div>
+                    <!-- SECTION 1: FASILITI DAN UNIT -->
+                    <div class="dashboard-section">
+                        <div class="section-header">FASILITI DAN UNIT</div>
+                        <div class="charts-row">
+                            <div class="chart-box">
+                                <h4 class="chart-title">Fasiliti</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartFacility"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-box">
+                                <h4 class="chart-title">Unit</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartUnit"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="section-header">KESILAPAN PENGUBATAN DI KECEMASAN / OPD</div>
+                        <div class="charts-grid-2x2">
+                            <div class="chart-box">
+                                <h4 class="chart-title">Preskripsi Tidak Lengkap</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartPrescriptionIncomplete"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-box">
+                                <h4 class="chart-title">Regimen Tidak Sesuai</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartRegimen"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-box">
+                                <h4 class="chart-title">Preskripsi Tidak Sesuai</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartPrescriptionInvalid"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-box">
+                                <h4 class="chart-title">Lain-lain</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartOthers"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="section-header">KESILAPAN PENGUBATAN DI FARMASI</div>
+                        <div class="charts-grid-2x2">
+                            <div class="chart-box">
+                                <h4 class="chart-title">Data Entry</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartDataEntry"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-box">
+                                <h4 class="chart-title">Labelling</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartLabelling"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-box">
+                                <h4 class="chart-title">Filling</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartFilling"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-box">
+                                <h4 class="chart-title">Kategori Staff</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartStaff"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="charts-row">
-                        <div class="chart-box">
-                            <h4 class="chart-title">Fasiliti</h4>
+                        <div class="chart-box" style="flex: 1;">
+                            <div class="section-header" style="margin: -1rem -1rem 1rem -1rem; border-radius: 4px 4px 0 0;">Kategori Error Outcome</div>
                             <div class="chart-wrapper">
-                                <canvas id="chartFacility"></canvas>
+                                <canvas id="chartOutcome"></canvas>
                             </div>
                         </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Unit</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartUnit"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 2: KESILAPAN PENGUBATAN DI KECEMASAN / OPD -->
-                <div class="dashboard-section">
-                    <div class="section-header">KESILAPAN PENGUBATAN DI KECEMASAN / OPD</div>
-                    <div class="charts-grid-2x2">
-                        <div class="chart-box">
-                            <h4 class="chart-title">Preskripsi Tidak Lengkap</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartPrescriptionIncomplete"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Regimen Tidak Sesuai</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartRegimen"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Preskripsi Tidak Sesuai</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartPrescriptionInvalid"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Lain-lain</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartOthers"></canvas>
+                        <div class="chart-box" style="flex: 1;">
+                            <div class="section-header" style="margin: -1rem -1rem 1rem -1rem; border-radius: 4px 4px 0 0;">Kekerapan</div>
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Fasiliti</th>
+                                            <th>Unit</th>
+                                            <th>Kategori</th>
+                                            <th>Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${AdminApp.renderFrequencyRows(stats.frequencyData)}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- SECTION 3: KESILAPAN PENGUBATAN DI FARMASI -->
-                <div class="dashboard-section">
-                    <div class="section-header">KESILAPAN PENGUBATAN DI FARMASI</div>
-                    <div class="charts-grid-2x2">
-                        <div class="chart-box">
-                            <h4 class="chart-title">Data Entry</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartDataEntry"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Labelling</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartLabelling"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-box">
-                            <h4 class="chart-title">Filling</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartFilling"></canvas>
-                            </div>
-                        </div>
-                         <div class="chart-box">
-                            <h4 class="chart-title">Kategori Staff</h4>
-                            <div class="chart-wrapper">
-                                <canvas id="chartStaff"></canvas>
-                            </div>
+                    
+                    <div class="dashboard-section">
+                        <div class="section-header">Jadual Am</div>
+                        <div class="table-wrapper">
+                            <table class="data-table full-width">
+                                <thead>
+                                    <tr>
+                                        <th>Fasiliti</th>
+                                        <th>Tarikh</th>
+                                        <th>Kategori</th>
+                                        <th>Setting</th>
+                                        <th>Error Type</th>
+                                        <th>Staff</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${AdminApp.renderGeneralRows(reports)}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
+            `;
 
-                <!-- SECTION 4: OUTCOME -->
-                <div class="charts-row">
-                    <div class="chart-box" style="flex: 1;">
-                        <div class="section-header" style="margin: -1rem -1rem 1rem -1rem; border-radius: 4px 4px 0 0;">Kategori Error Outcome</div>
-                        <div class="chart-wrapper">
-                            <canvas id="chartOutcome"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+            AdminApp.initCharts(stats);
+            AdminApp.populateFilters();
+            AdminApp.setupFilterListeners();
+        } else {
+            AdminApp.applyFilters();
+        }
+    },
 
-        // Initialize Charts with Real Data
+    populateFilters: () => {
+        const facilities = new Set();
+        const units = new Set();
+        const detections = new Set();
+
+        AdminApp.allReports.forEach(r => {
+            if (r.facility) facilities.add(r.facility);
+            if (r.setting) units.add(r.setting);
+            if (r.detection) detections.add(r.detection);
+        });
+
+        const populateSelect = (id, items) => {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const firstChild = select.firstElementChild;
+            select.innerHTML = '';
+            if (firstChild) select.appendChild(firstChild);
+
+            Array.from(items).sort().forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                if (item === 'ae') option.textContent = 'A&E';
+                else if (item === 'outpatient') option.textContent = 'Outpatient';
+                else if (item === 'pharmacy') option.textContent = 'Pharmacy';
+                else option.textContent = item;
+                select.appendChild(option);
+            });
+        };
+
+        populateSelect('filter-facility', facilities);
+        populateSelect('filter-unit', units);
+        populateSelect('filter-detection', detections);
+    },
+
+    setupFilterListeners: () => {
+        const filterElements = [
+            'filter-facility', 'filter-unit', 'filter-detection',
+            'filter-date-start', 'filter-date-end'
+        ];
+
+        filterElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', AdminApp.applyFilters);
+        });
+
+        const resetBtn = document.getElementById('btn-reset-filters');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                filterElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                AdminApp.applyFilters();
+            });
+        }
+    },
+
+    applyFilters: () => {
+        const facility = document.getElementById('filter-facility')?.value;
+        const unit = document.getElementById('filter-unit')?.value;
+        const detection = document.getElementById('filter-detection')?.value;
+        const dateStart = document.getElementById('filter-date-start')?.value;
+        const dateEnd = document.getElementById('filter-date-end')?.value;
+
+        const filteredReports = AdminApp.allReports.filter(r => {
+            let match = true;
+            if (facility && r.facility !== facility) match = false;
+            if (unit && r.setting !== unit) match = false;
+            if (detection && r.detection !== detection) match = false;
+
+            if (dateStart || dateEnd) {
+                const reportDate = new Date(r.date || r.timestamp);
+                if (dateStart && new Date(dateStart) > reportDate) match = false;
+                if (dateEnd) {
+                    const end = new Date(dateEnd);
+                    end.setHours(23, 59, 59, 999);
+                    if (end < reportDate) match = false;
+                }
+            }
+            return match;
+        });
+
+        const totalCasesEl = document.querySelector('.total-cases .stat-value');
+        if (totalCasesEl) totalCasesEl.textContent = filteredReports.length;
+
+        const stats = AdminApp.calculateStats(filteredReports);
+
+        const tables = document.querySelectorAll('#dashboard-stats .data-table');
+        if (tables.length > 0) {
+            tables[0].querySelector('tbody').innerHTML = AdminApp.renderFrequencyRows(stats.frequencyData);
+        }
+        if (tables.length > 1) {
+            tables[1].querySelector('tbody').innerHTML = AdminApp.renderGeneralRows(filteredReports);
+        }
+
         AdminApp.initCharts(stats);
     },
 
@@ -866,10 +1017,86 @@ const AdminApp = {
             }
         });
 
+        const freqMap = {};
+        reports.forEach(r => {
+            const key = `${r.facility}|${r.setting}|${r.outcome}`;
+            if (!freqMap[key]) {
+                freqMap[key] = { facility: r.facility, unit: r.setting, cat: r.outcome, count: 0 };
+            }
+            freqMap[key].count++;
+        });
+        stats.frequencyData = Object.values(freqMap).sort((a, b) => b.count - a.count).slice(0, 10);
+
         return stats;
     },
 
+    renderFrequencyRows: (data) => {
+        if (data.length === 0) return '<tr><td colspan="5" style="text-align:center">No data available</td></tr>';
+        return data.map((row, i) => `
+            <tr>
+                <td>${i + 1}.</td>
+                <td>${Security.sanitize(row.facility)}</td>
+                <td>${Security.sanitize(row.unit)}</td>
+                <td>${Security.sanitize(row.cat)}</td>
+                <td>${row.count}</td>
+            </tr>
+        `).join('');
+    },
+
+    renderGeneralRows: (reports) => {
+        if (reports.length === 0) return '<tr><td colspan="6" style="text-align:center">No reports found</td></tr>';
+        return reports.slice(-10).reverse().map(r => `
+            <tr>
+                <td>${Security.sanitize(r.facility)}</td>
+                <td>${new Date(r.date || r.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                <td>${Security.sanitize(r.outcome)}</td>
+                <td>${Security.sanitize(r.setting)}</td>
+                <td>${Security.sanitize([...(r.pharmacyErrors || []), ...(r.clinicErrors || [])].join(', ') || '-')}</td>
+                <td>${Security.sanitize(r.staffCategory)}</td>
+            </tr>
+        `).join('');
+    },
+
     initCharts: (stats) => {
+        const centerTotalPlugin = {
+            id: 'centerTotalPlugin',
+            beforeDraw: (chart) => {
+                if (chart.config.type === 'doughnut') {
+                    const ctx = chart.ctx;
+                    const chartArea = chart.chartArea;
+                    const meta = chart.getDatasetMeta(0);
+
+                    if (!meta.data.length || !chartArea) return;
+
+                    let total = 0;
+                    chart.data.datasets.forEach(dataset => {
+                        dataset.data.forEach(value => {
+                            total += (typeof value === 'number' ? value : 0);
+                        });
+                    });
+
+                    ctx.save();
+                    const fontSize = (chartArea.height / 6).toFixed(2);
+                    ctx.font = `bold ${fontSize}px sans-serif`;
+                    ctx.fillStyle = '#334155';
+                    ctx.textBaseline = 'middle';
+                    ctx.textAlign = 'center';
+
+                    const centerX = chartArea.left + (chartArea.right - chartArea.left) / 2;
+                    const centerY = chartArea.top + (chartArea.bottom - chartArea.top) / 2;
+
+                    ctx.fillText(total.toString(), centerX, centerY);
+
+                    const labelFontSize = (fontSize * 0.35).toFixed(2);
+                    ctx.font = `600 ${labelFontSize}px sans-serif`;
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText('Total', centerX, centerY + parseInt(fontSize) * 0.6);
+
+                    ctx.restore();
+                }
+            }
+        };
+
         const commonOptions = {
             responsive: true,
             maintainAspectRatio: false,
@@ -878,110 +1105,120 @@ const AdminApp = {
             }
         };
 
+        if (!Chart.registry.plugins.get('centerTotalPlugin')) {
+            Chart.register(centerTotalPlugin);
+        }
+
         const getData = (obj) => ({
             labels: Object.keys(obj),
             data: Object.values(obj)
         });
 
+        const createOrUpdateChart = (id, type, data, options) => {
+            const ctx = document.getElementById(id);
+            if (!ctx) return;
+            if (AdminApp.chartInstances[id]) {
+                AdminApp.chartInstances[id].destroy();
+            }
+            AdminApp.chartInstances[id] = new Chart(ctx, { type, data, options });
+        };
+
         // 1. Facility
         const facilityData = getData(stats.facility);
-        new Chart(document.getElementById('chartFacility'), {
-            type: 'bar',
-            data: {
-                labels: facilityData.labels,
-                datasets: [{
-                    label: 'Klinik Kesihatan',
-                    data: facilityData.data,
-                    backgroundColor: '#1976d2'
-                }]
-            },
-            options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
+        createOrUpdateChart('chartFacility', 'bar', {
+            labels: facilityData.labels,
+            datasets: [{
+                label: 'Klinik Kesihatan',
+                data: facilityData.data,
+                backgroundColor: '#1976d2'
+            }]
+        }, { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } });
 
         // 2. Unit
         const unitData = getData(stats.unit);
-        new Chart(document.getElementById('chartUnit'), {
-            type: 'doughnut',
-            data: {
-                labels: unitData.labels,
-                datasets: [{
-                    data: unitData.data,
-                    backgroundColor: ['#00bcd4', '#1976d2', '#e91e63']
-                }]
-            },
-            options: commonOptions
-        });
+        createOrUpdateChart('chartUnit', 'doughnut', {
+            labels: unitData.labels,
+            datasets: [{
+                data: unitData.data,
+                backgroundColor: ['#00bcd4', '#1976d2', '#e91e63']
+            }]
+        }, commonOptions);
 
         // 3. Clinic Errors
         const clinicErrData = getData(stats.clinicErrors);
-        const clinicCharts = [
-            { id: 'chartPrescriptionIncomplete', slice: [0, 5] },
-            { id: 'chartRegimen', slice: [5, 10] },
-            { id: 'chartPrescriptionInvalid', slice: [0, 3] },
-            { id: 'chartOthers', slice: [0, 1] } // Placeholder
-        ];
 
-        clinicCharts.forEach((chart, index) => {
-            const el = document.getElementById(chart.id);
-            if (el) {
-                new Chart(el, {
-                    type: 'doughnut',
-                    data: {
-                        labels: clinicErrData.labels.slice(...chart.slice),
-                        datasets: [{
-                            data: clinicErrData.data.slice(...chart.slice),
-                            backgroundColor: ['#1976d2', '#ff5722', '#7b1fa2', '#388e3c', '#c2185b']
-                        }]
-                    },
-                    options: commonOptions
-                });
-            }
-        });
+        createOrUpdateChart('chartPrescriptionIncomplete', 'doughnut', {
+            labels: clinicErrData.labels.slice(0, 5),
+            datasets: [{
+                data: clinicErrData.data.slice(0, 5),
+                backgroundColor: ['#1976d2', '#ff5722', '#7b1fa2', '#388e3c', '#c2185b']
+            }]
+        }, commonOptions);
+
+        createOrUpdateChart('chartRegimen', 'doughnut', {
+            labels: clinicErrData.labels.slice(5, 10),
+            datasets: [{
+                data: clinicErrData.data.slice(5, 10),
+                backgroundColor: ['#ff5722', '#1976d2', '#e91e63', '#fbc02d', '#388e3c']
+            }]
+        }, commonOptions);
+
+        createOrUpdateChart('chartPrescriptionInvalid', 'doughnut', {
+            labels: clinicErrData.labels.slice(0, 3),
+            datasets: [{
+                data: clinicErrData.data.slice(0, 3),
+                backgroundColor: ['#00bcd4', '#1976d2', '#e91e63']
+            }]
+        }, commonOptions);
+
+        createOrUpdateChart('chartOthers', 'doughnut', {
+            labels: ['Others'],
+            datasets: [{
+                data: [1],
+                backgroundColor: ['#e91e63']
+            }]
+        }, commonOptions);
 
         // 4. Pharmacy Errors
         const pharmErrData = getData(stats.pharmacyErrors);
-        const pharmCharts = ['chartDataEntry', 'chartLabelling', 'chartFilling'];
-        pharmCharts.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                new Chart(el, {
-                    type: 'bar',
-                    data: {
-                        labels: pharmErrData.labels,
-                        datasets: [{ label: 'Count', data: pharmErrData.data, backgroundColor: '#1976d2' }]
-                    },
-                    options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-                });
-            }
-        });
+        createOrUpdateChart('chartDataEntry', 'bar', {
+            labels: pharmErrData.labels,
+            datasets: [{
+                label: 'Count',
+                data: pharmErrData.data,
+                backgroundColor: ['#e91e63', '#1976d2', '#00bcd4']
+            }]
+        }, { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } });
+
+        createOrUpdateChart('chartLabelling', 'bar', {
+            labels: pharmErrData.labels,
+            datasets: [{ label: 'Count', data: pharmErrData.data, backgroundColor: '#00838f' }]
+        }, { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } });
+
+        createOrUpdateChart('chartFilling', 'bar', {
+            labels: pharmErrData.labels,
+            datasets: [{ label: 'Count', data: pharmErrData.data, backgroundColor: '#1976d2' }]
+        }, { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } });
 
         // 5. Staff
         const staffData = getData(stats.staff);
-        new Chart(document.getElementById('chartStaff'), {
-            type: 'doughnut',
-            data: {
-                labels: staffData.labels,
-                datasets: [{
-                    data: staffData.data,
-                    backgroundColor: ['#1976d2', '#ff9800', '#fbc02d', '#ff5722', '#e91e63']
-                }]
-            },
-            options: commonOptions
-        });
+        createOrUpdateChart('chartStaff', 'doughnut', {
+            labels: staffData.labels,
+            datasets: [{
+                data: staffData.data,
+                backgroundColor: ['#1976d2', '#ff9800', '#fbc02d', '#ff5722', '#e91e63']
+            }]
+        }, commonOptions);
 
         // 6. Outcome
         const outcomeData = getData(stats.outcome);
-        new Chart(document.getElementById('chartOutcome'), {
-            type: 'pie',
-            data: {
-                labels: outcomeData.labels,
-                datasets: [{
-                    data: outcomeData.data,
-                    backgroundColor: ['#ff5722', '#4caf50', '#e91e63', '#1976d2']
-                }]
-            },
-            options: commonOptions
-        });
+        createOrUpdateChart('chartOutcome', 'doughnut', {
+            labels: outcomeData.labels,
+            datasets: [{
+                data: outcomeData.data,
+                backgroundColor: ['#ff5722', '#4caf50', '#e91e63', '#1976d2']
+            }]
+        }, commonOptions);
     },
 
     renderReportList: async (filteredReports = null) => {
@@ -1001,10 +1238,10 @@ const AdminApp = {
                 const dateParts = parts[0].split('/');
 
                 // Construct ISO string YYYY-MM-DD
-                const isoDateStr = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+                const isoDateStr = `${dateParts[2]} -${dateParts[1].padStart(2, '0')} -${dateParts[0].padStart(2, '0')} `;
 
                 if (parts[1]) {
-                    return new Date(`${isoDateStr}T${parts[1]}`);
+                    return new Date(`${isoDateStr}T${parts[1]} `);
                 }
                 return new Date(isoDateStr);
             }
@@ -1027,7 +1264,7 @@ const AdminApp = {
             const dateDisplay = dateObj.getTime() === 0 ? '-' : dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
             return `
-            <tr>
+                        < tr >
                 <td><input type="checkbox" class="report-checkbox" value="${r.id}" onchange="AdminApp.toggleSelectReport('${r.id}')"></td>
                 <td>${Security.sanitize(r.facility || '-')}</td>
                 <td>${dateDisplay}</td>
@@ -1040,8 +1277,8 @@ const AdminApp = {
                     <button class="btn-sm btn-danger" onclick="AdminService.deleteReport('${r.id}')">Delete</button>
                     <button class="btn-sm btn-outline" style="margin-left: 0.25rem;" onclick="AdminApp.downloadReportPDF('${r.id}')">📥 PDF</button>
                 </td>
-            </tr>
-         `;
+            </tr >
+    `;
         }).join('');
     },
 
@@ -1114,7 +1351,7 @@ const AdminApp = {
         if (!modal || !modalBody) return;
 
         modalBody.innerHTML = `
-            <div style="display: grid; gap: 1rem;">
+    < div style = "display: grid; gap: 1rem;" >
                 <div><strong>Report ID:</strong> ${report.id}</div>
                 <div><strong>Date:</strong> ${report.date || 'N/A'} ${report.time || ''}</div>
                 <div><strong>Facility:</strong> ${Security.sanitize(report.facility) || 'N/A'}</div>
@@ -1126,8 +1363,8 @@ const AdminApp = {
                 <div><strong>Outcome:</strong> ${Security.sanitize(report.outcome) || 'N/A'}</div>
                 <div><strong>Description:</strong><br>${Security.sanitize(report.description) || 'N/A'}</div>
                 <div><strong>Created:</strong> ${report.createdAt ? new Date(report.createdAt).toLocaleString() : 'N/A'}</div>
-            </div>
-        `;
+            </div >
+    `;
 
         modal.style.display = 'flex';
     },
@@ -1150,7 +1387,7 @@ const AdminApp = {
         const users = allUsers.filter(u => u.role !== 'admin');
 
         const renderRow = (user, isAdminTable) => `
-            <tr>
+    < tr >
                 <td>
                     <div style="font-weight: 500; color: var(--color-text-main);">${user.fullname || 'Unknown'}</div>
                 </td>
@@ -1172,8 +1409,8 @@ const AdminApp = {
                         🗑️
                     </button>
                 </td>
-            </tr>
-        `;
+            </tr >
+    `;
 
         // Render Admins
         if (admins.length === 0) {
@@ -1236,7 +1473,7 @@ const AdminApp = {
 
         // Update staff count
         if (staffCountEl) {
-            staffCountEl.textContent = `${staffList.length} staff member${staffList.length !== 1 ? 's' : ''}`;
+            staffCountEl.textContent = `${staffList.length} staff member${staffList.length !== 1 ? 's' : ''} `;
         }
 
         // Update facility filter dropdown
@@ -1244,7 +1481,7 @@ const AdminApp = {
             const facilities = [...new Set(staffList.map(s => s.facility))].sort();
             const currentValue = facilityFilter.value;
             facilityFilter.innerHTML = '<option value="all">All Facilities</option>' +
-                facilities.map(f => `<option value="${Security.sanitize(f)}">${Security.sanitize(f)}</option>`).join('');
+                facilities.map(f => `< option value = "${Security.sanitize(f)}" > ${Security.sanitize(f)}</option > `).join('');
             if (facilities.includes(currentValue)) {
                 facilityFilter.value = currentValue;
             }
@@ -1272,7 +1509,7 @@ const AdminApp = {
         }
 
         tbody.innerHTML = filteredStaff.map(staff => `
-            <tr style="border-bottom: 1px solid #e2e8f0;">
+    < tr style = "border-bottom: 1px solid #e2e8f0;" >
                 <td style="padding: 0.75rem;">
                     <span style="padding: 0.25rem 0.5rem; background: #e0f2f1; color: var(--color-primary); border-radius: 4px; font-size: 0.75rem; font-weight: 500;">
                         ${Security.sanitize(staff.facility)}
@@ -1284,8 +1521,8 @@ const AdminApp = {
                     ${staff.email ? `<a href="mailto:${Security.sanitize(staff.email)}" style="color: var(--color-primary); text-decoration: none;">${Security.sanitize(staff.email)}</a>` : '<span style="color: var(--color-text-muted);">-</span>'}
                 </td>
                 <td style="padding: 0.75rem; font-size: 0.875rem; color: var(--color-text-muted);">${Security.sanitize(staff.category) || '-'}</td>
-            </tr>
-        `).join('');
+            </tr >
+    `).join('');
     },
 
     renderFeedbackManagement: async () => {
@@ -1312,12 +1549,12 @@ const AdminApp = {
                 pendingTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 2rem;">All reporters have submitted their feedback.</td></tr>';
             } else {
                 pendingTbody.innerHTML = pendingUsers.map(u => `
-                    <tr>
+    < tr >
                         <td>${Security.sanitize(u.fullname)}</td>
                         <td>${Security.sanitize(u.email)}</td>
                         <td>${Security.sanitize(u.facility || 'N/A')}</td>
-                    </tr>
-                `).join('');
+                    </tr >
+    `).join('');
             }
 
             // Render Submitted Feedback Table
@@ -1332,7 +1569,7 @@ const AdminApp = {
                     const dateStr = new Date(f.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
                     return `
-                    <tr>
+    < tr >
                         <td>${dateStr}</td>
                         <td>${Security.sanitize(f.submittedBy)}</td>
                         <td>${Security.sanitize(f.submittedEmail)}</td>
@@ -1342,8 +1579,8 @@ const AdminApp = {
                                 👁️ View Details
                             </button>
                         </td>
-                    </tr>
-                    `;
+                    </tr >
+    `;
                 }).join('');
             }
         } catch (error) {
@@ -1374,23 +1611,23 @@ const AdminApp = {
         let factorsHtml = '<p>No specific factors selected.</p>';
         if (feedback.factors && feedback.factors.length > 0) {
             factorsHtml = feedback.factors.map(f => `
-                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #10b981;">
+    < div style = "background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #10b981;" >
                     <h4 style="margin: 0 0 0.5rem 0; color: #0f172a;">${Security.sanitize(f.label)}</h4>
                     <p style="margin: 0; color: #475569; white-space: pre-wrap;">${Security.sanitize(f.explanation)}</p>
-                </div>
-            `).join('');
+                </div >
+    `).join('');
         }
 
         modalBody.innerHTML = `
-            <div style="margin-bottom: 1.5rem;">
-                <strong>Submitted By:</strong> ${Security.sanitize(feedback.submittedBy)} <br>
-                <strong>Email:</strong> ${Security.sanitize(feedback.submittedEmail)}<br>
+    < div style = "margin-bottom: 1.5rem;" >
+        <strong>Submitted By:</strong> ${Security.sanitize(feedback.submittedBy)} <br>
+            <strong>Email:</strong> ${Security.sanitize(feedback.submittedEmail)}<br>
                 <strong>Date:</strong> ${dateStr}
             </div>
 
             <h4 style="border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem;">Identified Factors & Explanations</h4>
             ${factorsHtml}
-        `;
+            `;
         modal.style.display = 'flex';
     }
 };
