@@ -1509,7 +1509,7 @@ const AdminApp = {
         }
 
         tbody.innerHTML = filteredStaff.map(staff => `
-    < tr style = "border-bottom: 1px solid #e2e8f0;" >
+            <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 0.75rem;">
                     <span style="padding: 0.25rem 0.5rem; background: #e0f2f1; color: var(--color-primary); border-radius: 4px; font-size: 0.75rem; font-weight: 500;">
                         ${Security.sanitize(staff.facility)}
@@ -1521,7 +1521,7 @@ const AdminApp = {
                     ${staff.email ? `<a href="mailto:${Security.sanitize(staff.email)}" style="color: var(--color-primary); text-decoration: none;">${Security.sanitize(staff.email)}</a>` : '<span style="color: var(--color-text-muted);">-</span>'}
                 </td>
                 <td style="padding: 0.75rem; font-size: 0.875rem; color: var(--color-text-muted);">${Security.sanitize(staff.category) || '-'}</td>
-            </tr >
+            </tr>
     `).join('');
     },
 
