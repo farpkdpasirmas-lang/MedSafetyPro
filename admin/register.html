@@ -235,11 +235,11 @@
 
                 if (result.success) {
                     // Show success message briefly before redirect
-                    btn.textContent = '✓ Admin Account Created!';
+                    btn.textContent = result.message || '✓ Admin Account Created!';
                     btn.style.background = '#10b981';
                     setTimeout(() => {
                         window.location.href = '../admin/index.html';
-                    }, 500);
+                    }, 1000);
                 } else {
                     errorMsg.textContent = result.message;
                     errorMsg.style.display = 'block';

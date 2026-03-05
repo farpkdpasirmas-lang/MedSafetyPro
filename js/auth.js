@@ -37,12 +37,72 @@ const AuthService = {
                 localStorage.setItem(AUTH_KEY, JSON.stringify(newUser));
                 return { success: true, user: newUser };
             } catch (error) {
+                // If it's an admin registration and the email is already in use, upgrade the user
+                if (error.code === 'auth/email-already-in-use' && userData.role === 'admin') {
+                    try {
+                        // We need to sign in to get the UID, or we could use a Cloud Function.
+                        // Since we just have client-side JS here, we ask them to log in, but we can try 
+                        // to authenticate them with the provided password.
+                        const userCredential = await auth.signInWithEmailAndPassword(userData.email, userData.password);
+                        const user = userCredential.user;
+
+                        const updatedData = {
+                            role: 'admin',
+                            approved: true,
+                            fullname: userData.fullname // update name if changed
+                        };
+
+                        if (db) {
+                            await db.collection('users').doc(user.uid).update(updatedData);
+                            const doc = await db.collection('users').doc(user.uid).get();
+
+                            const mergedUser = { ...doc.data(), email: user.email, id: user.uid };
+                            localStorage.setItem(AUTH_KEY, JSON.stringify(mergedUser));
+                            return { success: true, user: mergedUser, message: 'Existing user upgraded to Admin.' };
+                        }
+                    } catch (signInError) {
+                        return {
+                            success: false,
+                            message: 'Email exists, but the password provided was incorrect. Please use the same password you registered with to upgrade this account to admin.'
+                        };
+                    }
+                }
                 return { success: false, message: error.message };
             }
         } else {
             // ... (Original LocalStorage Logic) ...
             const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-            if (users.find(u => u.email === userData.email)) {
+            const existingUserIndex = users.findIndex(u => u.email === userData.email);
+
+            if (existingUserIndex !== -1) {
+                if (userData.role === 'admin') {
+                    // Try to authenticate them before upgrading
+                    const inputHash = await Security.hashPassword(userData.password);
+                    const existingUser = users[existingUserIndex];
+
+                    if (existingUser.password === inputHash || existingUser.password === userData.password) {
+                        existingUser.role = 'admin';
+                        existingUser.approved = true;
+                        existingUser.fullname = userData.fullname;
+
+                        // Update hash if they used plain text unexpectedly
+                        if (existingUser.password === userData.password) {
+                            existingUser.password = inputHash;
+                        }
+
+                        users[existingUserIndex] = existingUser;
+                        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+                        const { password, ...userWithoutPass } = existingUser;
+                        localStorage.setItem(AUTH_KEY, JSON.stringify(userWithoutPass));
+                        return { success: true, user: userWithoutPass, message: 'Existing user upgraded to Admin.' };
+                    } else {
+                        return {
+                            success: false,
+                            message: 'Email exists, but the password provided was incorrect. Please use the original password to upgrade.'
+                        };
+                    }
+                }
                 return { success: false, message: 'Email already registered' };
             }
             const hashedPassword = await Security.hashPassword(userData.password);
