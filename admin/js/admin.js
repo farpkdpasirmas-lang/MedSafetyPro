@@ -604,6 +604,7 @@ const AdminApp = {
     currentView: 'dashboard',
     selectedReports: new Set(),
     allReports: [], // Add real-time array
+    currentSort: { column: 'timestamp', direction: 'desc' }, // Track sorting
     chartInstances: {},
 
     init: async () => {
@@ -1251,8 +1252,30 @@ const AdminApp = {
             return isNaN(parsed.getTime()) ? new Date(0) : parsed;
         };
 
-        // Sort by date desc
-        reports.sort((a, b) => parseReportDate(b.timestamp) - parseReportDate(a.timestamp));
+        // Sort logic
+        reports.sort((a, b) => {
+            let valA, valB;
+
+            switch (AdminApp.currentSort.column) {
+                case 'facility':
+                    valA = (a.facility || '').toLowerCase();
+                    valB = (b.facility || '').toLowerCase();
+                    break;
+                case 'staffName':
+                    valA = (a.staffName || '').toLowerCase();
+                    valB = (b.staffName || '').toLowerCase();
+                    break;
+                case 'timestamp':
+                default:
+                    valA = parseReportDate(a.timestamp).getTime();
+                    valB = parseReportDate(b.timestamp).getTime();
+                    break;
+            }
+
+            if (valA < valB) return AdminApp.currentSort.direction === 'asc' ? -1 : 1;
+            if (valA > valB) return AdminApp.currentSort.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
 
         if (reports.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem;">No reports found</td></tr>';
@@ -1279,6 +1302,41 @@ const AdminApp = {
             </tr >
     `;
         }).join('');
+
+        AdminApp.updateSortIndicators();
+    },
+
+    sortReports: (column) => {
+        if (AdminApp.currentSort.column === column) {
+            // Toggle direction
+            AdminApp.currentSort.direction = AdminApp.currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            // New column, default to ascending (except for timestamp)
+            AdminApp.currentSort.column = column;
+            AdminApp.currentSort.direction = column === 'timestamp' ? 'desc' : 'asc';
+        }
+
+        // Re-render with applied filters (search box)
+        const searchInput = document.getElementById('report-search');
+        if (searchInput && searchInput.value) {
+            const results = AdminService.searchReports(searchInput.value);
+            AdminApp.renderReportList(results);
+        } else {
+            AdminApp.renderReportList();
+        }
+    },
+
+    updateSortIndicators: () => {
+        // Reset all headers
+        document.querySelectorAll('.sort-icon').forEach(el => el.textContent = '⇅');
+
+        // Set active header
+        const activeIcon = document.getElementById(`sort-icon-${AdminApp.currentSort.column}`);
+        if (activeIcon) {
+            activeIcon.textContent = AdminApp.currentSort.direction === 'asc' ? '↑' : '↓';
+            activeIcon.style.color = 'var(--color-primary)';
+            activeIcon.style.fontWeight = 'bold';
+        }
     },
 
 
