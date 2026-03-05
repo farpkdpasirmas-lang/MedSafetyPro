@@ -1275,33 +1275,13 @@ const AdminApp = {
                 <td>
                     <button class="btn-sm btn-outline" onclick="AdminApp.viewReport('${r.id}')">View</button>
                     <button class="btn-sm btn-danger" onclick="AdminService.deleteReport('${r.id}')">Delete</button>
-                    <button class="btn-sm btn-outline" style="margin-left: 0.25rem;" onclick="AdminApp.downloadReportPDF('${r.id}')">📥 PDF</button>
                 </td>
             </tr >
     `;
         }).join('');
     },
 
-    downloadReportPDF: async (id) => {
-        try {
-            const reports = await AdminService.getAllReports();
-            const report = reports.find(r => r.id === id);
 
-            if (!report) {
-                alert('Report not found!');
-                return;
-            }
-
-            // Let user know it's loading
-            UI.showToast('Generating PDF...', 'info');
-
-            // Set isFromAdmin to true so it knows where to find the logo relative path
-            await PDFService.generatePDF(report, true);
-        } catch (error) {
-            console.error('Error generating admin PDF:', error);
-            alert('Failed to generate PDF. Check console for details.');
-        }
-    },
 
     getOutcomeBadgeClass: (outcome) => {
         if (!outcome) return 'secondary';
