@@ -1287,7 +1287,7 @@ const AdminApp = {
             const dateDisplay = dateObj.getTime() === 0 ? '-' : dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
             return `
-                        < tr >
+                        <tr>
                 <td><input type="checkbox" class="report-checkbox" value="${r.id}" onchange="AdminApp.toggleSelectReport('${r.id}')"></td>
                 <td>${Security.sanitize(r.facility || '-')}</td>
                 <td>${dateDisplay}</td>
@@ -1299,7 +1299,7 @@ const AdminApp = {
                     <button class="btn-sm btn-outline" onclick="AdminApp.viewReport('${r.id}')">View</button>
                     <button class="btn-sm btn-danger" onclick="AdminService.deleteReport('${r.id}')">Delete</button>
                 </td>
-            </tr >
+            </tr>
     `;
         }).join('');
 
@@ -1389,7 +1389,7 @@ const AdminApp = {
         if (!modal || !modalBody) return;
 
         modalBody.innerHTML = `
-    < div style = "display: grid; gap: 1rem;" >
+    <div style="display: grid; gap: 1rem;">
                 <div><strong>Report ID:</strong> ${report.id}</div>
                 <div><strong>Date:</strong> ${report.date || 'N/A'} ${report.time || ''}</div>
                 <div><strong>Facility:</strong> ${Security.sanitize(report.facility) || 'N/A'}</div>
@@ -1401,7 +1401,7 @@ const AdminApp = {
                 <div><strong>Outcome:</strong> ${Security.sanitize(report.outcome) || 'N/A'}</div>
                 <div><strong>Description:</strong><br>${Security.sanitize(report.description) || 'N/A'}</div>
                 <div><strong>Created:</strong> ${report.createdAt ? new Date(report.createdAt).toLocaleString() : 'N/A'}</div>
-            </div >
+            </div>
     `;
 
         modal.style.display = 'flex';
@@ -1425,7 +1425,7 @@ const AdminApp = {
         const users = allUsers.filter(u => u.role !== 'admin');
 
         const renderRow = (user, isAdminTable) => `
-    < tr >
+    <tr>
                 <td>
                     <div style="font-weight: 500; color: var(--color-text-main);">${user.fullname || 'Unknown'}</div>
                 </td>
@@ -1447,7 +1447,7 @@ const AdminApp = {
                         🗑️
                     </button>
                 </td>
-            </tr >
+            </tr>
     `;
 
         // Render Admins
@@ -1519,7 +1519,7 @@ const AdminApp = {
             const facilities = [...new Set(staffList.map(s => s.facility))].sort();
             const currentValue = facilityFilter.value;
             facilityFilter.innerHTML = '<option value="all">All Facilities</option>' +
-                facilities.map(f => `< option value = "${Security.sanitize(f)}" > ${Security.sanitize(f)}</option > `).join('');
+                facilities.map(f => `<option value="${Security.sanitize(f)}">${Security.sanitize(f)}</option>`).join('');
             if (facilities.includes(currentValue)) {
                 facilityFilter.value = currentValue;
             }
@@ -1587,11 +1587,11 @@ const AdminApp = {
                 pendingTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 2rem;">All reporters have submitted their feedback.</td></tr>';
             } else {
                 pendingTbody.innerHTML = pendingUsers.map(u => `
-    < tr >
+    <tr>
                         <td>${Security.sanitize(u.fullname)}</td>
                         <td>${Security.sanitize(u.email)}</td>
                         <td>${Security.sanitize(u.facility || 'N/A')}</td>
-                    </tr >
+                    </tr>
     `).join('');
             }
 
@@ -1607,7 +1607,7 @@ const AdminApp = {
                     const dateStr = new Date(f.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
                     return `
-    < tr >
+    <tr>
                         <td>${dateStr}</td>
                         <td>${Security.sanitize(f.submittedBy)}</td>
                         <td>${Security.sanitize(f.submittedEmail)}</td>
@@ -1617,7 +1617,7 @@ const AdminApp = {
                                 👁️ View Details
                             </button>
                         </td>
-                    </tr >
+                    </tr>
     `;
                 }).join('');
             }
@@ -1649,15 +1649,15 @@ const AdminApp = {
         let factorsHtml = '<p>No specific factors selected.</p>';
         if (feedback.factors && feedback.factors.length > 0) {
             factorsHtml = feedback.factors.map(f => `
-    < div style = "background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #10b981;" >
+    <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #10b981;">
                     <h4 style="margin: 0 0 0.5rem 0; color: #0f172a;">${Security.sanitize(f.label)}</h4>
                     <p style="margin: 0; color: #475569; white-space: pre-wrap;">${Security.sanitize(f.explanation)}</p>
-                </div >
+                </div>
     `).join('');
         }
 
         modalBody.innerHTML = `
-    < div style = "margin-bottom: 1.5rem;" >
+    <div style="margin-bottom: 1.5rem;">
         <strong>Submitted By:</strong> ${Security.sanitize(feedback.submittedBy)} <br>
             <strong>Email:</strong> ${Security.sanitize(feedback.submittedEmail)}<br>
                 <strong>Date:</strong> ${dateStr}
