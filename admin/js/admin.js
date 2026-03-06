@@ -1239,10 +1239,10 @@ const AdminApp = {
                 const dateParts = parts[0].split('/');
 
                 // Construct ISO string YYYY-MM-DD
-                const isoDateStr = `${dateParts[2]} -${dateParts[1].padStart(2, '0')} -${dateParts[0].padStart(2, '0')} `;
+                const isoDateStr = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
 
                 if (parts[1]) {
-                    return new Date(`${isoDateStr}T${parts[1]} `);
+                    return new Date(`${isoDateStr}T${parts[1]}`);
                 }
                 return new Date(isoDateStr);
             }
