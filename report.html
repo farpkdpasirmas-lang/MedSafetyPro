@@ -686,6 +686,8 @@
                                 console.log('Email notification sent successfully to ' + formData.staffEmail);
                             } catch (error) {
                                 console.error('Email sending failed:', error);
+                                const errorMsg = error.text || error.message || JSON.stringify(error);
+                                UI.showToast('Email sending failed: ' + errorMsg, 'error', 10000); // 10s duration
                                 // Non-blocking
                             }
                         }
