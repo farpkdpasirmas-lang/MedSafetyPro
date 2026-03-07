@@ -690,7 +690,10 @@
                             }
                         }
 
-                        if (!document.getElementById('save-offline').checked && Security.isOnline()) {
+                        const saveOfflineElement = document.getElementById('save-offline');
+                        const isSaveOfflineChecked = saveOfflineElement ? saveOfflineElement.checked : false;
+
+                        if (!isSaveOfflineChecked && Security.isOnline()) {
                             try {
                                 // Automatically download PDF report
                                 await PDFService.generatePDF(formData);
