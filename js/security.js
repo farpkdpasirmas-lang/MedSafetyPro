@@ -70,6 +70,14 @@ const Security = {
         if (diff >= limitTime) return 0;
 
         return Math.ceil((limitTime - diff) / 1000);
+    },
+
+    /**
+     * Check if the application is online
+     * @returns {boolean} True if online
+     */
+    isOnline: () => {
+        return navigator.onLine;
     }
 };
 
