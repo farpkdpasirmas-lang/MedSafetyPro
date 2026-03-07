@@ -599,10 +599,14 @@
                     UI.showSpinner('Processing Report & Generating PDF...');
 
                     try {
+                        // 1.5 Generate Serial Number
+                        const serialNumber = await DB.getNextSerialNumber();
+
                         // 1. Gather Data for Storage
                         console.log('Gathering form data...');
                         const formData = {
                             id: Date.now().toString(),
+                            serialNumber: serialNumber,
                             timestamp: new Date().toISOString(),
                             date: document.getElementById('event-date').value,
                             facility: document.getElementById('facility').value,
@@ -706,7 +710,7 @@
                         }      // 5. Show success message and redirect
                         const emailStatus = emailJsAvailable ? ' Admin has been notified.' : '';
                         UI.hideSpinner();
-                        UI.showToast('Report submitted successfully!' + emailStatus, 'success', 3000);
+                        UI.showToast(`Report ${serialNumber} submitted successfully!` + emailStatus, 'success', 5000);
 
                         window.location.href = 'dashboard.html';
 

@@ -11,6 +11,45 @@ const DB = {
     // --- Reports ---
 
     /**
+     * Get next auto-incrementing serial number (Format: MSP-YYYY-XXXX)
+     * Uses a Firestore transaction to ensure uniqueness even with concurrent submissions.
+     */
+    getNextSerialNumber: async () => {
+        const year = new Date().getFullYear();
+        if (typeof db !== 'undefined' && db) {
+            const counterRef = db.collection('metadata').doc('reportCounter');
+            try {
+                return await db.runTransaction(async (transaction) => {
+                    const doc = await transaction.get(counterRef);
+                    let newCount = 1;
+                    if (doc.exists) {
+                        const data = doc.data();
+                        // Reset counter if it's a new year, otherwise increment
+                        if (data.year === year) {
+                            newCount = (data.count || 0) + 1;
+                        }
+                    }
+                    transaction.set(counterRef, { count: newCount, year: year }, { merge: true });
+                    const paddedCount = newCount.toString().padStart(4, '0');
+                    return `MSP-${year}-${paddedCount}`;
+                });
+            } catch (error) {
+                console.error("Error generating serial sequence via transaction:", error);
+                // Fallback offline/error
+                return `MSP-${year}-OFF-${Date.now().toString().slice(-4)}`;
+            }
+        } else {
+            // LocalStorage mode
+            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+            // Count reports for current year
+            const yearReports = reports.filter(r => r.timestamp && r.timestamp.startsWith(year.toString()));
+            const newCount = yearReports.length + 1;
+            const paddedCount = newCount.toString().padStart(4, '0');
+            return `MSP-${year}-L${paddedCount}`;
+        }
+    },
+
+    /**
      * Save a new report
      * @param {Object} reportData 
      * @returns Promise

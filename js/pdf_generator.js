@@ -22,6 +22,7 @@ const PDFService = {
         const reporterName = data.reporterName;
         const pharmacyErrors = data.pharmacyErrors || [];
         const clinicErrors = data.clinicErrors || [];
+        const serialNumber = data.serialNumber || null;
 
         // If image is attached (as base64 string directly from data object if available)
         const uploadedImageBase64 = data.imageBase64 || null;
@@ -59,6 +60,13 @@ const PDFService = {
         doc.setFont("helvetica", "bold");
         doc.text("BAHAGIAN FARMASI", 105, 33, null, null, "center");
         doc.text("PEJABAT KESIHATAN DAERAH PASIR MAS", 105, 39, null, null, "center");
+
+        if (serialNumber) {
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Ruj: ${serialNumber}`, 190, 20, null, null, "right");
+            doc.setTextColor(0, 0, 0);
+        }
 
         doc.setFontSize(10);
 
@@ -205,7 +213,8 @@ const PDFService = {
         doc.text("**laporan dijana secara digital, tandatangan tidak diperlukan.", 20, yPos);
 
         const safeDate = new Date().toISOString().split('T')[0];
-        doc.save(`Laporan_Kesilapan_Pengubatan_${safeDate}.pdf`);
+        const filename = serialNumber ? `Laporan_${serialNumber}.pdf` : `Laporan_Kesilapan_Pengubatan_${safeDate}.pdf`;
+        doc.save(filename);
     }
 };
 
