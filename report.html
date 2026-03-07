@@ -83,7 +83,7 @@
         try {
             if (typeof emailjs !== 'undefined') {
                 emailjs.init({
-                    publicKey: "YOUR_PUBLIC_KEY",
+                    publicKey: "nNWVl0z63PnC1p8z4",
                 });
                 emailJsAvailable = true;
                 console.log('EmailJS initialized successfully.');
@@ -679,8 +679,8 @@
                                 };
 
                                 await emailjs.send(
-                                    "YOUR_SERVICE_ID", // Replace with real ID
-                                    "YOUR_TEMPLATE_ID", // Replace with real ID
+                                    "service_f74vyvs",
+                                    "template_e09jdh8",
                                     templateParams
                                 );
                                 console.log('Email notification sent successfully to ' + formData.staffEmail);
