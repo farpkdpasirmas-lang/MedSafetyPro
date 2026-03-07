@@ -283,6 +283,9 @@
                                             <th style="width: 40px;">
                                                 <input type="checkbox" onchange="AdminApp.toggleAllReports(this.checked)">
                                             </th>
+                                            <th style="cursor: pointer; user-select: none;" onclick="AdminApp.sortReports('serialNumber')">
+                                                Serial No. <span id="sort-icon-serialNumber" class="sort-icon" style="color: #94a3b8; font-size: 0.8rem; margin-left: 2px;">⇅</span>
+                                            </th>
                                             <th style="cursor: pointer; user-select: none;" onclick="AdminApp.sortReports('facility')">
                                                 Facility <span id="sort-icon-facility" class="sort-icon" style="color: #94a3b8; font-size: 0.8rem; margin-left: 2px;">⇅</span>
                                             </th>

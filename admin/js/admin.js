@@ -156,10 +156,11 @@ const AdminService = {
         }
 
         // CSV Headers
-        const headers = ['ID', 'Date', 'Time', 'Facility', 'Setting', 'Error Types', 'Staff Name', 'Staff Email', 'Staff Category', 'Outcome', 'Description', 'Created At'];
+        const headers = ['Serial No', 'ID', 'Date', 'Time', 'Facility', 'Setting', 'Error Types', 'Staff Name', 'Staff Email', 'Staff Category', 'Outcome', 'Description', 'Created At'];
 
         // CSV Rows
         const rows = reports.map(r => [
+            r.serialNumber || '-',
             r.id,
             r.date || '',
             r.time || '',
@@ -1257,6 +1258,10 @@ const AdminApp = {
             let valA, valB;
 
             switch (AdminApp.currentSort.column) {
+                case 'serialNumber':
+                    valA = (a.serialNumber || '').toLowerCase();
+                    valB = (b.serialNumber || '').toLowerCase();
+                    break;
                 case 'facility':
                     valA = (a.facility || '').toLowerCase();
                     valB = (b.facility || '').toLowerCase();
@@ -1289,6 +1294,7 @@ const AdminApp = {
             return `
                         <tr>
                 <td><input type="checkbox" class="report-checkbox" value="${r.id}" onchange="AdminApp.toggleSelectReport('${r.id}')"></td>
+                <td style="font-family: monospace; font-weight: bold; color: #10b981;">${Security.sanitize(r.serialNumber || '-')}</td>
                 <td>${Security.sanitize(r.facility || '-')}</td>
                 <td>${dateDisplay}</td>
                 <td>${Security.sanitize(r.setting || '-')}</td>
@@ -1390,6 +1396,7 @@ const AdminApp = {
 
         modalBody.innerHTML = `
     <div style="display: grid; gap: 1rem;">
+                <div style="font-size: 1.1rem; color: #10b981; font-weight: bold; padding: 0.5rem; background: #ecfdf5; border-radius: 4px; border-left: 4px solid #10b981;">Serial No: ${Security.sanitize(report.serialNumber || 'N/A')}</div>
                 <div><strong>Report ID:</strong> ${report.id}</div>
                 <div><strong>Date:</strong> ${report.date || 'N/A'} ${report.time || ''}</div>
                 <div><strong>Facility:</strong> ${Security.sanitize(report.facility) || 'N/A'}</div>
