@@ -56,13 +56,56 @@ const Components = {
 
     header: (title) => {
         const user = AuthService.getCurrentUser();
+
+        // Notifications Logic
+        let notificationHtml = '';
+        if (user && typeof UserNotifications !== 'undefined') {
+            const unreadCount = UserNotifications.getUnreadCount(user.email);
+            const notifications = UserNotifications.getForUser(user.email);
+
+            notificationHtml = `
+                <div class="notification-container" style="position: relative; margin-right: 1.5rem;">
+                    <button onclick="Components.toggleNotifications()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; position: relative; padding: 0.5rem;">
+                        🔔
+                        ${unreadCount > 0 ? `<span style="position: absolute; top: 0; right: 0; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; border: 2px solid white;">${unreadCount}</span>` : ''}
+                    </button>
+                    
+                    <div id="notification-dropdown" style="display: none; position: absolute; right: 0; top: 100%; width: 320px; background: white; border-radius: var(--radius-md); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; z-index: 50; max-height: 400px; overflow-y: auto;">
+                        <div style="padding: 1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 51;">
+                            <h3 style="margin: 0; font-size: 1rem; color: var(--color-text-main);">Notifications</h3>
+                            ${unreadCount > 0 ? `<button onclick="Components.markAllRead('${user.email}')" style="background: none; border: none; color: var(--color-primary); font-size: 0.8rem; cursor: pointer;">Mark all read</button>` : ''}
+                        </div>
+                        <div style="padding: 0;">
+                            ${notifications.length === 0 ? `
+                                <div style="padding: 1.5rem; text-align: center; color: var(--color-text-muted); font-size: 0.9rem;">
+                                    No notifications
+                                </div>
+                            ` : notifications.map(n => `
+                                <div onclick="Components.handleNotificationClick('${user.email}', '${n.id}', '${n.relatedId}')" style="padding: 1rem; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; gap: 1rem; transition: background-color 0.2s; ${n.read ? 'opacity: 0.7;' : 'background-color: #f0fdf4;'}">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                            <strong style="font-size: 0.9rem; color: var(--color-text-main);">${n.title}</strong>
+                                            <span style="font-size: 0.75rem; color: var(--color-text-muted);">${UserNotifications.getRelativeTime(n.timestamp)}</span>
+                                        </div>
+                                        <p style="margin: 0; font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.4;">${n.message}</p>
+                                    </div>
+                                    ${!n.read ? '<div style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--color-primary); margin-top: 0.25rem;"></div>' : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         return `
             <header class="header">
                 <div class="header-left">
                     <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
                     <h1 class="page-title">${title}</h1>
                 </div>
-                <div class="header-right">
+                <div class="header-right" style="display: flex; align-items: center;">
+                    ${notificationHtml}
                     <div class="user-profile">
                         <div class="avatar">${user ? user.fullname.charAt(0).toUpperCase() : 'U'}</div>
                         <div class="user-info">
@@ -73,6 +116,28 @@ const Components = {
                 </div>
             </header>
         `;
+    },
+
+    toggleNotifications: () => {
+        const dropdown = document.getElementById('notification-dropdown');
+        if (dropdown) {
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+    },
+
+    markAllRead: (userEmail) => {
+        if (typeof UserNotifications !== 'undefined') {
+            UserNotifications.markAllAsRead(userEmail);
+            // Refresh layout to update badge
+            location.reload();
+        }
+    },
+
+    handleNotificationClick: (userEmail, notificationId, reportId) => {
+        if (typeof UserNotifications !== 'undefined') {
+            UserNotifications.markAsRead(userEmail, notificationId);
+        }
+        window.location.href = `feedback.html?reportId=${reportId}`;
     },
 
     renderLayout: (containerId, activePage, title, basePath = '') => {
