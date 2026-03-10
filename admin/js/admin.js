@@ -1586,8 +1586,17 @@ const AdminApp = {
             // Get emails of users who HAVE submitted feedback
             const submittedEmails = new Set(allFeedback.map(f => f.submittedEmail));
 
-            // Users who haven't submitted
-            const pendingUsers = regularUsers.filter(u => !submittedEmails.has(u.email));
+            // Users who haven't submitted BUT actually have pending notifications asking for feedback
+            const pendingUsers = regularUsers.filter(u => {
+                if (submittedEmails.has(u.email)) return false; // Already submitted
+
+                // Only pending if they have unread notifications related to reports
+                if (typeof UserNotifications !== 'undefined') {
+                    const notifications = UserNotifications.getForUser(u.email);
+                    return notifications.some(n => !n.read);
+                }
+                return false;
+            });
 
             // Render Pending Users Table
             if (pendingUsers.length === 0) {
