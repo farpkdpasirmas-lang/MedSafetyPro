@@ -138,7 +138,21 @@
                 </div>
             </div>
 
-            <input type="hidden" id="role" value="reporter">
+            <div class="input-group">
+                <label class="input-label" for="jawatan">Jawatan (Job Category)</label>
+                <select id="jawatan" class="input-field" required>
+                    <option value="">Select Jawatan</option>
+                    <option value="Medical Specialist / FMS">Medical Specialist / FMS</option>
+                    <option value="Medical Officer (MO)">Medical Officer (MO)</option>
+                    <option value="Assistant Medical Officer (MA)">Assistant Medical Officer (MA)</option>
+                    <option value="Pharmacist (PF)">Pharmacist (PF)</option>
+                    <option value="Assistant Pharmacist (PPF)">Assistant Pharmacist (PPF)</option>
+                    <option value="Provisionally Registered Pharmacist (PRP)">Provisionally Registered Pharmacist (PRP)
+                    </option>
+                    <option value="Nurse">Nurse</option>
+                    <option value="Others">Others</option>
+                </select>
+            </div>
 
             <div class="input-group">
                 <label class="input-label" for="facility">My Facility</label>
@@ -184,7 +198,7 @@
 
         const registerForm = document.getElementById('register-form');
         const errorMsg = document.getElementById('error-msg');
-        const roleInput = document.getElementById('role');
+        const jawatanInput = document.getElementById('jawatan');
         const fullnameInput = document.getElementById('fullname');
 
         // Automatically convert full name to uppercase
@@ -204,8 +218,14 @@
             const fullname = fullnameInput.value.toUpperCase();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const role = roleInput.value;
+            const jawatan = jawatanInput.value;
             const facility = document.getElementById('facility').value;
+
+            // Determine role based on Jawatan
+            let role = 'user';
+            if (jawatan === 'Pharmacist (PF)' || jawatan === 'Assistant Pharmacist (PPF)' || jawatan === 'Provisionally Registered Pharmacist (PRP)') {
+                role = 'reporter';
+            }
 
             try {
                 const result = await AuthService.register({
@@ -213,6 +233,7 @@
                     email,
                     password,
                     role,
+                    jawatan,
                     facility
                 });
 
@@ -223,7 +244,9 @@
                             const templateParams = {
                                 new_user_name: fullname,
                                 new_user_email: email,
+                                new_user_jawatan: jawatan,
                                 new_user_facility: facility,
+                                new_user_role: role,
                                 registration_date: new Date().toLocaleString('en-MY', { dateStyle: 'full', timeStyle: 'short' })
                             };
 
