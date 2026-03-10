@@ -33,8 +33,10 @@ const AuthService = {
                 // Save user details to Firestore
                 if (db) await db.collection('users').doc(user.uid).set(newUser);
 
-                // Keep LocalStorage in sync for UI
-                localStorage.setItem(AUTH_KEY, JSON.stringify(newUser));
+                // Keep LocalStorage in sync for UI (Only if admin, as they are pre-approved)
+                if (newUser.approved) {
+                    localStorage.setItem(AUTH_KEY, JSON.stringify(newUser));
+                }
                 return { success: true, user: newUser };
             } catch (error) {
                 // If it's an admin registration and the email is already in use, upgrade the user
@@ -116,7 +118,12 @@ const AuthService = {
             users.push(newUser);
             localStorage.setItem(USERS_KEY, JSON.stringify(users));
             const { password, ...userWithoutPass } = newUser;
-            localStorage.setItem(AUTH_KEY, JSON.stringify(userWithoutPass));
+
+            // Only auto-login if they are pre-approved (admins)
+            if (newUser.approved) {
+                localStorage.setItem(AUTH_KEY, JSON.stringify(userWithoutPass));
+            }
+
             return { success: true, user: newUser };
         }
     },

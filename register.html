@@ -265,7 +265,9 @@
                         }
                     }
 
-                    AuthService.redirectIfAuthenticated();
+                    // Show success message and redirect to login instead of auto-login
+                    alert('Registration successful! Your account is pending admin approval. Please log in once approved.');
+                    window.location.href = 'login.html';
                 } else {
                     errorMsg.textContent = result.message;
                     errorMsg.style.display = 'block';
