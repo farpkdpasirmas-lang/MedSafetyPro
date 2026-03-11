@@ -682,7 +682,23 @@
                             );
                         }
 
-                        // 3. Send Email Notification via EmailJS (if available)
+                        // 3. Generate PDF First for attachment and download
+                        let pdfDataUri = null;
+                        const saveOfflineElement = document.getElementById('save-offline');
+                        const isSaveOfflineChecked = saveOfflineElement ? saveOfflineElement.checked : false;
+
+                        if (!isSaveOfflineChecked && Security.isOnline()) {
+                            try {
+                                // Automatically download PDF report and get base64
+                                const pdfResult = await PDFService.generatePDF(formData);
+                                pdfDataUri = pdfResult ? pdfResult.base64 : null;
+                            } catch (pdfError) {
+                                console.error('Error generating PDF:', pdfError);
+                                alert('Laporan berjaya dihantar, tetapi PDF gagal dijana.');
+                            }
+                        }
+
+                        // 4. Send Email Notification via EmailJS (if available)
                         if (emailJsAvailable) {
                             try {
                                 const user = AuthService.getCurrentUser();
@@ -690,8 +706,12 @@
                                     formData.pharmacyErrors.join(', ') :
                                     formData.clinicErrors.join(', ');
 
+                                const messageContent = "Assalamualaikum dan Salam Sejahtera,\n\nAnda telah melakukan kesilapan pengubatan. Sila buat maklum balas di aplikasi MedSafety.\n\nTerima kasih";
+
                                 const templateParams = {
                                     to_email: formData.staffEmail, // Send to the reported staff member
+                                    message: messageContent,
+                                    attachment: pdfDataUri,
                                     report_id: formData.id,
                                     reporter_name: user ? user.fullname : formData.reporterName,
                                     reporter_email: user ? user.email : 'Not provided',
@@ -723,19 +743,6 @@
                                 const errorMsg = error.text || error.message || JSON.stringify(error);
                                 UI.showToast('Email sending failed: ' + errorMsg, 'error', 10000); // 10s duration
                                 // Non-blocking
-                            }
-                        }
-
-                        const saveOfflineElement = document.getElementById('save-offline');
-                        const isSaveOfflineChecked = saveOfflineElement ? saveOfflineElement.checked : false;
-
-                        if (!isSaveOfflineChecked && Security.isOnline()) {
-                            try {
-                                // Automatically download PDF report
-                                await PDFService.generatePDF(formData);
-                            } catch (pdfError) {
-                                console.error('Error generating PDF:', pdfError);
-                                alert('Laporan berjaya dihantar, tetapi PDF gagal dijana.');
                             }
                         }      // 5. Show success message and redirect
                         const emailStatus = emailJsAvailable ? ' Admin has been notified.' : '';

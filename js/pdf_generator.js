@@ -215,6 +215,11 @@ const PDFService = {
         const safeDate = new Date().toISOString().split('T')[0];
         const filename = serialNumber ? `Laporan_${serialNumber}.pdf` : `Laporan_Kesilapan_Pengubatan_${safeDate}.pdf`;
         doc.save(filename);
+        
+        return {
+            filename: filename,
+            base64: doc.output('datauristring')
+        };
     }
 };
 
