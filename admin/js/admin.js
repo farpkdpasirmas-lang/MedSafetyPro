@@ -1580,23 +1580,25 @@ const AdminApp = {
             const allUsers = await AdminService.getAllUsers();
             const allFeedback = AdminService.getAllFeedback();
 
-            // Filter out admins - we assume only regular reporters need to submit feedback
-            const regularUsers = allUsers.filter(u => u.role !== 'admin');
-
-            // Get emails of users who HAVE submitted feedback
+            // Get emails of staff who HAVE submitted feedback
             const submittedEmails = new Set(allFeedback.map(f => f.submittedEmail));
 
-            // Users who haven't submitted BUT actually have pending notifications asking for feedback
-            const pendingUsers = regularUsers.filter(u => {
-                if (submittedEmails.has(u.email)) return false; // Already submitted
-
-                // Only pending if they have unread notifications related to reports
-                if (typeof UserNotifications !== 'undefined') {
-                    const notifications = UserNotifications.getForUser(u.email);
-                    return notifications.some(n => !n.read);
+            // Find staff from all reports who haven't submitted feedback
+            const pendingStaffMap = new Map();
+            AdminApp.allReports.forEach(r => {
+                if (r.staffEmail && r.staffEmail.trim() !== '' && !submittedEmails.has(r.staffEmail)) {
+                    // Use email as unique key to prevent duplicates
+                    if (!pendingStaffMap.has(r.staffEmail)) {
+                        pendingStaffMap.set(r.staffEmail, {
+                            fullname: r.staffName || 'Unknown Staff',
+                            email: r.staffEmail,
+                            facility: r.facility || 'Unknown Facility'
+                        });
+                    }
                 }
-                return false;
             });
+
+            const pendingUsers = Array.from(pendingStaffMap.values());
 
             // Render Pending Users Table
             if (pendingUsers.length === 0) {
