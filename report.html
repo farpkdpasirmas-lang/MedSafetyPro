@@ -698,46 +698,51 @@
                             }
                         }
 
-                        // 4. Send Email Notification via Vercel Serverless Function (Resend)
-                        try {
-                            const user = AuthService.getCurrentUser();
-                            const messageContent = "Assalamualaikum dan Salam Sejahtera,\n\nAnda telah melakukan kesilapan pengubatan. Sila buat maklum balas di aplikasi MedSafety.\n\nTerima kasih";
+                        // 4. Send Email Notification via EmailJS (if available)
+                        if (emailJsAvailable) {
+                            try {
+                                const user = AuthService.getCurrentUser();
+                                const errorTypes = formData.setting === 'pharmacy' ?
+                                    formData.pharmacyErrors.join(', ') :
+                                    formData.clinicErrors.join(', ');
 
-                            const apiPayload = {
-                                to_email: formData.staffEmail,
-                                message: messageContent,
-                                attachment: pdfDataUri,
-                                report_id: formData.id,
-                                reporter_name: user ? user.fullname : formData.reporterName,
-                                facility: formData.facility,
-                                date: new Date(formData.timestamp).toLocaleString('en-MY', {
-                                    dateStyle: 'full',
-                                    timeStyle: 'short'
-                                })
-                            };
+                                const messageContent = "Assalamualaikum dan Salam Sejahtera,\n\nAnda telah melakukan kesilapan pengubatan. Sila buat maklum balas di aplikasi MedSafety.\n\nTerima kasih";
 
-                            // Call our own secure backend endpoint
-                            const response = await fetch('/api/send-email', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(apiPayload)
-                            });
+                                const templateParams = {
+                                    to_email: formData.staffEmail, // Send to the reported staff member
+                                    message: messageContent,
+                                    report_id: formData.id,
+                                    reporter_name: user ? user.fullname : formData.reporterName,
+                                    reporter_email: user ? user.email : 'Not provided',
+                                    submission_date: new Date(formData.timestamp).toLocaleString('en-MY', {
+                                        dateStyle: 'full',
+                                        timeStyle: 'short'
+                                    }),
+                                    event_date: formData.date,
+                                    facility: formData.facility,
+                                    setting: formData.setting,
+                                    error_detection: formData.detection,
+                                    error_types: errorTypes || 'Not specified',
+                                    outcome: formData.outcome,
+                                    staff_name: formData.staffName,
+                                    staff_email: formData.staffEmail,
+                                    staff_category: formData.staffCategory,
+                                    description: formData.description,
+                                    has_image: formData.hasImage ? 'Yes' : 'No'
+                                };
 
-                            const result = await response.json();
-                            
-                            if (result.success) {
+                                await emailjs.send(
+                                    "service_f74vyvs",
+                                    "template_sr0w2pg",
+                                    templateParams
+                                );
                                 console.log('Email notification sent successfully to ' + formData.staffEmail);
-                            } else {
-                                console.error('Backend email error:', result.error);
-                                UI.showToast('Backend email warning: ' + result.error, 'warning', 5000);
+                            } catch (error) {
+                                console.error('Email sending failed:', error);
+                                const errorMsg = error.text || error.message || JSON.stringify(error);
+                                UI.showToast('Email sending failed: ' + errorMsg, 'error', 10000); // 10s duration
+                                // Non-blocking
                             }
-
-                        } catch (error) {
-                            console.error('Email API request failed:', error);
-                            UI.showToast('Could not contact email server.', 'warning', 5000);
-                            // Non-blocking, the report is still saved!
                         }      // 5. Show success message and redirect
                         const emailStatus = emailJsAvailable ? ' Admin has been notified.' : '';
                         UI.hideSpinner();

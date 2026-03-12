@@ -1,33 +1,24 @@
-const YOUR_SERVICE_ID = 'service_f74vyvs';
-const YOUR_TEMPLATE_ID = 'template_e09jdh8';
-const YOUR_PUBLIC_KEY = 'nNWVl0z63PnC1p8z4';
+const { Resend } = require('resend');
 
-const templateParams = {
-    to_email: 'test@example.com',
-    reporter_name: 'Test Reporter'
-};
+// Test the Resend API key directly
+async function run() {
+  const apiKey = 'YOUR_API_KEY'; // Replace when running locally or use process.env
 
-const data = {
-    service_id: YOUR_SERVICE_ID,
-    template_id: YOUR_TEMPLATE_ID,
-    user_id: YOUR_PUBLIC_KEY,
-    template_params: templateParams
-};
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY || apiKey);
 
-fetch('https://api.emailjs.com/api/v1.0/email/send', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-})
-    .then(response => {
-        if (response.ok) {
-            console.log('Success! Email sent.');
-        } else {
-            response.text().then(text => {
-                console.error('Failed API Response:', response.status, text);
-            });
-        }
-    })
-    .catch(error => console.error('Error:', error));
+    console.log("Sending test email...");
+    const data = await resend.emails.send({
+      from: 'MedSafety Pro <onboarding@resend.dev>',
+      to: ['your_email@example.com'], // Replace when running locally
+      subject: 'Resend API Test',
+      html: '<h1>Test Email</h1><p>Checking if API key and from address work.</p>'
+    });
+
+    console.log("Success:", data);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+}
+
+run();
