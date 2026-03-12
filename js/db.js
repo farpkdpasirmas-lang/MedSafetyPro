@@ -102,6 +102,31 @@ const DB = {
     },
 
     /**
+     * Get a single report by ID
+     * @param {string} reportId 
+     * @returns Promise<Object|null>
+     */
+    getReportById: async (reportId) => {
+        if (!reportId) return null;
+        
+        if (db) {
+            try {
+                const doc = await db.collection(DB.COLLECTION_REPORTS).doc(reportId).get();
+                if (doc.exists) {
+                    return { id: doc.id, ...doc.data() };
+                }
+                return null;
+            } catch (error) {
+                console.error("Error getting report by ID: ", error);
+                throw error;
+            }
+        } else {
+            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+            return reports.find(r => r.id === reportId) || null;
+        }
+    },
+
+    /**
      * Listen to real-time changes of all reports
      * @param {Function} callback 
      * @returns {Function} Unsubscribe function

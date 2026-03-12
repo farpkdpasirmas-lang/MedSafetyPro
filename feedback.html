@@ -16,6 +16,18 @@
     <script src="js/auth.js"></script>
     <script src="js/components.js"></script>
 
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+    <script src="js/pdf_generator.js"></script>
+    
+    <!-- Database Service -->
+    <!-- Make sure Firebase is loaded first if using Firebase DB -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase_init.js"></script>
+    <script src="js/db.js"></script>
+
     <!-- Admin Notifications -->
     <script src="js/notifications.js"></script>
 
@@ -29,330 +41,427 @@
     <script>
         AuthService.requireAuth();
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             Components.renderLayout('app', 'feedback', 'Maklumbalas');
 
             const urlParams = new URLSearchParams(window.location.search);
             const reportId = urlParams.get('reportId');
+            const currentUser = AuthService.getCurrentUser();
+            const mainBody = document.getElementById('main-body');
 
-            let reportBanner = '';
-            if (reportId) {
-                reportBanner = `
-                    <div style="background-color: #f0fdf4; color: #166534; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 1.25rem;">📄</span>
-                        <div>
-                            <strong>Providing Feedback For Report ID:</strong> ${reportId}
-                            <div style="font-size: 0.85rem; margin-top: 0.25rem;">This feedback will be linked to the specified report.</div>
+            if (!reportId) {
+                mainBody.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 3rem;">
+                        <h2 style="color: #ef4444; margin-bottom: 1rem;">Ralat</h2>
+                        <p>ID Laporan tidak dijumpai. Sila pastikan anda klik pada pautan yang betul.</p>
+                        <a href="dashboard.html" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Kembali ke Papan Pemuka</a>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                // Fetch the report details to verify authorization
+                const reportData = await DB.getReportById(reportId);
+                
+                if (!reportData) {
+                    mainBody.innerHTML = `
+                        <div class="card" style="text-align: center; padding: 3rem;">
+                            <h2 style="color: #ef4444; margin-bottom: 1rem;">Laporan Tidak Dijumpai</h2>
+                            <p>Laporan dengan ID tersebut (<strong>${reportId}</strong>) tiada di dalam sistem.</p>
+                            <a href="dashboard.html" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Kembali ke Papan Pemuka</a>
                         </div>
+                    `;
+                    return;
+                }
+
+                // Verify the user
+                const isAuthorizedUser = reportData.staffEmail === currentUser.email;
+                const isAdmin = currentUser.role === 'admin' || currentUser.isAdmin === true;
+                
+                if (!isAuthorizedUser && !isAdmin) {
+                    mainBody.innerHTML = `
+                        <div class="card" style="text-align: center; padding: 3rem;">
+                            <h2 style="color: #ef4444; margin-bottom: 1rem;">Akses Ditolak</h2>
+                            <p style="margin-bottom: 1rem;">Anda <strong>tidak dibenarkan</strong> menghantar maklumbalas untuk laporan ini.</p>
+                            <p style="color: #666; font-size: 0.9rem;">Hanya individu yang disenaraikan dalam kesilapan pengubatan tersebut (<strong style="color: #333;">${reportData.staffEmail}</strong>) sahaja yang boleh mengakses borang ini.</p>
+                            <a href="dashboard.html" class="btn btn-primary" style="margin-top: 2rem; display: inline-block;">Kembali ke Papan Pemuka</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // If authorized, show the normal form
+                let reportBanner = '';
+                if (reportId) {
+                    reportBanner = `
+                        <div style="background-color: #f0fdf4; color: #166534; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 1.25rem;">📄</span>
+                            <div>
+                                <strong>Menyediakan Maklumbalas untuk ID Laporan:</strong> ${reportId}
+                                <div style="font-size: 0.85rem; margin-top: 0.25rem;">Maklumbalas ini akan dikaitkan dengan laporan yang dinyatakan.</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                mainBody.innerHTML = `
+                    <div class="card">
+                        <h2 style="margin-bottom: 1.5rem; color: var(--color-text-main);">Faktor Penyumbang Kesilapan</h2>
+                        ${reportBanner}
+
+                        <!-- Pre-requisite: Download PDF Section -->
+                        <div id="download-section" style="text-align: center; padding: 2rem; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: var(--radius-md); margin-bottom: 2rem;">
+                            <h3 style="color: #334155; margin-bottom: 1rem;">Langkah 1: Semak Laporan Asal</h3>
+                            <p style="color: var(--color-text-muted); margin-bottom: 1.5rem;">Sila muat turun dan semak laporan kesilapan pengubatan sebelum memberikan maklum balas anda.</p>
+                            <button id="downloadPdfBtn" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.75rem 1.5rem;">
+                                ⬇️ Muat Turun Laporan PDF
+                            </button>
+                        </div>
+
+                        <!-- Feedback Form (Hidden Initially) -->
+                        <div id="form-container" style="display: none;">
+                            <h3 style="color: #334155; margin-bottom: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">Langkah 2: Berikan Maklum Balas</h3>
+                            <p style="color: var(--color-text-muted); margin-bottom: 2rem;">
+                                Sila tandakan faktor-faktor yang berkaitan dan berikan penerangan ringkas bagi setiap faktor yang dipilih.
+                            </p>
+
+                            <form id="feedback-form" style="display: flex; flex-direction: column; gap: 2rem;">
+                                
+                                <!-- Staff Factor -->
+                                <div class="factor-section">
+                                    <label class="factor-checkbox">
+                                        <input type="checkbox" name="factor" value="staff" onchange="toggleExplanation('staff')">
+                                        <span class="factor-label">Faktor Kakitangan</span>
+                                    </label>
+                                    <div id="staff-explanation" class="explanation-box" style="display: none;">
+                                        <label for="staff-text">Penerangan:</label>
+                                        <textarea id="staff-text" name="staff-explanation" rows="3" placeholder="Sila berikan penerangan ringkas mengenai faktor kakitangan..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Medication Related -->
+                                <div class="factor-section">
+                                    <label class="factor-checkbox">
+                                        <input type="checkbox" name="factor" value="medication" onchange="toggleExplanation('medication')">
+                                        <span class="factor-label">Berkaitan Ubat</span>
+                                    </label>
+                                    <div id="medication-explanation" class="explanation-box" style="display: none;">
+                                        <label for="medication-text">Penerangan:</label>
+                                        <textarea id="medication-text" name="medication-explanation" rows="3" placeholder="Sila berikan penerangan ringkas mengenai faktor ubat..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Task & Technology -->
+                                <div class="factor-section">
+                                    <label class="factor-checkbox">
+                                        <input type="checkbox" name="factor" value="task" onchange="toggleExplanation('task')">
+                                        <span class="factor-label">Tugas & Teknologi</span>
+                                    </label>
+                                    <div id="task-explanation" class="explanation-box" style="display: none;">
+                                        <label for="task-text">Penerangan:</label>
+                                        <textarea id="task-text" name="task-explanation" rows="3" placeholder="Sila berikan penerangan ringkas mengenai faktor panduan tugas dan rujukan..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Work Environment -->
+                                <div class="factor-section">
+                                    <label class="factor-checkbox">
+                                        <input type="checkbox" name="factor" value="environment" onchange="toggleExplanation('environment')">
+                                        <span class="factor-label">Persekitaran Tempat Kerja</span>
+                                    </label>
+                                    <div id="environment-explanation" class="explanation-box" style="display: none;">
+                                        <label for="environment-text">Penerangan:</label>
+                                        <textarea id="environment-text" name="environment-explanation" rows="3" placeholder="Sila berikan penerangan ringkas mengenai faktor persekitaran kerja..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Team Factors -->
+                                <div class="factor-section">
+                                    <label class="factor-checkbox">
+                                        <input type="checkbox" name="factor" value="team" onchange="toggleExplanation('team')">
+                                        <span class="factor-label">Faktor Pasukan</span>
+                                    </label>
+                                    <div id="team-explanation" class="explanation-box" style="display: none;">
+                                        <label for="team-text">Penerangan:</label>
+                                        <textarea id="team-text" name="team-explanation" rows="3" placeholder="Sila berikan penerangan ringkas mengenai faktor pasukan..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Others -->
+                                <div class="factor-section">
+                                    <label class="factor-checkbox">
+                                        <input type="checkbox" name="factor" value="others" onchange="toggleExplanation('others')">
+                                        <span class="factor-label">Lain-lain</span>
+                                    </label>
+                                    <div id="others-explanation" class="explanation-box" style="display: none;">
+                                        <label for="others-text">Penerangan:</label>
+                                        <textarea id="others-text" name="others-explanation" rows="3" placeholder="Sila berikan penerangan ringkas mengenai faktor penyumbang lain..."></textarea>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                    <button type="submit" class="btn btn-primary" id="submitBtn">Hantar Maklumbalas</button>
+                                    <button type="reset" class="btn btn-outline" onclick="resetForm()">Tetapkan Semula</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <style>
+                        .factor-section {
+                            padding: 1.5rem;
+                            background: #f8fafc;
+                            border-radius: var(--radius-md);
+                            border-left: 4px solid var(--color-primary);
+                        }
+
+                        .factor-checkbox {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                            cursor: pointer;
+                            font-size: 1rem;
+                        }
+
+                        .factor-checkbox input[type="checkbox"] {
+                            width: 20px;
+                            height: 20px;
+                            cursor: pointer;
+                        }
+
+                        .factor-label {
+                            font-weight: 600;
+                            color: var(--color-text-main);
+                            font-size: 1.1rem;
+                        }
+
+                        .explanation-box {
+                            margin-top: 1rem;
+                            padding: 1rem;
+                            background: white;
+                            border-radius: var(--radius-md);
+                            border: 1px solid #e2e8f0;
+                        }
+
+                        .explanation-box label {
+                            display: block;
+                            font-weight: 500;
+                            color: var(--color-text-main);
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .explanation-box textarea {
+                            width: 100%;
+                            padding: 0.75rem;
+                            border: 1px solid #e2e8f0;
+                            border-radius: var(--radius-md);
+                            font-family: inherit;
+                            font-size: 0.875rem;
+                            resize: vertical;
+                            transition: border-color 0.2s;
+                        }
+
+                        .explanation-box textarea:focus {
+                            outline: none;
+                            border-color: var(--color-primary);
+                        }
+                    </style>
+                `;
+
+                // Add Check PDF Button Listener
+                document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+                    const btn = document.getElementById('downloadPdfBtn');
+                    btn.disabled = true;
+                    btn.textContent = 'Menjana PDF...';
+                    
+                    try {
+                        if (window.PDFService && reportData) {
+                            await PDFService.generatePDF(reportData);
+                            
+                            // Unhide the form after successful download
+                            document.getElementById('form-container').style.display = 'block';
+                            
+                            // Update Button to indicate success
+                            btn.textContent = '✅ Berjaya Dimuat Turun (Muat Turun Semula)';
+                            btn.classList.replace('btn-primary', 'btn-outline');
+                        } else {
+                            throw new Error("PDF Service missing");
+                        }
+                    } catch (error) {
+                        console.error('Error generating PDF:', error);
+                        alert('Gagal memuat turun PDF. Sila cuba lagi atau hubungi admin.');
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+
+                // ============= EmailJS Configuration =============
+                // IMPORTANT: Replace these with your actual EmailJS credentials
+                // See EMAILJS_SETUP.md for detailed setup instructions
+                const EMAILJS_CONFIG = {
+                    publicKey: 'YOUR_PUBLIC_KEY',      // Replace with your Public Key from EmailJS dashboard
+                    serviceId: 'YOUR_SERVICE_ID',      // Replace with your Service ID
+                    templateId: 'YOUR_TEMPLATE_ID'     // Replace with your Template ID
+                };
+
+                // Initialize EmailJS
+                if (typeof emailjs !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+                    emailjs.init(EMAILJS_CONFIG.publicKey);
+                }
+
+                // Form submission handler
+                document.getElementById('feedback-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    document.getElementById('submitBtn').disabled = true;
+                    document.getElementById('submitBtn').textContent = 'Menghantar...';
+
+                    const formData = {
+                        id: Date.now().toString(),
+                        reportId: reportId,
+                        submittedBy: currentUser.fullname,
+                        submittedEmail: currentUser.email,
+                        submittedAt: new Date().toISOString(),
+                        factors: []
+                    };
+
+                    // Collect checked factors and their explanations
+                    const checkboxes = document.querySelectorAll('input[name="factor"]:checked');
+                    checkboxes.forEach(checkbox => {
+                        const factorType = checkbox.value;
+                        const explanation = document.getElementById(`${factorType}-text`).value;
+
+                        formData.factors.push({
+                            type: factorType,
+                            label: checkbox.nextElementSibling.textContent,
+                            explanation: explanation
+                        });
+                    });
+
+                    if (formData.factors.length === 0) {
+                        alert('Sila pilih sekurang-kurangnya satu faktor penyumbang.');
+                        document.getElementById('submitBtn').disabled = false;
+                        document.getElementById('submitBtn').textContent = 'Hantar Maklumbalas';
+                        return;
+                    }
+
+                    // Validate that all selected factors have explanations
+                    const missingExplanation = formData.factors.find(f => !f.explanation.trim());
+                    if (missingExplanation) {
+                        alert(`Sila berikan penerangan untuk ${missingExplanation.label}.`);
+                        document.getElementById('submitBtn').disabled = false;
+                        document.getElementById('submitBtn').textContent = 'Hantar Maklumbalas';
+                        return;
+                    }
+
+                    // Save to localStorage
+                    const feedbacks = JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
+                    feedbacks.push(formData);
+                    localStorage.setItem('medsafety_feedback_db', JSON.stringify(feedbacks));
+
+                    // Send email notification via EmailJS
+                    if (typeof emailjs !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+                        try {
+                            // Prepare email template parameters
+                            const factorsList = formData.factors.map(f => f.label).join(', ');
+                            const templateParams = {
+                                report_id: formData.reportId || 'Not specified',
+                                user_name: formData.submittedBy,
+                                user_email: formData.submittedEmail || 'Not provided',
+                                submission_date: new Date(formData.submittedAt).toLocaleString('en-MY', {
+                                    dateStyle: 'full',
+                                    timeStyle: 'short'
+                                }),
+                                factors_list: factorsList,
+                                staff_explanation: '',
+                                medication_explanation: '',
+                                task_explanation: '',
+                                environment_explanation: '',
+                                team_explanation: '',
+                                others_explanation: ''
+                            };
+
+                            // Add explanations for selected factors
+                            formData.factors.forEach(factor => {
+                                switch (factor.type) {
+                                    case 'staff':
+                                        templateParams.staff_explanation = factor.explanation;
+                                        break;
+                                    case 'medication':
+                                        templateParams.medication_explanation = factor.explanation;
+                                        break;
+                                    case 'task':
+                                        templateParams.task_explanation = factor.explanation;
+                                        break;
+                                    case 'environment':
+                                        templateParams.environment_explanation = factor.explanation;
+                                        break;
+                                    case 'team':
+                                        templateParams.team_explanation = factor.explanation;
+                                        break;
+                                    case 'others':
+                                        templateParams.others_explanation = factor.explanation;
+                                        break;
+                                }
+                            });
+
+                            // Send email
+                            await emailjs.send(
+                                EMAILJS_CONFIG.serviceId,
+                                EMAILJS_CONFIG.templateId,
+                                templateParams
+                            );
+
+                        } catch (error) {
+                            console.error('Email sending failed:', error);
+                        }
+                    } else {
+                        // EmailJS not configured
+                        if (EMAILJS_CONFIG.publicKey === 'YOUR_PUBLIC_KEY') {
+                            console.warn('EmailJS not configured. Please update EMAILJS_CONFIG in feedback.html');
+                        }
+                    }
+
+                    alert('Maklumbalas berjaya dihantar! Terima kasih atas kerjasama anda.');
+                    
+                    // Redirect back to dashboard after a short delay
+                    setTimeout(() => {
+                        window.location.replace('dashboard.html');
+                    }, 1500);
+                });
+
+                // Attach to window so onchange handlers can reach it
+                window.toggleExplanation = function(factorType) {
+                    const explanationBox = document.getElementById(`${factorType}-explanation`);
+                    const checkbox = document.querySelector(`input[value="${factorType}"]`);
+
+                    if (checkbox.checked) {
+                        explanationBox.style.display = 'block';
+                    } else {
+                        explanationBox.style.display = 'none';
+                        document.getElementById(`${factorType}-text`).value = '';
+                    }
+                };
+
+                window.resetForm = function() {
+                    // Hide all explanation boxes
+                    const explanationBoxes = document.querySelectorAll('.explanation-box');
+                    explanationBoxes.forEach(box => {
+                        box.style.display = 'none';
+                    });
+                };
+
+            } catch (error) {
+                console.error('Error loading report for feedback:', error);
+                mainBody.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 3rem;">
+                        <h2 style="color: #ef4444; margin-bottom: 1rem;">Ralat Sistem</h2>
+                        <p>Terdapat ralat teknikal semasa cuba memuatkan pangkalan data. Sila pastikan anda mempunyai akses internet yang stabil.</p>
+                        <a href="dashboard.html" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Kembali ke Papan Pemuka</a>
                     </div>
                 `;
             }
-
-            const mainBody = document.getElementById('main-body');
-
-            mainBody.innerHTML = `
-                <div class="card">
-                    <h2 style="margin-bottom: 1.5rem; color: var(--color-text-main);">Factors Contributing to Error</h2>
-                    ${reportBanner}
-                    <p style="color: var(--color-text-muted); margin-bottom: 2rem;">
-                        Please tick the relevant factors and provide a simple explanation for each selected factor.
-                    </p>
-
-                    <form id="feedback-form" style="display: flex; flex-direction: column; gap: 2rem;">
-                        
-                        <!-- Staff Factor -->
-                        <div class="factor-section">
-                            <label class="factor-checkbox">
-                                <input type="checkbox" name="factor" value="staff" onchange="toggleExplanation('staff')">
-                                <span class="factor-label">Staff Factor</span>
-                            </label>
-                            <div id="staff-explanation" class="explanation-box" style="display: none;">
-                                <label for="staff-text">Explanation:</label>
-                                <textarea id="staff-text" name="staff-explanation" rows="3" placeholder="Provide a simple explanation about staff-related factors..."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Medication Related -->
-                        <div class="factor-section">
-                            <label class="factor-checkbox">
-                                <input type="checkbox" name="factor" value="medication" onchange="toggleExplanation('medication')">
-                                <span class="factor-label">Medication Related</span>
-                            </label>
-                            <div id="medication-explanation" class="explanation-box" style="display: none;">
-                                <label for="medication-text">Explanation:</label>
-                                <textarea id="medication-text" name="medication-explanation" rows="3" placeholder="Provide a simple explanation about medication-related factors..."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Task & Technology -->
-                        <div class="factor-section">
-                            <label class="factor-checkbox">
-                                <input type="checkbox" name="factor" value="task" onchange="toggleExplanation('task')">
-                                <span class="factor-label">Task & Technology</span>
-                            </label>
-                            <div id="task-explanation" class="explanation-box" style="display: none;">
-                                <label for="task-text">Explanation:</label>
-                                <textarea id="task-text" name="task-explanation" rows="3" placeholder="Provide a simple explanation about task and technology-related factors..."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Work Environment -->
-                        <div class="factor-section">
-                            <label class="factor-checkbox">
-                                <input type="checkbox" name="factor" value="environment" onchange="toggleExplanation('environment')">
-                                <span class="factor-label">Work Environment</span>
-                            </label>
-                            <div id="environment-explanation" class="explanation-box" style="display: none;">
-                                <label for="environment-text">Explanation:</label>
-                                <textarea id="environment-text" name="environment-explanation" rows="3" placeholder="Provide a simple explanation about work environment-related factors..."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Team Factors -->
-                        <div class="factor-section">
-                            <label class="factor-checkbox">
-                                <input type="checkbox" name="factor" value="team" onchange="toggleExplanation('team')">
-                                <span class="factor-label">Team Factors</span>
-                            </label>
-                            <div id="team-explanation" class="explanation-box" style="display: none;">
-                                <label for="team-text">Explanation:</label>
-                                <textarea id="team-text" name="team-explanation" rows="3" placeholder="Provide a simple explanation about team-related factors..."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Others -->
-                        <div class="factor-section">
-                            <label class="factor-checkbox">
-                                <input type="checkbox" name="factor" value="others" onchange="toggleExplanation('others')">
-                                <span class="factor-label">Others</span>
-                            </label>
-                            <div id="others-explanation" class="explanation-box" style="display: none;">
-                                <label for="others-text">Explanation:</label>
-                                <textarea id="others-text" name="others-explanation" rows="3" placeholder="Provide a simple explanation about other contributing factors..."></textarea>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                            <button type="submit" class="btn btn-primary">Submit Feedback</button>
-                            <button type="reset" class="btn btn-outline" onclick="resetForm()">Reset</button>
-                        </div>
-                    </form>
-                </div>
-
-                <style>
-                    .factor-section {
-                        padding: 1.5rem;
-                        background: #f8fafc;
-                        border-radius: var(--radius-md);
-                        border-left: 4px solid var(--color-primary);
-                    }
-
-                    .factor-checkbox {
-                        display: flex;
-                        align-items: center;
-                        gap: 0.75rem;
-                        cursor: pointer;
-                        font-size: 1rem;
-                    }
-
-                    .factor-checkbox input[type="checkbox"] {
-                        width: 20px;
-                        height: 20px;
-                        cursor: pointer;
-                    }
-
-                    .factor-label {
-                        font-weight: 600;
-                        color: var(--color-text-main);
-                        font-size: 1.1rem;
-                    }
-
-                    .explanation-box {
-                        margin-top: 1rem;
-                        padding: 1rem;
-                        background: white;
-                        border-radius: var(--radius-md);
-                        border: 1px solid #e2e8f0;
-                    }
-
-                    .explanation-box label {
-                        display: block;
-                        font-weight: 500;
-                        color: var(--color-text-main);
-                        margin-bottom: 0.5rem;
-                    }
-
-                    .explanation-box textarea {
-                        width: 100%;
-                        padding: 0.75rem;
-                        border: 1px solid #e2e8f0;
-                        border-radius: var(--radius-md);
-                        font-family: inherit;
-                        font-size: 0.875rem;
-                        resize: vertical;
-                        transition: border-color 0.2s;
-                    }
-
-                    .explanation-box textarea:focus {
-                        outline: none;
-                        border-color: var(--color-primary);
-                    }
-                </style>
-            `;
-
-            // ============= EmailJS Configuration =============
-            // IMPORTANT: Replace these with your actual EmailJS credentials
-            // See EMAILJS_SETUP.md for detailed setup instructions
-            const EMAILJS_CONFIG = {
-                publicKey: 'YOUR_PUBLIC_KEY',      // Replace with your Public Key from EmailJS dashboard
-                serviceId: 'YOUR_SERVICE_ID',      // Replace with your Service ID
-                templateId: 'YOUR_TEMPLATE_ID'     // Replace with your Template ID
-            };
-
-            // Initialize EmailJS
-            if (typeof emailjs !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
-                emailjs.init(EMAILJS_CONFIG.publicKey);
-            }
-
-            // Form submission handler
-            document.getElementById('feedback-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-
-                const currentUser = AuthService.getCurrentUser();
-                const urlParams = new URLSearchParams(window.location.search);
-                const reportId = urlParams.get('reportId');
-
-                const formData = {
-                    id: Date.now().toString(),
-                    reportId: reportId || null,
-                    submittedBy: currentUser.fullname,
-                    submittedEmail: currentUser.email,
-                    submittedAt: new Date().toISOString(),
-                    factors: []
-                };
-
-                // Collect checked factors and their explanations
-                const checkboxes = document.querySelectorAll('input[name="factor"]:checked');
-                checkboxes.forEach(checkbox => {
-                    const factorType = checkbox.value;
-                    const explanation = document.getElementById(`${factorType}-text`).value;
-
-                    formData.factors.push({
-                        type: factorType,
-                        label: checkbox.nextElementSibling.textContent,
-                        explanation: explanation
-                    });
-                });
-
-                if (formData.factors.length === 0) {
-                    alert('Please select at least one contributing factor.');
-                    return;
-                }
-
-                // Validate that all selected factors have explanations
-                const missingExplanation = formData.factors.find(f => !f.explanation.trim());
-                if (missingExplanation) {
-                    alert(`Please provide an explanation for ${missingExplanation.label}.`);
-                    return;
-                }
-
-                // Save to localStorage
-                const feedbacks = JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
-                feedbacks.push(formData);
-                localStorage.setItem('medsafety_feedback_db', JSON.stringify(feedbacks));
-
-                // Send email notification via EmailJS
-                if (typeof emailjs !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
-                    try {
-                        // Prepare email template parameters
-                        const factorsList = formData.factors.map(f => f.label).join(', ');
-                        const templateParams = {
-                            report_id: formData.reportId || 'Not specified',
-                            user_name: formData.submittedBy,
-                            user_email: formData.submittedEmail || 'Not provided',
-                            submission_date: new Date(formData.submittedAt).toLocaleString('en-MY', {
-                                dateStyle: 'full',
-                                timeStyle: 'short'
-                            }),
-                            factors_list: factorsList,
-                            staff_explanation: '',
-                            medication_explanation: '',
-                            task_explanation: '',
-                            environment_explanation: '',
-                            team_explanation: '',
-                            others_explanation: ''
-                        };
-
-                        // Add explanations for selected factors
-                        formData.factors.forEach(factor => {
-                            switch (factor.type) {
-                                case 'staff':
-                                    templateParams.staff_explanation = factor.explanation;
-                                    break;
-                                case 'medication':
-                                    templateParams.medication_explanation = factor.explanation;
-                                    break;
-                                case 'task':
-                                    templateParams.task_explanation = factor.explanation;
-                                    break;
-                                case 'environment':
-                                    templateParams.environment_explanation = factor.explanation;
-                                    break;
-                                case 'team':
-                                    templateParams.team_explanation = factor.explanation;
-                                    break;
-                                case 'others':
-                                    templateParams.others_explanation = factor.explanation;
-                                    break;
-                            }
-                        });
-
-                        // Send email
-                        await emailjs.send(
-                            EMAILJS_CONFIG.serviceId,
-                            EMAILJS_CONFIG.templateId,
-                            templateParams
-                        );
-
-                        alert('Feedback submitted successfully! Admin has been notified via email.');
-                    } catch (error) {
-                        console.error('Email sending failed:', error);
-                        alert('Feedback submitted successfully! However, email notification failed. Please contact admin directly.');
-                    }
-                } else {
-                    // EmailJS not configured
-                    if (EMAILJS_CONFIG.publicKey === 'YOUR_PUBLIC_KEY') {
-                        console.warn('EmailJS not configured. Please update EMAILJS_CONFIG in feedback.html');
-                        alert('Feedback submitted successfully! (Email notifications not configured)');
-                    } else {
-                        alert('Feedback submitted successfully!');
-                    }
-                }
-
-                document.getElementById('feedback-form').reset();
-                resetForm();
-            });
         });
-
-        function toggleExplanation(factorType) {
-            const explanationBox = document.getElementById(`${factorType}-explanation`);
-            const checkbox = document.querySelector(`input[value="${factorType}"]`);
-
-            if (checkbox.checked) {
-                explanationBox.style.display = 'block';
-            } else {
-                explanationBox.style.display = 'none';
-                document.getElementById(`${factorType}-text`).value = '';
-            }
-        }
-
-        function resetForm() {
-            // Hide all explanation boxes
-            const explanationBoxes = document.querySelectorAll('.explanation-box');
-            explanationBoxes.forEach(box => {
-                box.style.display = 'none';
-            });
-        }
 
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
