@@ -1588,27 +1588,39 @@ const AdminApp = {
             AdminApp.allReports.forEach(r => {
                 if (r.staffEmail && r.staffEmail.trim() !== '' && !submittedEmails.has(r.staffEmail)) {
                     // Use email as unique key to prevent duplicates
-                    if (!pendingStaffMap.has(r.staffEmail)) {
+                    // Keep the latest report info for date/time context
+                    if (!pendingStaffMap.has(r.staffEmail) || new Date(r.timestamp) > new Date(pendingStaffMap.get(r.staffEmail).timestamp)) {
                         pendingStaffMap.set(r.staffEmail, {
+                            reportId: r.id,
                             fullname: r.staffName || 'Unknown Staff',
                             email: r.staffEmail,
-                            facility: r.facility || 'Unknown Facility'
+                            facility: r.facility || 'Unknown Facility',
+                            date: r.date || 'N/A',
+                            time: r.time || '',
+                            timestamp: r.timestamp || new Date(0).toISOString()
                         });
                     }
                 }
             });
 
-            const pendingUsers = Array.from(pendingStaffMap.values());
+            const pendingUsers = Array.from(pendingStaffMap.values()).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
             // Render Pending Users Table
             if (pendingUsers.length === 0) {
-                pendingTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 2rem;">All reporters have submitted their feedback.</td></tr>';
+                pendingTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">All reporters have submitted their feedback.</td></tr>';
             } else {
                 pendingTbody.innerHTML = pendingUsers.map(u => `
     <tr>
+                        <td>${Security.sanitize(u.date)}</td>
+                        <td>${Security.sanitize(u.time)}</td>
                         <td>${Security.sanitize(u.fullname)}</td>
                         <td>${Security.sanitize(u.email)}</td>
                         <td>${Security.sanitize(u.facility || 'N/A')}</td>
+                        <td style="text-align: right;">
+                            <button onclick="AdminApp.dismissPendingFeedback('${u.reportId}', '${Security.sanitize(u.email)}')" class="btn-icon" title="Dismiss Feedback Request" style="color: #ef4444; font-size: 1.2rem; cursor: pointer; border: none; background: none;">
+                                🗑️
+                            </button>
+                        </td>
                     </tr>
     `).join('');
             }
@@ -1641,9 +1653,39 @@ const AdminApp = {
             }
         } catch (error) {
             console.error('Error rendering feedback management:', error);
-            pendingTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Error loading data.</td></tr>';
+            pendingTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Error loading data.</td></tr>';
             submittedTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error loading data.</td></tr>';
         }
+    },
+
+    dismissPendingFeedback: async (reportId, staffEmail) => {
+        if (!confirm(`Are you sure you want to dismiss the feedback requirement for ${staffEmail}? This will move them to the "Submitted Feedback" table as "Admin Dismissed".`)) {
+            return;
+        }
+
+        const dummyFeedback = {
+            id: 'dismiss_' + Date.now().toString(),
+            reportId: reportId,
+            submittedEmail: staffEmail,
+            submittedBy: 'Admin Dismissed',
+            submittedAt: new Date().toISOString(),
+            factors: [
+                {
+                    label: 'Admin Dismissal',
+                    explanation: 'Feedback requirement was dismissed by an Administrator.'
+                }
+            ]
+        };
+
+        const allFeedback = AdminService.getAllFeedback();
+        allFeedback.push(dummyFeedback);
+        localStorage.setItem('medsafety_feedback_db', JSON.stringify(allFeedback));
+
+        // Re-render the tables
+        AdminApp.renderFeedbackManagement();
+        
+        // Notify success
+        alert('Feedback requirement dismissed successfully.');
     },
 
     viewFeedbackDetails: (feedbackId) => {
