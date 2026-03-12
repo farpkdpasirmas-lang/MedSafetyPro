@@ -59,7 +59,7 @@ export default async function handler(req, res) {
 
     // Send the email
     const data = await resend.emails.send({
-      from: 'MedSafety Pro <noreply@medsafetypro.com>', // Note: To use a custom domain like @medsafetypro.com, you must verify it in Resend. Otherwise use onboarding@resend.dev for testing.
+      from: 'MedSafety Pro <onboarding@resend.dev>', // You must verify your own domain in Resend to change this
       to: [to_email],
       subject: `Laporan Kesilapan Pengubatan - ${report_id}`,
       html: emailHtml,
