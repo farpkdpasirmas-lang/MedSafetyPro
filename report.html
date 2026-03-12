@@ -382,6 +382,12 @@
                 // Reset visibility
                 if (pharmacyErrors) pharmacyErrors.classList.add('hidden');
                 if (clinicErrors) clinicErrors.classList.add('hidden');
+                
+                // Reset all error checkboxes when changing settings
+                document.querySelectorAll('input[name="pharmacy_err"], input[name="clinic_err"]').forEach(cb => {
+                    cb.checked = false;
+                    cb.disabled = false;
+                });
 
                 if (value === 'pharmacy') {
                     if (pharmacyErrors) pharmacyErrors.classList.remove('hidden');
@@ -389,6 +395,28 @@
                     if (clinicErrors) clinicErrors.classList.remove('hidden');
                 }
             });
+
+            // Enforce single error type selection
+            function enforceSingleSelection(checkboxName) {
+                const checkboxes = document.querySelectorAll(`input[type="checkbox"][name="${checkboxName}"]`);
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        if (this.checked) {
+                            checkboxes.forEach(other => {
+                                if (other !== this) other.disabled = true;
+                            });
+                        } else {
+                            checkboxes.forEach(other => {
+                                other.disabled = false;
+                            });
+                        }
+                    });
+                });
+            }
+
+            // Apply to both pharmacy and clinic error groups
+            enforceSingleSelection('pharmacy_err');
+            enforceSingleSelection('clinic_err');
 
             // Image Handling Logic (File & Camera)
             const imageInput = document.getElementById('evidence-upload');
