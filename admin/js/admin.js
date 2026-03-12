@@ -1585,18 +1585,38 @@ const AdminApp = {
 
             // Find staff from all reports who haven't submitted feedback
             const pendingStaffMap = new Map();
+            
+            // Helper to format date and time cleanly
+            const formatEventTime = (dateStr, timestamp) => {
+                try {
+                    // event-date is usually saved as YYYY-MM-DDTHH:mm
+                    const sourceDate = (dateStr && dateStr.includes('T')) ? dateStr : timestamp;
+                    const d = new Date(sourceDate);
+                    if (isNaN(d.getTime())) return { date: dateStr || 'N/A', time: '-' };
+                    
+                    return {
+                        date: d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                        time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+                    };
+                } catch (e) {
+                    return { date: dateStr || 'N/A', time: '-' };
+                }
+            };
+
             AdminApp.allReports.forEach(r => {
                 if (r.staffEmail && r.staffEmail.trim() !== '' && !submittedEmails.has(r.staffEmail)) {
                     // Use email as unique key to prevent duplicates
                     // Keep the latest report info for date/time context
                     if (!pendingStaffMap.has(r.staffEmail) || new Date(r.timestamp) > new Date(pendingStaffMap.get(r.staffEmail).timestamp)) {
+                        const formatted = formatEventTime(r.date, r.timestamp);
+                        
                         pendingStaffMap.set(r.staffEmail, {
                             reportId: r.id,
                             fullname: r.staffName || 'Unknown Staff',
                             email: r.staffEmail,
                             facility: r.facility || 'Unknown Facility',
-                            date: r.date || 'N/A',
-                            time: r.time || '',
+                            date: formatted.date,
+                            time: formatted.time,
                             timestamp: r.timestamp || new Date(0).toISOString()
                         });
                     }
