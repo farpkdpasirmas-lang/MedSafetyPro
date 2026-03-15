@@ -7,11 +7,8 @@ const AdminNotifications = {
     /**
      * Create a new notification
      */
-    create: function (type, title, message, relatedId) {
-        const notifications = this.getAll();
-
+    create: async function (type, title, message, relatedId) {
         const notification = {
-            id: Date.now().toString(),
             type: type, // 'report' or 'feedback'
             title: title,
             message: message,
@@ -19,59 +16,28 @@ const AdminNotifications = {
             read: false,
             relatedId: relatedId
         };
-
-        notifications.unshift(notification); // Add to beginning
-
-        // Keep only last 100 notifications
-        if (notifications.length > 100) {
-            notifications.splice(100);
-        }
-
-        localStorage.setItem('admin_notifications', JSON.stringify(notifications));
-        return notification;
+        return await DB.saveNotification(notification);
     },
 
     /**
-     * Get all notifications
+     * Listen to admin notifications
      */
-    getAll: function () {
-        return JSON.parse(localStorage.getItem('admin_notifications') || '[]');
-    },
-
-    /**
-     * Get unread count
-     */
-    getUnreadCount: function () {
-        const notifications = this.getAll();
-        return notifications.filter(n => !n.read).length;
+    listen: function(callback) {
+        return DB.listenToAdminNotifications(callback);
     },
 
     /**
      * Mark notification as read
      */
-    markAsRead: function (notificationId) {
-        const notifications = this.getAll();
-        const notification = notifications.find(n => n.id === notificationId);
-        if (notification) {
-            notification.read = true;
-            localStorage.setItem('admin_notifications', JSON.stringify(notifications));
-        }
+    markAsRead: async function (notificationId) {
+        await DB.markNotificationAsRead(notificationId);
     },
 
     /**
      * Mark all as read
      */
-    markAllAsRead: function () {
-        const notifications = this.getAll();
-        notifications.forEach(n => n.read = true);
-        localStorage.setItem('admin_notifications', JSON.stringify(notifications));
-    },
-
-    /**
-     * Clear all notifications
-     */
-    clearAll: function () {
-        localStorage.setItem('admin_notifications', JSON.stringify([]));
+    markAllAsRead: async function () {
+        await DB.markAllAdminNotificationsAsRead();
     },
 
     /**
@@ -101,14 +67,11 @@ const UserNotifications = {
     /**
      * Create a notification for a specific user
      */
-    create: function (userEmail, type, title, message, relatedId) {
+    create: async function (userEmail, type, title, message, relatedId) {
         if (!userEmail) return null;
 
-        const key = 'user_notifications_' + userEmail.toLowerCase();
-        const notifications = this.getForUser(userEmail);
-
         const notification = {
-            id: Date.now().toString(),
+            userEmail: userEmail.toLowerCase(),
             type: type, // 'report_involved'
             title: title,
             message: message,
@@ -116,56 +79,29 @@ const UserNotifications = {
             read: false,
             relatedId: relatedId
         };
-
-        notifications.unshift(notification);
-
-        // Keep only last 50 notifications per user
-        if (notifications.length > 50) {
-            notifications.splice(50);
-        }
-
-        localStorage.setItem(key, JSON.stringify(notifications));
-        return notification;
+        
+        return await DB.saveNotification(notification);
     },
 
     /**
-     * Get notifications for a specific user
+     * Listen for user notifications
      */
-    getForUser: function (userEmail) {
-        if (!userEmail) return [];
-        const key = 'user_notifications_' + userEmail.toLowerCase();
-        return JSON.parse(localStorage.getItem(key) || '[]');
-    },
-
-    /**
-     * Get unread count for a user
-     */
-    getUnreadCount: function (userEmail) {
-        const notifications = this.getForUser(userEmail);
-        return notifications.filter(n => !n.read).length;
+    listen: function (userEmail, callback) {
+        return DB.listenToUserNotifications(userEmail, callback);
     },
 
     /**
      * Mark notification as read
      */
-    markAsRead: function (userEmail, notificationId) {
-        const key = 'user_notifications_' + userEmail.toLowerCase();
-        const notifications = this.getForUser(userEmail);
-        const notification = notifications.find(n => n.id === notificationId);
-        if (notification) {
-            notification.read = true;
-            localStorage.setItem(key, JSON.stringify(notifications));
-        }
+    markAsRead: async function (userEmail, notificationId) {
+        await DB.markNotificationAsRead(notificationId, userEmail);
     },
 
     /**
      * Mark all as read for a user
      */
-    markAllAsRead: function (userEmail) {
-        const key = 'user_notifications_' + userEmail.toLowerCase();
-        const notifications = this.getForUser(userEmail);
-        notifications.forEach(n => n.read = true);
-        localStorage.setItem(key, JSON.stringify(notifications));
+    markAllAsRead: async function (userEmail) {
+        await DB.markAllUserNotificationsAsRead(userEmail);
     },
 
     /**

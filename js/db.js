@@ -7,6 +7,7 @@ const DB = {
     // Collection Names
     COLLECTION_REPORTS: 'reports', // Restored name to pull primary 500 reports
     COLLECTION_USERS: 'users_v2',
+    COLLECTION_NOTIFICATIONS: 'notifications',
 
     // --- Reports ---
 
@@ -210,6 +211,217 @@ const DB = {
                 users[index].approved = true;
                 localStorage.setItem('medsafety_users_db', JSON.stringify(users));
             }
+        }
+    },
+
+    // --- Notifications ---
+
+    /**
+     * Save a new notification
+     * @param {Object} notification
+     * @returns Promise
+     */
+    saveNotification: async (notification) => {
+        if (db) {
+            try {
+                if (notification.id) {
+                    await db.collection(DB.COLLECTION_NOTIFICATIONS).doc(notification.id).set(notification);
+                } else {
+                    const docRef = await db.collection(DB.COLLECTION_NOTIFICATIONS).add(notification);
+                    notification.id = docRef.id;
+                }
+                return notification;
+            } catch (error) {
+                console.error("Error saving notification: ", error);
+                throw error;
+            }
+        } else {
+            // Local fallback
+            const isUserNotif = !!notification.userEmail;
+            const key = isUserNotif ? 'user_notifications_' + notification.userEmail.toLowerCase() : 'admin_notifications';
+            const notifications = JSON.parse(localStorage.getItem(key) || '[]');
+            
+            // Ensure unique ID if not provided
+            if (!notification.id) notification.id = Date.now().toString();
+            
+            notifications.unshift(notification);
+            
+            // Keep bounds
+            if (isUserNotif && notifications.length > 50) notifications.splice(50);
+            if (!isUserNotif && notifications.length > 100) notifications.splice(100);
+            
+            localStorage.setItem(key, JSON.stringify(notifications));
+            return notification;
+        }
+    },
+
+    /**
+     * Listen to a user's notifications in real-time
+     * @param {string} userEmail
+     * @param {Function} callback
+     * @returns {Function} Unsubscribe function
+     */
+    listenToUserNotifications: (userEmail, callback) => {
+        if (!userEmail) {
+            callback([]);
+            return () => {};
+        }
+
+        if (db) {
+            try {
+                return db.collection(DB.COLLECTION_NOTIFICATIONS)
+                    .where('userEmail', '==', userEmail.toLowerCase())
+                    .orderBy('timestamp', 'desc')
+                    .limit(50)
+                    .onSnapshot(snapshot => {
+                        const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        callback(notifications);
+                    }, error => {
+                        console.error("Error listening to user notifications: ", error);
+                        // Fallback to local storage if Firestore fails (e.g. missing index)
+                        const key = 'user_notifications_' + userEmail.toLowerCase();
+                        const localNotifications = JSON.parse(localStorage.getItem(key) || '[]');
+                        callback(localNotifications);
+                    });
+            } catch (err) {
+                console.error("Error setting up user notifications listener: ", err);
+                return () => {};
+            }
+        } else {
+            // LocalStorage fallback
+            const key = 'user_notifications_' + userEmail.toLowerCase();
+            const notifications = JSON.parse(localStorage.getItem(key) || '[]');
+            callback(notifications);
+            return () => {};
+        }
+    },
+    
+    /**
+     * Listen to admin notifications in real-time
+     * @param {Function} callback
+     * @returns {Function} Unsubscribe function
+     */
+    listenToAdminNotifications: (callback) => {
+        if (db) {
+            try {
+                return db.collection(DB.COLLECTION_NOTIFICATIONS)
+                    // We check if it doesn't have a userEmail, implying it's an admin notification.
+                    // Or we could check type. We'll use type 'in' ['report', 'feedback']
+                    .where('type', 'in', ['report', 'feedback'])
+                    .orderBy('timestamp', 'desc')
+                    .limit(100)
+                    .onSnapshot(snapshot => {
+                        const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        callback(notifications);
+                    }, error => {
+                        console.error("Error listening to admin notifications: ", error);
+                    });
+            } catch (err) {
+                 console.error("Error setting up admin notifications listener: ", err);
+                 return () => {};
+            }
+        } else {
+            // LocalStorage fallback
+            const notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+            callback(notifications);
+            return () => {};
+        }
+    },
+
+    /**
+     * Mark a notification as read
+     * @param {string} notificationId
+     * @param {string} userEmail (optional, for local storage fallback)
+     * @returns Promise<void>
+     */
+    markNotificationAsRead: async (notificationId, userEmail = null) => {
+        if (db) {
+            try {
+                await db.collection(DB.COLLECTION_NOTIFICATIONS).doc(notificationId).update({ read: true });
+            } catch (error) {
+                console.error("Error marking notification as read: ", error);
+                throw error;
+            }
+        } else {
+            // LocalStorage fallback
+            if (userEmail) {
+                const key = 'user_notifications_' + userEmail.toLowerCase();
+                const notifications = JSON.parse(localStorage.getItem(key) || '[]');
+                const notification = notifications.find(n => n.id === notificationId);
+                if (notification) {
+                    notification.read = true;
+                    localStorage.setItem(key, JSON.stringify(notifications));
+                }
+            } else {
+                const notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+                const notification = notifications.find(n => n.id === notificationId);
+                if (notification) {
+                    notification.read = true;
+                    localStorage.setItem('admin_notifications', JSON.stringify(notifications));
+                }
+            }
+        }
+    },
+
+    /**
+     * Mark all notifications as read for a user
+     * @param {string} userEmail
+     * @returns Promise<void>
+     */
+    markAllUserNotificationsAsRead: async (userEmail) => {
+        if (db) {
+            try {
+                const snapshot = await db.collection(DB.COLLECTION_NOTIFICATIONS)
+                    .where('userEmail', '==', userEmail.toLowerCase())
+                    .where('read', '==', false)
+                    .get();
+                
+                if (!snapshot.empty) {
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => {
+                        batch.update(doc.ref, { read: true });
+                    });
+                    await batch.commit();
+                }
+            } catch (error) {
+                console.error("Error marking all user notifications as read: ", error);
+                throw error;
+            }
+        } else {
+            const key = 'user_notifications_' + userEmail.toLowerCase();
+            const notifications = JSON.parse(localStorage.getItem(key) || '[]');
+            notifications.forEach(n => n.read = true);
+            localStorage.setItem(key, JSON.stringify(notifications));
+        }
+    },
+
+    /**
+     * Mark all admin notifications as read
+     * @returns Promise<void>
+     */
+    markAllAdminNotificationsAsRead: async () => {
+        if (db) {
+            try {
+                const snapshot = await db.collection(DB.COLLECTION_NOTIFICATIONS)
+                    .where('type', 'in', ['report', 'feedback'])
+                    .where('read', '==', false)
+                    .get();
+                
+                if (!snapshot.empty) {
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => {
+                        batch.update(doc.ref, { read: true });
+                    });
+                    await batch.commit();
+                }
+            } catch (error) {
+                console.error("Error marking all admin notifications as read: ", error);
+                throw error;
+            }
+        } else {
+            const notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+            notifications.forEach(n => n.read = true);
+            localStorage.setItem('admin_notifications', JSON.stringify(notifications));
         }
     }
 };
