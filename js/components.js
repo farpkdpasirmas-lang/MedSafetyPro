@@ -110,15 +110,27 @@ const Components = {
 
     markAllRead: async (userEmail) => {
         if (typeof UserNotifications !== 'undefined') {
-            await UserNotifications.markAllAsRead(userEmail);
+            try {
+                await UserNotifications.markAllAsRead(userEmail);
+            } catch (e) {
+                console.error("Failed to mark all as read:", e);
+            }
         }
     },
 
     handleNotificationClick: async (userEmail, notificationId, reportId) => {
         if (typeof UserNotifications !== 'undefined') {
-            await UserNotifications.markAsRead(userEmail, notificationId);
+            try {
+                await UserNotifications.markAsRead(userEmail, notificationId);
+            } catch (e) {
+                console.error("Failed to mark notification as read:", e);
+            }
         }
-        window.location.href = `feedback.html?reportId=${reportId}`;
+        
+        // Ensure redirect works everywhere (even from admin pages if admin has notifications)
+        const isFromAdmin = window.location.pathname.includes('/admin/');
+        const prefix = isFromAdmin ? '../' : '';
+        window.location.href = `${prefix}feedback.html?reportId=${reportId}`;
     },
 
     renderLayout: (containerId, activePage, title, basePath = '') => {
