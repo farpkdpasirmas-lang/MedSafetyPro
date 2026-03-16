@@ -402,47 +402,6 @@ h3 {
     .sidebar.open {
         transform: translateX(0);
     }
-
-    border-radius: var(--radius-md);
-    color: var(--color-text-muted);
-    transition: all 0.2s;
-    background: none;
-    border: none;
-    width: 100%;
-    text-align: left;
-    font-size: 1rem;
-}
-
-.nav-item:hover,
-.nav-item.active {
-    background-color: var(--color-primary-light);
-    color: var(--color-primary-dark);
-}
-
-.nav-icon {
-    margin-right: 0.75rem;
-    font-size: 1.25rem;
-}
-
-.sidebar-footer {
-    padding: 1rem;
-    border-top: 1px solid #f1f5f9;
-}
-
-.logout-btn {
-    color: var(--color-accent);
-}
-
-.logout-btn:hover {
-    background-color: #fff1f2;
-    color: #e11d48;
-}
-
-.main-content {
-    flex: 1;
-    margin-left: 260px;
-    background: var(--color-bg-body);
-    min-height: 100vh;
 }
 
 .header {
@@ -910,6 +869,7 @@ h3 {
     align-items: center;
     gap: 12px;
     min-width: 300px;
+    max-width: 450px;
     padding: 16px;
     margin-bottom: 10px;
     background: white;
@@ -918,6 +878,14 @@ h3 {
     animation: slideIn 0.3s ease;
     transition: all 0.3s ease;
     border-left: 4px solid var(--color-primary);
+}
+.toast-message {
+    flex: 1;
+    word-break: break-word;
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    overflow-wrap: break-word;
 }
 .toast-success { border-left-color: #22c55e; }
 .toast-error { border-left-color: #ef4444; }
