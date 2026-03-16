@@ -278,6 +278,16 @@ const DB = {
                         callback(notifications);
                     }, error => {
                         console.error("Error listening to user notifications: ", error);
+                        if (error.message && error.message.includes('requires an index')) {
+                            // Extract URL from error message
+                            const urlMatch = error.message.match(/https:\/\/console\.firebase\.google\.com[^\s]*/);
+                            const url = urlMatch ? urlMatch[0] : '';
+                            if (url && typeof UI !== 'undefined') {
+                                UI.showToast(`Admin action required: Firestore Index missing for user notifications. Please <a href="${url}" target="_blank" style="color:white; text-decoration:underline;">Click Here to Create It</a>.`, 'error', 20000);
+                            } else {
+                                alert("Firestore Index missing for user notifications. Please check the browser console for the creation link.");
+                            }
+                        }
                         // Fallback to local storage if Firestore fails (e.g. missing index)
                         const key = 'user_notifications_' + userEmail.toLowerCase();
                         const localNotifications = JSON.parse(localStorage.getItem(key) || '[]');
@@ -315,6 +325,15 @@ const DB = {
                         callback(notifications);
                     }, error => {
                         console.error("Error listening to admin notifications: ", error);
+                        if (error.message && error.message.includes('requires an index')) {
+                            const urlMatch = error.message.match(/https:\/\/console\.firebase\.google\.com[^\s]*/);
+                            const url = urlMatch ? urlMatch[0] : '';
+                            if (url && typeof UI !== 'undefined') {
+                                UI.showToast(`Admin action required: Firestore Index missing for admin notifications. Please <a href="${url}" target="_blank" style="color:white; text-decoration:underline;">Click Here to Create It</a>.`, 'error', 20000);
+                            } else {
+                                alert("Firestore Index missing for admin notifications. Please check the browser console for the creation link.");
+                            }
+                        }
                     });
             } catch (err) {
                  console.error("Error setting up admin notifications listener: ", err);
