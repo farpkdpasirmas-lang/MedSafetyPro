@@ -287,11 +287,30 @@ const DB = {
                             } else {
                                 alert("Firestore Index missing for user notifications. Please check the browser console for the creation link.");
                             }
+
+                            // Fallback: Query without orderBy and sort in memory
+                            console.log("Attempting fallback query without orderBy for user notifications...");
+                            db.collection(DB.COLLECTION_NOTIFICATIONS)
+                                .where('userEmail', '==', userEmail.toLowerCase())
+                                .onSnapshot(fallbackSnapshot => {
+                                    const notifications = fallbackSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                                    // Manually sort by timestamp descending
+                                    notifications.sort((a, b) => b.timestamp - a.timestamp);
+                                    // Limit to 50
+                                    callback(notifications.slice(0, 50));
+                                }, fallbackErr => {
+                                    console.error("Fallback query also failed: ", fallbackErr);
+                                    // Absolute fallback to local storage
+                                    const key = 'user_notifications_' + userEmail.toLowerCase();
+                                    const localNotifications = JSON.parse(localStorage.getItem(key) || '[]');
+                                    callback(localNotifications);
+                                });
+                        } else {
+                            // Fallback to local storage if it's a different error
+                            const key = 'user_notifications_' + userEmail.toLowerCase();
+                            const localNotifications = JSON.parse(localStorage.getItem(key) || '[]');
+                            callback(localNotifications);
                         }
-                        // Fallback to local storage if Firestore fails (e.g. missing index)
-                        const key = 'user_notifications_' + userEmail.toLowerCase();
-                        const localNotifications = JSON.parse(localStorage.getItem(key) || '[]');
-                        callback(localNotifications);
                     });
             } catch (err) {
                 console.error("Error setting up user notifications listener: ", err);
@@ -333,6 +352,20 @@ const DB = {
                             } else {
                                 alert("Firestore Index missing for admin notifications. Please check the browser console for the creation link.");
                             }
+                            
+                            // Fallback: Query without orderBy and sort in memory
+                            console.log("Attempting fallback query without orderBy for admin notifications...");
+                            db.collection(DB.COLLECTION_NOTIFICATIONS)
+                                .where('type', 'in', ['report', 'feedback'])
+                                .onSnapshot(fallbackSnapshot => {
+                                    const notifications = fallbackSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                                    // Manually sort by timestamp descending
+                                    notifications.sort((a, b) => b.timestamp - a.timestamp);
+                                    // Limit to 100
+                                    callback(notifications.slice(0, 100));
+                                }, fallbackErr => {
+                                    console.error("Fallback query also failed: ", fallbackErr);
+                                });
                         }
                     });
             } catch (err) {
