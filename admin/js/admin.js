@@ -31,6 +31,17 @@ const AdminService = {
         return JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
     },
 
+    deleteFeedback: (id) => {
+        if (!confirm('Are you sure you want to delete this feedback entry? This action cannot be undone.')) return;
+        const allFeedback = AdminService.getAllFeedback();
+        const updatedFeedback = allFeedback.filter(f => f.id !== id);
+        localStorage.setItem('medsafety_feedback_db', JSON.stringify(updatedFeedback));
+        // Re-render the feedback tables
+        if (typeof AdminApp !== 'undefined' && AdminApp.renderFeedbackManagement) {
+            AdminApp.renderFeedbackManagement();
+        }
+    },
+
     // ============= REPORT MANAGEMENT =============
     getAllReports: async () => {
         try {
@@ -1663,6 +1674,9 @@ const AdminApp = {
                         <td style="text-align: right;">
                             <button onclick="AdminApp.viewFeedbackDetails('${f.id}')" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
                                 👁️ View Details
+                            </button>
+                            <button onclick="AdminService.deleteFeedback('${f.id}')" class="btn btn-danger" style="border:none; padding: 0.25rem 0.5rem; font-size: 0.875rem; margin-left: 0.5rem; cursor: pointer; border-radius: 4px;">
+                                🗑️ Delete
                             </button>
                         </td>
                     </tr>
