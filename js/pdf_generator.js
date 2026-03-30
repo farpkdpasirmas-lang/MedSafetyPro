@@ -133,7 +133,7 @@ const PDFService = {
                 ['Klinik', facility || '-'],
                 ['Tarikh dan Masa Kejadian', eventDateStr || '-'],
                 ['Pengesanan Kesilapan', detection || '-'],
-                ['Nama individu yang membuat kesilapan pengubatan', `${staffName || '-'}\n${staffEmail || '-'}`],
+                ['Nama Pelapor', `${reporterName || '-'}`],
                 ['Kategori kesilapan pengubatan', outcome || '-'],
                 ['Jenis kesilapan pengubatan (Kecemasan/OPD)', clinicErrorString],
                 ['Jenis kesilapan pengubatan (Farmasi)', pharmacyErrorString]
@@ -196,14 +196,44 @@ const PDFService = {
         doc.text("Sekian, terima kasih.", 20, yPos);
         yPos += 15;
 
+        // Determine reporter's position and facility from STAFF_DATA if available
+        let reporterPosition = "Pegawai Farmasi";
+        let reporterFacility = facility || '-';
+        
+        if (typeof STAFF_DATA !== 'undefined' && reporterName) {
+            for (const [fac, staffArray] of Object.entries(STAFF_DATA)) {
+                const found = staffArray.find(s => s.name && s.name.trim().toLowerCase() === reporterName.trim().toLowerCase());
+                if (found) {
+                    reporterFacility = fac;
+                    const cat = (found.category || '').toLowerCase();
+                    if (cat.includes('pharmacist') || cat.includes('pf')) {
+                        reporterPosition = "Pegawai Farmasi";
+                    } else if (cat.includes('medical officer') || cat.includes('mo')) {
+                        reporterPosition = "Pegawai Perubatan";
+                    } else if (cat.includes('assistant medical officer') || cat.includes('ma')) {
+                        reporterPosition = "Penolong Pegawai Perubatan";
+                    } else if (cat.includes('pharmacy assistant') || cat.includes('ppf')) {
+                        reporterPosition = "Penolong Pegawai Farmasi";
+                    } else if (cat.includes('nurse')) {
+                        reporterPosition = "Jururawat";
+                    } else if (cat.includes('specialist')) {
+                        reporterPosition = "Pakar Perubatan Keluarga";
+                    } else {
+                        reporterPosition = found.position || "Pegawai Farmasi";
+                    }
+                    break;
+                }
+            }
+        }
+
         doc.text("Saya yang menjalankan amanah.", 20, yPos);
         yPos += 25;
 
-        doc.text(user ? user.fullname : (reporterName || "Pegawai Farmasi"), 20, yPos);
+        doc.text(reporterName || "Pegawai Farmasi", 20, yPos);
         yPos += 5;
-        doc.text("Pegawai Farmasi", 20, yPos);
+        doc.text(reporterPosition, 20, yPos);
         yPos += 5;
-        doc.text(facility || '-', 20, yPos);
+        doc.text(reporterFacility, 20, yPos);
         yPos += 10;
 
         doc.text("b.p Pegawai Farmasi Kesihatan Daerah, PKD Pasir Mas.", 20, yPos);

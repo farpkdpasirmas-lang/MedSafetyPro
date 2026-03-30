@@ -1413,7 +1413,8 @@ const AdminApp = {
                 <div><strong>Facility:</strong> ${Security.sanitize(report.facility) || 'N/A'}</div>
                 <div><strong>Setting:</strong> ${Security.sanitize(report.setting) || 'N/A'}</div>
                 <div><strong>Error Types:</strong> ${Security.sanitize((report.errorTypes || []).join(', ')) || 'N/A'}</div>
-                <div><strong>Staff Name:</strong> ${Security.sanitize(report.staffName) || 'N/A'}</div>
+                <div><strong>Reporter Name:</strong> ${Security.sanitize(report.reporterName) || 'N/A'}</div>
+                <div><strong>Staff Name (Reported):</strong> ${Security.sanitize(report.staffName) || 'N/A'}</div>
                 <div><strong>Staff Email:</strong> ${Security.sanitize(report.staffEmail) || 'N/A'}</div>
                 <div><strong>Staff Category:</strong> ${Security.sanitize(report.staffCategory) || 'N/A'}</div>
                 <div><strong>Outcome:</strong> ${Security.sanitize(report.outcome) || 'N/A'}</div>
