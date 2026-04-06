@@ -31,7 +31,14 @@ const AuthService = {
                 delete newUser.password; // Don't save password
 
                 // Save user details to Firestore
-                if (db) await db.collection(typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2').doc(user.uid).set(newUser);
+                if (db) {
+                    try {
+                        const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
+                        await db.collection(collectionName).doc(user.uid).set(newUser);
+                    } catch (dbErr) {
+                        console.warn("Could not save to Firestore (likely permission denied), continuing registration locally.", dbErr);
+                    }
+                }
 
                 // Keep LocalStorage in sync for UI (Only if admin, as they are pre-approved)
                 if (newUser.approved) {
@@ -41,34 +48,49 @@ const AuthService = {
             } catch (error) {
                 // If it's an admin registration and the email is already in use, upgrade the user
                 if (error.code === 'auth/email-already-in-use' && userData.role === 'admin') {
+                    let userCredential;
                     try {
                         // We need to sign in to get the UID, or we could use a Cloud Function.
                         // Since we just have client-side JS here, we ask them to log in, but we can try 
                         // to authenticate them with the provided password.
-                        const userCredential = await auth.signInWithEmailAndPassword(userData.email, userData.password);
-                        const user = userCredential.user;
-
-                        const updatedData = {
-                            role: 'admin',
-                            approved: true,
-                            fullname: userData.fullname // update name if changed
-                        };
-
-                        if (db) {
-                            const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
-                            await db.collection(collectionName).doc(user.uid).update(updatedData);
-                            const doc = await db.collection(collectionName).doc(user.uid).get();
-
-                            const mergedUser = { ...doc.data(), email: user.email, id: user.uid };
-                            localStorage.setItem(AUTH_KEY, JSON.stringify(mergedUser));
-                            return { success: true, user: mergedUser, message: 'Existing user upgraded to Admin.' };
-                        }
-                    } catch (signInError) {
+                        userCredential = await auth.signInWithEmailAndPassword(userData.email, userData.password);
+                    } catch (signInErr) {
                         return {
                             success: false,
                             message: 'Email exists, but the password provided was incorrect. Please use the same password you registered with to upgrade this account to admin.'
                         };
                     }
+
+                    const user = userCredential.user;
+
+                    const updatedData = {
+                        role: 'admin',
+                        approved: true,
+                        fullname: userData.fullname // update name if changed
+                    };
+
+                    if (db) {
+                        const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
+                        try {
+                            await db.collection(collectionName).doc(user.uid).update(updatedData);
+                        } catch (dbErr) {
+                            console.warn("Could not push update to Firestore (likely permission denied), continuing locally.", dbErr);
+                        }
+                        
+                        let mergedUser = { ...updatedData, email: user.email, id: user.uid };
+                        try {
+                            const doc = await db.collection(collectionName).doc(user.uid).get();
+                            if (doc.exists) {
+                                mergedUser = { ...doc.data(), ...mergedUser };
+                            }
+                        } catch (dbErr) {
+                            console.warn("Could not fetch from Firestore, continuing with local data.", dbErr);
+                        }
+                        
+                        localStorage.setItem(AUTH_KEY, JSON.stringify(mergedUser));
+                        return { success: true, user: mergedUser, message: 'Existing user upgraded to Admin.' };
+                    }
+                    // Catch block handled above
                 }
                 return { success: false, message: error.message };
             }
@@ -140,9 +162,13 @@ const AuthService = {
                 // Fetch user details from Firestore
                 let userDetails = {};
                 if (db) {
-                    const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
-                    const doc = await db.collection(collectionName).doc(user.uid).get();
-                    if (doc.exists) userDetails = doc.data();
+                    try {
+                        const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
+                        const doc = await db.collection(collectionName).doc(user.uid).get();
+                        if (doc.exists) userDetails = doc.data();
+                    } catch (dbErr) {
+                        console.warn("Could not fetch user details from Firestore, continuing with limited data.", dbErr);
+                    }
                 }
 
                 const mergedUser = { ...userDetails, email: user.email, id: user.uid };
