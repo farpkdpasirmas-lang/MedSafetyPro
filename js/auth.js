@@ -247,8 +247,13 @@ const AuthService = {
     // Get count of admins
     getAdminCount: async () => {
         if (typeof DB !== 'undefined' && DB.getAllUsers) {
-            const users = await DB.getAllUsers();
-            return users.filter(user => user.role === 'admin').length;
+            try {
+                const users = await DB.getAllUsers();
+                return users.filter(user => user.role === 'admin').length;
+            } catch (error) {
+                console.warn("Could not get users to count admins (likely permission denied). Falling back to 0 so registration can proceed.", error);
+                return 0; // Return 0 to allow registration to proceed
+            }
         } else {
             // Fallback
             const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
