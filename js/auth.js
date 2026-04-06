@@ -37,6 +37,16 @@ const AuthService = {
                         await db.collection(collectionName).doc(user.uid).set(newUser);
                     } catch (dbErr) {
                         console.warn("Could not save to Firestore (likely permission denied), continuing registration locally.", dbErr);
+                        try {
+                            const localUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                            const existsIndex = localUsers.findIndex(u => u.email === newUser.email);
+                            if (existsIndex >= 0) {
+                                localUsers[existsIndex] = newUser;
+                            } else {
+                                localUsers.push(newUser);
+                            }
+                            localStorage.setItem(USERS_KEY, JSON.stringify(localUsers));
+                        } catch (e) {}
                     }
                 }
 
@@ -86,6 +96,17 @@ const AuthService = {
                         } catch (dbErr) {
                             console.warn("Could not fetch from Firestore, continuing with local data.", dbErr);
                         }
+                        
+                        try {
+                            const localUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                            const existsIndex = localUsers.findIndex(u => u.email === mergedUser.email);
+                            if (existsIndex >= 0) {
+                                localUsers[existsIndex] = mergedUser;
+                            } else {
+                                localUsers.push(mergedUser);
+                            }
+                            localStorage.setItem(USERS_KEY, JSON.stringify(localUsers));
+                        } catch (e) {}
                         
                         localStorage.setItem(AUTH_KEY, JSON.stringify(mergedUser));
                         return { success: true, user: mergedUser, message: 'Existing user upgraded to Admin.' };

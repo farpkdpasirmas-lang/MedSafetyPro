@@ -175,11 +175,27 @@ const DB = {
                     throw error;
                 } else {
                     console.info("Firestore permission denied for users. Falling back to local storage.");
-                    return JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
+                    const users = JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
+                    try {
+                        const currentUser = JSON.parse(localStorage.getItem('medsafety_auth_user'));
+                        if (currentUser && currentUser.email && !users.find(u => u.email === currentUser.email)) {
+                             users.push(currentUser);
+                             localStorage.setItem('medsafety_users_db', JSON.stringify(users));
+                        }
+                    } catch(e) {}
+                    return users;
                 }
             }
         } else {
-            return JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
+            const users = JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('medsafety_auth_user'));
+                if (currentUser && currentUser.email && !users.find(u => u.email === currentUser.email)) {
+                     users.push(currentUser);
+                     localStorage.setItem('medsafety_users_db', JSON.stringify(users));
+                }
+            } catch(e) {}
+            return users;
         }
     },
 
