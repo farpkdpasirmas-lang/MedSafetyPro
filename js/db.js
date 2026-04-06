@@ -160,7 +160,7 @@ const DB = {
     getAllUsers: async () => {
         if (db) {
             try {
-                const snapshot = await db.collection('users').get();
+                const snapshot = await db.collection(DB.COLLECTION_USERS).get();
                 return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             } catch (error) {
                 console.error("Error getting users: ", error);
@@ -179,7 +179,7 @@ const DB = {
     deleteUser: async (userId) => {
         if (db) {
             try {
-                await db.collection('users').doc(userId).delete();
+                await db.collection(DB.COLLECTION_USERS).doc(userId).delete();
             } catch (error) {
                 console.error("Error deleting user: ", error);
                 throw error;
@@ -199,7 +199,7 @@ const DB = {
     approveUser: async (userId) => {
         if (db) {
             try {
-                await db.collection('users').doc(userId).update({ approved: true });
+                await db.collection(DB.COLLECTION_USERS).doc(userId).update({ approved: true });
             } catch (error) {
                 console.error("Error approving user: ", error);
                 throw error;

@@ -31,7 +31,7 @@ const AuthService = {
                 delete newUser.password; // Don't save password
 
                 // Save user details to Firestore
-                if (db) await db.collection('users').doc(user.uid).set(newUser);
+                if (db) await db.collection(typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2').doc(user.uid).set(newUser);
 
                 // Keep LocalStorage in sync for UI (Only if admin, as they are pre-approved)
                 if (newUser.approved) {
@@ -55,8 +55,9 @@ const AuthService = {
                         };
 
                         if (db) {
-                            await db.collection('users').doc(user.uid).update(updatedData);
-                            const doc = await db.collection('users').doc(user.uid).get();
+                            const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
+                            await db.collection(collectionName).doc(user.uid).update(updatedData);
+                            const doc = await db.collection(collectionName).doc(user.uid).get();
 
                             const mergedUser = { ...doc.data(), email: user.email, id: user.uid };
                             localStorage.setItem(AUTH_KEY, JSON.stringify(mergedUser));
@@ -139,7 +140,8 @@ const AuthService = {
                 // Fetch user details from Firestore
                 let userDetails = {};
                 if (db) {
-                    const doc = await db.collection('users').doc(user.uid).get();
+                    const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
+                    const doc = await db.collection(collectionName).doc(user.uid).get();
                     if (doc.exists) userDetails = doc.data();
                 }
 
