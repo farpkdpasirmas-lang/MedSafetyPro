@@ -139,7 +139,14 @@ const DB = {
                 const reports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 callback(reports);
             }, error => {
-                console.error("Error listening to reports: ", error);
+                if (error.code !== 'permission-denied') {
+                    console.error("Error listening to reports: ", error);
+                } else {
+                    console.info("Firestore permission denied for reports. Falling back to local storage.");
+                    const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+                    const sorted = reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    callback(sorted);
+                }
             });
         } else {
             // LocalStorage mode doesn't support built-in tabs sync easily without storage event listener
@@ -165,8 +172,11 @@ const DB = {
             } catch (error) {
                 if (error.code !== 'permission-denied') {
                     console.error("Error getting users: ", error);
+                    throw error;
+                } else {
+                    console.info("Firestore permission denied for users. Falling back to local storage.");
+                    return JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
                 }
-                throw error;
             }
         } else {
             return JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
@@ -279,7 +289,15 @@ const DB = {
                         const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         callback(notifications);
                     }, error => {
-                        console.error("Error listening to user notifications: ", error);
+                        if (error.code !== 'permission-denied') {
+                            console.error("Error listening to user notifications: ", error);
+                        } else {
+                            console.info("Firestore permission denied for user notifications. Falling back to local storage.");
+                            const key = 'user_notifications_' + userEmail.toLowerCase();
+                            const localNotifications = JSON.parse(localStorage.getItem(key) || '[]');
+                            callback(localNotifications);
+                            return;
+                        }
                         if (error.message && error.message.includes('requires an index')) {
                             // Extract URL from error message
                             const urlMatch = error.message.match(/https:\/\/console\.firebase\.google\.com[^\s]*/);
@@ -345,7 +363,14 @@ const DB = {
                         const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         callback(notifications);
                     }, error => {
-                        console.error("Error listening to admin notifications: ", error);
+                        if (error.code !== 'permission-denied') {
+                            console.error("Error listening to admin notifications: ", error);
+                        } else {
+                            console.info("Firestore permission denied for admin notifications. Falling back to local storage.");
+                            const notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+                            callback(notifications);
+                            return;
+                        }
                         if (error.message && error.message.includes('requires an index')) {
                             const urlMatch = error.message.match(/https:\/\/console\.firebase\.google\.com[^\s]*/);
                             const url = urlMatch ? urlMatch[0] : '';
