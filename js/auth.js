@@ -279,7 +279,11 @@ const AuthService = {
                 const users = await DB.getAllUsers();
                 return users.filter(user => user.role === 'admin').length;
             } catch (error) {
-                console.warn("Could not get users to count admins (likely permission denied). Falling back to 0 so registration can proceed.", error);
+                if (error.code !== 'permission-denied') {
+                    console.warn("Could not get users to count admins.", error);
+                } else {
+                    console.info("Count admins fallback triggered due to expected permissions check.");
+                }
                 return 0; // Return 0 to allow registration to proceed
             }
         } else {

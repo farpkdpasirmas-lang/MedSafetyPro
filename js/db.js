@@ -163,7 +163,9 @@ const DB = {
                 const snapshot = await db.collection(DB.COLLECTION_USERS).get();
                 return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             } catch (error) {
-                console.error("Error getting users: ", error);
+                if (error.code !== 'permission-denied') {
+                    console.error("Error getting users: ", error);
+                }
                 throw error;
             }
         } else {
