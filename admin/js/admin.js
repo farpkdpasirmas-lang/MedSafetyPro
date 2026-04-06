@@ -1300,7 +1300,7 @@ const AdminApp = {
 
         tbody.innerHTML = reports.map(r => {
             const dateObj = parseReportDate(r.timestamp);
-            const dateDisplay = dateObj.getTime() === 0 ? '-' : dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const dateDisplay = dateObj.getTime() === 0 ? '-' : `${dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
 
             return `
                         <tr>

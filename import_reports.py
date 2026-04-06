@@ -29,18 +29,43 @@ def main():
 
     reports = []
 
+    # Counter for serial numbers, grouped by year
+    serial_counters = {}
+
     with open(CSV_FILE_PATH, mode='r', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         
         for row in reader:
+            ts_str = row.get('Timestamp', '')
+            parsed_timestamp = parse_date(ts_str)
+            
+            # Simple fallback for year if parsing fails
+            year = datetime.now().year
+            try:
+                if 'T' in parsed_timestamp:
+                    year = int(parsed_timestamp.split('-')[0])
+            except:
+                pass
+                
+            if year not in serial_counters:
+                serial_counters[year] = 1
+            else:
+                serial_counters[year] += 1
+                
+            serial_number = f"MSP-{year}-I{str(serial_counters[year]).zfill(4)}"
+
             # Extract basic info
             report = {
-                'id': row.get('Timestamp', '') + row.get('Nama individu yang membuat kesilapan pengubatan', ''), # Simple unique ID key
-                'date': parse_date(row.get('Tarikh dan Masa Kejadian', row.get('Timestamp', ''))),
+                'id': ts_str + row.get('Nama individu yang membuat kesilapan pengubatan', ''), # Simple unique ID key
+                'serialNumber': serial_number,
+                'timestamp': parsed_timestamp,
+                'date': parse_date(row.get('Tarikh dan Masa Kejadian', ts_str)),
                 'facility': row.get('Fasiliti dimana kejadian kesilapan pengubatan berlaku', ''),
                 'setting': row.get('Unit dimana kejadian kesilapan pengubatan berlaku', ''),
                 'outcome': row.get('Kategori', ''),
                 'staffCategory': row.get('Kategori individu yang membuat kesilapan', ''),
+                'reporterName': row.get('Nama Pelapor', ''), # Extracted to fix display
+                'staffName': row.get('Nama individu yang membuat kesilapan', ''), # Extracted to fix display
                 'clinicErrors': [],
                 'pharmacyErrors': []
             }
