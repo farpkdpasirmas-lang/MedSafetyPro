@@ -106,10 +106,25 @@ def main():
 
 const IMPORTED_REPORTS = {json.dumps(reports, indent=4)};
 
-// Simplify initialization logic: overwrite existing data to ensure stats are fresh
+// Intelligent merge to preserve any dynamically submitted reports
+// while still syncing any new records from the CSV file
 try {{
-    localStorage.setItem('medsafety_reports_db', JSON.stringify(IMPORTED_REPORTS));
-    console.log('MedSafety Pro: Statistics data updated from local CSV import (' + IMPORTED_REPORTS.length + ' records).');
+    let existingReports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+    let reportMap = {{}};
+    
+    // 1. Index all existing local reports so we don't lose new test submissions
+    existingReports.forEach(r => {{
+        if (r.id) reportMap[r.id] = r;
+    }});
+    
+    // 2. Merge all imported reports (overwrites if matching ID, otherwise appends)
+    IMPORTED_REPORTS.forEach(r => {{
+        reportMap[r.id] = r;
+    }});
+    
+    const mergedReports = Object.values(reportMap);
+    localStorage.setItem('medsafety_reports_db', JSON.stringify(mergedReports));
+    console.log('MedSafety Pro: Statistics data synchronized (' + mergedReports.length + ' total records).');
 }} catch (e) {{
     console.error('MedSafety Pro: Failed to update local storage', e);
 }}
