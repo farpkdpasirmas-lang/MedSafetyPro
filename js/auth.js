@@ -189,6 +189,13 @@ const AuthService = {
                         if (doc.exists) userDetails = doc.data();
                     } catch (dbErr) {
                         console.warn("Could not fetch user details from Firestore, continuing with limited data.", dbErr);
+                        try {
+                            const localUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                            const localUser = localUsers.find(u => u.email === user.email);
+                            if (localUser) {
+                                userDetails = { ...localUser };
+                            }
+                        } catch (e) {}
                     }
                 }
 
