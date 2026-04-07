@@ -210,6 +210,36 @@ const AuthService = {
                 localStorage.setItem(AUTH_KEY, JSON.stringify(mergedUser));
                 return { success: true, user: mergedUser };
             } catch (error) {
+                // If Firebase Auth fails, gracefully fallback to checking local storage (for legacy or imported accounts)
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    try {
+                        const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                        const localUser = users.find(u => u.email === email);
+                        
+                        if (localUser) {
+                            let isValid = false;
+                            const inputHash = await Security.hashPassword(passwordInput);
+                            if (localUser.password === inputHash) isValid = true;
+                            else if (localUser.password === passwordInput) {
+                                isValid = true;
+                                localUser.password = inputHash;
+                                localStorage.setItem(USERS_KEY, JSON.stringify(users));
+                            }
+                            
+                            if (isValid) {
+                                if (!localUser.approved && localUser.role !== 'admin') {
+                                    return { success: false, message: 'Your account is pending admin approval.' };
+                                }
+                                const { password, ...userWithoutPass } = localUser;
+                                localStorage.setItem(AUTH_KEY, JSON.stringify(userWithoutPass));
+                                return { success: true, user: userWithoutPass };
+                            }
+                        }
+                    } catch (fallbackErr) {}
+                    
+                    return { success: false, message: "Incorrect email or password. Please try again." };
+                }
+                
                 return { success: false, message: error.message };
             }
         } else {
