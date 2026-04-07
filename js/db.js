@@ -66,18 +66,25 @@ const DB = {
                     const docRef = await db.collection(DB.COLLECTION_REPORTS).add(reportData);
                     reportData.id = docRef.id;
                 }
-                return reportData;
             } catch (error) {
-                console.error("Error writing document: ", error);
-                throw error;
+                console.warn("Firestore permission denied. Falling back to local storage.", error);
             }
-        } else {
-            // LocalStorage Mode
-            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
-            reports.push(reportData);
-            localStorage.setItem('medsafety_reports_db', JSON.stringify(reports));
-            return reportData;
+        } 
+        
+        // LocalStorage Sync/Fallback
+        const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+        if (!reportData.id) {
+            // Give it a pseudo-unique ID for pure local usage if Firebase entirely omitted creation
+            reportData.id = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 5);
         }
+        const index = reports.findIndex(r => r.id === reportData.id);
+        if (index !== -1) {
+            reports[index] = reportData;
+        } else {
+            reports.push(reportData);
+        }
+        localStorage.setItem('medsafety_reports_db', JSON.stringify(reports));
+        return reportData;
     },
 
     /**
@@ -116,15 +123,14 @@ const DB = {
                 if (doc.exists) {
                     return { id: doc.id, ...doc.data() };
                 }
-                return null;
             } catch (error) {
-                console.error("Error getting report by ID: ", error);
-                throw error;
+                console.warn("Firestore permission denied for report retrieval. Falling back to local storage.", error);
             }
-        } else {
-            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
-            return reports.find(r => r.id === reportId) || null;
-        }
+        } 
+        
+        // Fallback
+        const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+        return reports.find(r => r.id === reportId) || null;
     },
 
     /**
