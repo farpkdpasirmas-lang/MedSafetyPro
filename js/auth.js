@@ -183,12 +183,19 @@ const AuthService = {
                 // Fetch user details from Firestore
                 let userDetails = {};
                 if (db) {
+                    let docExists = false;
                     try {
                         const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
                         const doc = await db.collection(collectionName).doc(user.uid).get();
-                        if (doc.exists) userDetails = doc.data();
+                        if (doc.exists) {
+                            userDetails = doc.data();
+                            docExists = true;
+                        }
                     } catch (dbErr) {
                         console.warn("Could not fetch user details from Firestore, continuing with limited data.", dbErr);
+                    }
+                    
+                    if (!docExists) {
                         try {
                             const localUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
                             const localUser = localUsers.find(u => u.email === user.email);
