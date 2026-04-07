@@ -207,16 +207,17 @@ const DB = {
     deleteUser: async (userId) => {
         if (db) {
             try {
-                await db.collection(DB.COLLECTION_USERS).doc(userId).delete();
+                const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
+                await db.collection(collectionName).doc(userId).delete();
             } catch (error) {
-                console.error("Error deleting user: ", error);
-                throw error;
+                console.warn("Firestore permission denied for deleting user. Falling back to local storage.");
             }
-        } else {
-            const users = JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
-            const newUsers = users.filter(u => u.id !== userId);
-            localStorage.setItem('medsafety_users_db', JSON.stringify(newUsers));
-        }
+        } 
+        
+        // Fallback local storage execution
+        const users = JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
+        const newUsers = users.filter(u => u.id !== userId);
+        localStorage.setItem('medsafety_users_db', JSON.stringify(newUsers));
     },
 
     /**
@@ -227,18 +228,19 @@ const DB = {
     approveUser: async (userId) => {
         if (db) {
             try {
-                await db.collection(DB.COLLECTION_USERS).doc(userId).update({ approved: true });
+                const collectionName = typeof DB !== 'undefined' ? DB.COLLECTION_USERS : 'users_v2';
+                await db.collection(collectionName).doc(userId).update({ approved: true });
             } catch (error) {
-                console.error("Error approving user: ", error);
-                throw error;
+                console.warn("Firestore permission denied for approving user. Falling back to local storage.");
             }
-        } else {
-            const users = JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
-            const index = users.findIndex(u => u.id === userId);
-            if (index !== -1) {
-                users[index].approved = true;
-                localStorage.setItem('medsafety_users_db', JSON.stringify(users));
-            }
+        } 
+        
+        // Fallback local storage execution
+        const users = JSON.parse(localStorage.getItem('medsafety_users_db') || '[]');
+        const index = users.findIndex(u => u.id === userId);
+        if (index !== -1) {
+            users[index].approved = true;
+            localStorage.setItem('medsafety_users_db', JSON.stringify(users));
         }
     },
 

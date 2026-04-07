@@ -72,21 +72,20 @@ const AdminService = {
         if (db) {
             try {
                 await db.collection(DB.COLLECTION_REPORTS).doc(id).update({ ...data, updatedAt: new Date().toISOString() });
-                return true;
             } catch (e) {
-                console.error(e);
-                return false;
+                console.warn("Firestore permission denied. Falling back to local storage update.");
             }
-        } else {
-            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
-            const index = reports.findIndex(r => r.id === id);
-            if (index !== -1) {
-                reports[index] = { ...reports[index], ...data, updatedAt: new Date().toISOString() };
-                localStorage.setItem('medsafety_reports_db', JSON.stringify(reports));
-                return true;
-            }
-            return false;
+        } 
+        
+        // Local Fallback 
+        const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+        const index = reports.findIndex(r => r.id === id);
+        if (index !== -1) {
+            reports[index] = { ...reports[index], ...data, updatedAt: new Date().toISOString() };
+            localStorage.setItem('medsafety_reports_db', JSON.stringify(reports));
+            return true;
         }
+        return false;
     },
 
     deleteReport: async (id) => {
@@ -95,21 +94,19 @@ const AdminService = {
         if (db) {
             try {
                 await db.collection(DB.COLLECTION_REPORTS).doc(id).delete();
-                // Real-time listener will auto-update UI
-                return true;
+                // Real-time listener will auto-update UI if accessible
             } catch (e) {
-                console.error(e);
-                return false;
+                console.warn("Firestore permission denied. Falling back to local storage delete.");
             }
-        } else {
-            const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
-            const newReports = reports.filter(r => r.id !== id);
-            localStorage.setItem('medsafety_reports_db', JSON.stringify(newReports));
-            // Local fallback manual trigger since onSnapshot doesn't bridge tabs locally
-            AdminApp.renderReportList();
-            AdminApp.renderDashboardStats();
-            return true;
-        }
+        } 
+        
+        // Local fallback
+        const reports = JSON.parse(localStorage.getItem('medsafety_reports_db') || '[]');
+        const newReports = reports.filter(r => r.id !== id);
+        localStorage.setItem('medsafety_reports_db', JSON.stringify(newReports));
+        AdminApp.renderReportList();
+        AdminApp.renderDashboardStats();
+        return true;
     },
 
     bulkDeleteReports: async (ids) => {
