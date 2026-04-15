@@ -605,6 +605,56 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
                 statusDiv.style.display = 'none';
             }, 10000);
         }
+    },
+
+    saveNewStaff: (form) => {
+        const formData = new FormData(form);
+        const facility = formData.get('facility').trim();
+        const staff = {
+            name: formData.get('name').trim(),
+            position: formData.get('position').trim(),
+            email: formData.get('email').trim(),
+            category: formData.get('category')
+        };
+        
+        if (!facility || !staff.name) {
+            alert('Facility and Name are required');
+            return;
+        }
+
+        // Get current data
+        let allStaff = null;
+        const storedData = localStorage.getItem('staff_data_override');
+        if (storedData) {
+            try { allStaff = JSON.parse(storedData); } catch(e) {}
+        }
+        if (!allStaff && typeof STAFF_DATA !== 'undefined') {
+            // Need a deep copy so we can modify without issues
+            allStaff = JSON.parse(JSON.stringify(STAFF_DATA));
+        }
+        if (!allStaff) allStaff = {};
+        
+        // Add facility if it doesn't exist
+        if (!allStaff[facility]) {
+            allStaff[facility] = [];
+        }
+        
+        allStaff[facility].push(staff);
+        
+        // Save back to local storage and window variable
+        localStorage.setItem('staff_data_override', JSON.stringify(allStaff));
+        if (typeof window !== 'undefined') {
+            window.STAFF_DATA = allStaff;
+        }
+        
+        alert('Staff added successfully!\nNote: Download the updated staff data to make this permanent across the system.');
+        
+        // Refresh UI
+        form.reset();
+        AdminApp.closeAddStaffModal();
+        if (typeof AdminApp !== 'undefined' && AdminApp.renderStaffList) {
+            AdminApp.renderStaffList();
+        }
     }
 
 };
@@ -1426,6 +1476,18 @@ const AdminApp = {
     closeModal: () => {
         const modal = document.getElementById('report-modal');
         if (modal) modal.style.display = 'none';
+    },
+
+    showAddStaffModal: () => {
+        const modal = document.getElementById('add-staff-modal');
+        if (modal) modal.style.display = 'flex';
+    },
+
+    closeAddStaffModal: () => {
+        const modal = document.getElementById('add-staff-modal');
+        if (modal) modal.style.display = 'none';
+        const form = document.getElementById('add-staff-form');
+        if (form) form.reset();
     },
 
     renderUserList: async () => {

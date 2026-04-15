@@ -382,6 +382,9 @@
                                 <h2 class="section-title" style="margin: 0; border: none; padding: 0;">👨‍⚕️ Staff List</h2>
                                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                                     <span id="staff-count" style="color: var(--color-text-muted); font-size: 0.875rem;">0 staff members</span>
+                                    <button onclick="AdminApp.showAddStaffModal()" class="btn btn-outline" style="font-size: 0.875rem; margin-left: 1rem;">
+                                        + Add Staff
+                                    </button>
                                 </div>
                             </div>
 
@@ -547,6 +550,52 @@
                         </div>
                         <div id="modal-body">
                             <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Staff Modal -->
+                <div id="add-staff-modal" class="modal" onclick="if(event.target === this) AdminApp.closeAddStaffModal()">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>👨‍⚕️ Add New Staff</h3>
+                            <button class="close-btn" onclick="AdminApp.closeAddStaffModal()">×</button>
+                        </div>
+                        <div id="add-staff-body">
+                            <form id="add-staff-form" onsubmit="event.preventDefault(); AdminService.saveNewStaff(this);">
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Facility *</label>
+                                    <input type="text" name="facility" required style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);" placeholder="e.g. KK Bandar Pasir Mas">
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Staff Name *</label>
+                                    <input type="text" name="name" required style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);" placeholder="Full Name">
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Position</label>
+                                    <input type="text" name="position" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);" placeholder="e.g. Pegawai Perubatan">
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+                                    <input type="email" name="email" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);" placeholder="Email Address">
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Category</label>
+                                    <select name="category" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);">
+                                        <option value="Medical Specialist / FMS">Medical Specialist / FMS</option>
+                                        <option value="Medical Officer (MO)">Medical Officer (MO)</option>
+                                        <option value="Assistant Medical Officer (MA)">Assistant Medical Officer (MA)</option>
+                                        <option value="Pharmacist (PF)">Pharmacist (PF)</option>
+                                        <option value="Pharmacy Assistant (PPF)">Pharmacy Assistant (PPF)</option>
+                                        <option value="Nurse">Nurse</option>
+                                        <option value="Support Staff">Support Staff</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                                    <button type="button" class="btn btn-outline" onclick="AdminApp.closeAddStaffModal()">Cancel</button>
+                                    <button type="submit" class="btn" style="background: #10b981; color: white;">Save Staff</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
