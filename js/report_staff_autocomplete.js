@@ -37,7 +37,7 @@ function initializeStaffAutocomplete() {
 
             facilityStaff.forEach(staff => {
                 const option = document.createElement('option');
-                option.value = staff.name;
+                option.value = staff.name ? staff.name.toUpperCase() : '';
                 staffList.appendChild(option);
             });
         } else {
@@ -58,11 +58,11 @@ function initializeStaffAutocomplete() {
 
     // Auto-fill logic when staff name is selected
     staffNameInput.addEventListener('input', (e) => {
-        const selectedName = e.target.value;
+        const selectedName = e.target.value.toUpperCase();
         const selectedFacility = facilitySelect.value;
 
         if (typeof STAFF_DATA !== 'undefined' && selectedFacility && STAFF_DATA[selectedFacility]) {
-            const staff = STAFF_DATA[selectedFacility].find(s => s.name === selectedName);
+            const staff = STAFF_DATA[selectedFacility].find(s => (s.name || '').toUpperCase() === selectedName);
             if (staff) {
                 console.log('Auto-filling staff info:', staff);
                 if (staff.email) staffEmailInput.value = staff.email;
