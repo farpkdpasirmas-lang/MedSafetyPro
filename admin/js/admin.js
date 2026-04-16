@@ -611,7 +611,7 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
         const formData = new FormData(form);
         const facility = formData.get('facility').trim();
         const staff = {
-            name: formData.get('name').trim(),
+            name: formData.get('name').trim().toUpperCase(),
             position: formData.get('position').trim(),
             email: formData.get('email').trim(),
             category: formData.get('category')
@@ -1631,7 +1631,7 @@ const AdminApp = {
                         ${Security.sanitize(staff.facility)}
                     </span>
                 </td>
-                <td style="padding: 0.75rem; font-weight: 500;">${Security.sanitize(staff.name)}</td>
+                <td style="padding: 0.75rem; font-weight: 500; text-transform: uppercase;">${Security.sanitize(staff.name)}</td>
                 <td style="padding: 0.75rem; color: var(--color-text-muted);">${Security.sanitize(staff.position)}</td>
                 <td style="padding: 0.75rem;">
                     ${staff.email ? `<a href="mailto:${Security.sanitize(staff.email)}" style="color: var(--color-primary); text-decoration: none;">${Security.sanitize(staff.email)}</a>` : '<span style="color: var(--color-text-muted);">-</span>'}
