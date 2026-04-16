@@ -605,7 +605,7 @@
                     // Add new options
                     staffList.forEach(staff => {
                         const option = document.createElement('option');
-                        option.value = staff.name;
+                        option.value = staff.name ? staff.name.toUpperCase() : '';
                         staffDatalist.appendChild(option);
                     });
 
