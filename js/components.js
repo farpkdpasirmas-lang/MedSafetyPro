@@ -121,9 +121,9 @@ const Components = {
     handleNotificationClick: async (userEmail, notificationId, reportId) => {
         if (typeof UserNotifications !== 'undefined') {
             try {
-                await UserNotifications.markAsRead(userEmail, notificationId);
+                await UserNotifications.delete(userEmail, notificationId);
             } catch (e) {
-                console.error("Failed to mark notification as read:", e);
+                console.error("Failed to delete notification:", e);
             }
         }
         

@@ -432,6 +432,35 @@ const DB = {
     },
 
     /**
+     * Delete a notification
+     * @param {string} notificationId
+     * @param {string} userEmail (optional, for local storage fallback)
+     * @returns Promise<void>
+     */
+    deleteNotification: async (notificationId, userEmail = null) => {
+        if (db) {
+            try {
+                await db.collection(DB.COLLECTION_NOTIFICATIONS).doc(notificationId).delete();
+            } catch (error) {
+                console.error("Error deleting notification: ", error);
+                throw error;
+            }
+        } else {
+            // LocalStorage fallback
+            if (userEmail) {
+                const key = 'user_notifications_' + userEmail.toLowerCase();
+                let notifications = JSON.parse(localStorage.getItem(key) || '[]');
+                notifications = notifications.filter(n => n.id !== notificationId);
+                localStorage.setItem(key, JSON.stringify(notifications));
+            } else {
+                let notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+                notifications = notifications.filter(n => n.id !== notificationId);
+                localStorage.setItem('admin_notifications', JSON.stringify(notifications));
+            }
+        }
+    },
+
+    /**
      * Mark a notification as read
      * @param {string} notificationId
      * @param {string} userEmail (optional, for local storage fallback)

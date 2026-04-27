@@ -34,6 +34,13 @@ const AdminNotifications = {
     },
 
     /**
+     * Delete notification
+     */
+    delete: async function (notificationId) {
+        await DB.deleteNotification(notificationId);
+    },
+
+    /**
      * Mark all as read
      */
     markAllAsRead: async function () {
@@ -95,6 +102,13 @@ const UserNotifications = {
      */
     markAsRead: async function (userEmail, notificationId) {
         await DB.markNotificationAsRead(notificationId, userEmail);
+    },
+
+    /**
+     * Delete notification
+     */
+    delete: async function (userEmail, notificationId) {
+        await DB.deleteNotification(notificationId, userEmail);
     },
 
     /**
