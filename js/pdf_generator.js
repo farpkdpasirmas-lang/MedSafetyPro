@@ -134,6 +134,7 @@ const PDFService = {
                 ['Tarikh dan Masa Kejadian', eventDateStr || '-'],
                 ['Pengesanan Kesilapan', detection || '-'],
                 ['Nama Pelapor', `${reporterName || '-'}`],
+                ['Nama Kakitangan Terlibat', `${staffName || '-'}`],
                 ['Kategori kesilapan pengubatan', outcome || '-'],
                 ['Jenis kesilapan pengubatan (Kecemasan/OPD)', clinicErrorString],
                 ['Jenis kesilapan pengubatan (Farmasi)', pharmacyErrorString]
