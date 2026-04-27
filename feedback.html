@@ -52,13 +52,89 @@
             const mainBody = document.getElementById('main-body');
 
             if (!reportId) {
-                mainBody.innerHTML = `
-                    <div class="card" style="text-align: center; padding: 3rem;">
-                        <h2 style="color: #ef4444; margin-bottom: 1rem;">Ralat</h2>
-                        <p>ID Laporan tidak dijumpai. Sila pastikan anda klik pada pautan yang betul.</p>
-                        <a href="dashboard.html" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Kembali ke Papan Pemuka</a>
-                    </div>
-                `;
+                // Fetch user's reports
+                try {
+                    const allReports = await DB.getAllReports();
+                    const userReports = allReports.filter(r => r.staffEmail === currentUser.email);
+                    const feedbacks = JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
+                    const submittedReportIds = new Set(feedbacks.filter(f => f.submittedEmail === currentUser.email).map(f => f.reportId));
+
+                    if (userReports.length === 0) {
+                        mainBody.innerHTML = `
+                            <div class="card" style="text-align: center; padding: 3rem;">
+                                <h2 style="color: var(--color-text-main); margin-bottom: 1rem;">Senarai Maklumbalas</h2>
+                                <p>Tiada laporan kesilapan pengubatan yang memerlukan maklumbalas anda buat masa ini.</p>
+                                <a href="dashboard.html" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Kembali ke Papan Pemuka</a>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const getBadge = (outcome) => {
+                        if (!outcome) return 'secondary';
+                        const lower = outcome.toLowerCase();
+                        if (lower.includes('no harm')) return 'warning';
+                        if (lower.includes('harm')) return 'danger';
+                        if (lower.includes('no error')) return 'success';
+                        return 'primary';
+                    };
+
+                    // Build table
+                    let tableRows = userReports.map(r => {
+                        const dateObj = new Date(r.timestamp);
+                        const dateDisplay = isNaN(dateObj.getTime()) ? '-' : dateObj.toLocaleDateString('en-GB');
+                        const isSubmitted = submittedReportIds.has(r.id);
+                        
+                        return `
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 1rem;">${dateDisplay}</td>
+                                <td style="padding: 1rem; font-family: monospace; font-weight: bold; color: #10b981;">${r.serialNumber || '-'}</td>
+                                <td style="padding: 1rem;">${r.facility || '-'}</td>
+                                <td style="padding: 1rem;"><span class="badge badge-${getBadge(r.outcome)}">${r.outcome || '-'}</span></td>
+                                <td style="padding: 1rem;">
+                                    ${isSubmitted 
+                                        ? `<span class="badge" style="background:#d1fae5; color:#065f46; font-size: 0.875rem;">✅ Selesai</span>` 
+                                        : `<a href="feedback.html?reportId=${r.id}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Beri Maklumbalas</a>`
+                                    }
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    mainBody.innerHTML = `
+                        <div class="card">
+                            <h2 style="margin-bottom: 1.5rem; color: var(--color-text-main);">Senarai Laporan Kesilapan</h2>
+                            <p style="color: var(--color-text-muted); margin-bottom: 1.5rem;">
+                                Berikut adalah senarai laporan yang melibatkan anda. Sila berikan maklumbalas bagi laporan yang masih berstatus tertunggak.
+                            </p>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                    <thead>
+                                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                            <th style="padding: 1rem; font-weight: 600;">Tarikh</th>
+                                            <th style="padding: 1rem; font-weight: 600;">No. Siri</th>
+                                            <th style="padding: 1rem; font-weight: 600;">Fasiliti</th>
+                                            <th style="padding: 1rem; font-weight: 600;">Outcome</th>
+                                            <th style="padding: 1rem; font-weight: 600;">Tindakan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${tableRows}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error("Error loading user reports:", error);
+                    mainBody.innerHTML = `
+                        <div class="card" style="text-align: center; padding: 3rem;">
+                            <h2 style="color: #ef4444; margin-bottom: 1rem;">Ralat</h2>
+                            <p>Gagal memuatkan senarai laporan. Sila cuba lagi kemudian.</p>
+                            <a href="dashboard.html" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Kembali ke Papan Pemuka</a>
+                        </div>
+                    `;
+                }
                 return;
             }
 

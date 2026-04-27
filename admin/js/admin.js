@@ -1651,8 +1651,8 @@ const AdminApp = {
             const allUsers = await AdminService.getAllUsers();
             const allFeedback = AdminService.getAllFeedback();
 
-            // Get emails of staff who HAVE submitted feedback
-            const submittedEmails = new Set(allFeedback.map(f => f.submittedEmail));
+            // Get report IDs that HAVE submitted feedback
+            const submittedReportIds = new Set(allFeedback.map(f => f.reportId));
 
             // Find staff from all reports who haven't submitted feedback
             const pendingStaffMap = new Map();
@@ -1673,14 +1673,14 @@ const AdminApp = {
             };
 
             AdminApp.allReports.forEach(r => {
-                if (r.staffEmail && r.staffEmail.trim() !== '' && !submittedEmails.has(r.staffEmail)) {
-                    // Use email as unique key to prevent duplicates
-                    // Keep the latest report info for date/time context
-                    if (!pendingStaffMap.has(r.staffEmail) || new Date(r.timestamp) > new Date(pendingStaffMap.get(r.staffEmail).timestamp)) {
+                if (r.staffEmail && r.staffEmail.trim() !== '' && !submittedReportIds.has(r.id)) {
+                    // Use reportId as unique key to track per-report feedback
+                    if (!pendingStaffMap.has(r.id)) {
                         const formatted = formatSubmissionTime(r.timestamp || new Date(0).toISOString());
                         
-                        pendingStaffMap.set(r.staffEmail, {
+                        pendingStaffMap.set(r.id, {
                             reportId: r.id,
+                            serialNumber: r.serialNumber || '-',
                             fullname: r.staffName || 'Unknown Staff',
                             email: r.staffEmail,
                             facility: r.facility || 'Unknown Facility',
@@ -1696,12 +1696,13 @@ const AdminApp = {
 
             // Render Pending Users Table
             if (pendingUsers.length === 0) {
-                pendingTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">All reporters have submitted their feedback.</td></tr>';
+                pendingTbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 2rem;">All reporters have submitted their feedback.</td></tr>';
             } else {
                 pendingTbody.innerHTML = pendingUsers.map(u => `
     <tr>
                         <td>${Security.sanitize(u.date)}</td>
                         <td>${Security.sanitize(u.time)}</td>
+                        <td style="font-family: monospace; font-weight: bold; color: #10b981;">${Security.sanitize(u.serialNumber)}</td>
                         <td>${Security.sanitize(u.fullname)}</td>
                         <td>${Security.sanitize(u.email)}</td>
                         <td>${Security.sanitize(u.facility || 'N/A')}</td>
