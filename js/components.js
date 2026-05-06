@@ -66,7 +66,7 @@ const Components = {
                         🔔
                     </button>
                     
-                    <div id="notification-dropdown" style="display: none; position: absolute; right: 0; top: 100%; width: 320px; background: white; border-radius: var(--radius-md); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; z-index: 50; max-height: 400px; overflow-y: auto;">
+                    <div id="notification-dropdown" class="notification-dropdown" style="display: none;">
                         <div style="padding: 1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 51;">
                             <h3 style="margin: 0; font-size: 1rem; color: var(--color-text-main);">Notifications</h3>
                             <div id="notification-mark-all-container"></div>
