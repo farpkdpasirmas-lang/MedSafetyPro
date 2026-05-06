@@ -655,6 +655,43 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
         if (typeof AdminApp !== 'undefined' && AdminApp.renderStaffList) {
             AdminApp.renderStaffList();
         }
+    },
+
+    deleteStaff: (facility, name) => {
+        if (!confirm(`Are you sure you want to delete ${name} from ${facility}?`)) return;
+
+        // Get current data
+        let allStaff = null;
+        const storedData = localStorage.getItem('staff_data_override');
+        if (storedData) {
+            try { allStaff = JSON.parse(storedData); } catch(e) {}
+        }
+        if (!allStaff && typeof STAFF_DATA !== 'undefined') {
+            allStaff = JSON.parse(JSON.stringify(STAFF_DATA));
+        }
+        if (!allStaff) allStaff = {};
+
+        if (allStaff[facility]) {
+            allStaff[facility] = allStaff[facility].filter(s => s.name.toUpperCase() !== name.toUpperCase());
+            
+            // Clean up empty facility
+            if (allStaff[facility].length === 0) {
+                delete allStaff[facility];
+            }
+            
+            // Save back to local storage and window variable
+            localStorage.setItem('staff_data_override', JSON.stringify(allStaff));
+            if (typeof window !== 'undefined') {
+                window.STAFF_DATA = allStaff;
+            }
+            
+            alert('Staff deleted successfully!\\nNote: Download the updated staff data to make this permanent across the system.');
+            
+            // Refresh UI
+            if (typeof AdminApp !== 'undefined' && AdminApp.renderStaffList) {
+                AdminApp.renderStaffList();
+            }
+        }
     }
 
 };
@@ -1568,7 +1605,7 @@ const AdminApp = {
 
         // If no staff data, show empty state
         if (!allStaff || Object.keys(allStaff).length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">No staff data found. Please import staff data using CSV or Google Sheets sync.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">No staff data found. Please import staff data using CSV or Google Sheets sync.</td></tr>';
             if (staffCountEl) staffCountEl.textContent = '0 staff members';
             return;
         }
@@ -1620,7 +1657,7 @@ const AdminApp = {
 
         // Render table
         if (filteredStaff.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">No staff found matching your search.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">No staff found matching your search.</td></tr>';
             return;
         }
 
@@ -1637,6 +1674,9 @@ const AdminApp = {
                     ${staff.email ? `<a href="mailto:${Security.sanitize(staff.email)}" style="color: var(--color-primary); text-decoration: none;">${Security.sanitize(staff.email)}</a>` : '<span style="color: var(--color-text-muted);">-</span>'}
                 </td>
                 <td style="padding: 0.75rem; font-size: 0.875rem; color: var(--color-text-muted);">${Security.sanitize(staff.category) || '-'}</td>
+                <td style="padding: 0.75rem; text-align: right;">
+                    <button class="btn-icon" style="color: #ef4444;" onclick="AdminService.deleteStaff('${Security.sanitize(staff.facility).replace(/'/g, "\\\\'")}', '${Security.sanitize(staff.name).replace(/'/g, "\\\\'")}')" title="Delete Staff">🗑️</button>
+                </td>
             </tr>
     `).join('');
     },
