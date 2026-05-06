@@ -145,12 +145,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "EN. MOHD ZULKIFLI BIN ALIAS",
             "position": "Penolong Pegawai Perubatan",
             "email": "",
@@ -357,12 +351,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "MUHAMAD AIMAN RAFIQ BIN ROSLAN",
             "position": "Penolong Pegawai Perubatan",
             "email": "aimanlan076@gmail.com",
@@ -533,12 +521,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "MUHAINI BINTI ABD HADI",
             "position": "UF13",
             "email": "muhaini_abd@moh.gov.my",
@@ -703,12 +685,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "MAZLAN BIN HASSAN",
             "position": "Penolong Pegawai Perubatan",
             "email": "mazlanhassan@moh.gov.my",
@@ -861,12 +837,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "SALLEHUDDIN BIN MAT YAACOB",
             "position": "Penolong Pegawai Perubatan",
             "email": "sallehuddin.my@moh.gov.my",
@@ -977,12 +947,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "MOHD FIRDAUS B. ABD. RAHMAN",
             "position": "Penolong Pegawai Perubatan",
             "email": "mfirdaus@moh.gov.my",
@@ -1075,18 +1039,6 @@ const STAFF_DATA = {
     ],
     "KK Chekok": [
         {
-            "name": "NAMA",
-            "position": "Jawatan",
-            "email": "Email",
-            "category": "Support Staff"
-        },
-        {
-            "name": "PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "DR. MASYITAH BINTI HASSAN",
             "position": "Pegawai Perubatan",
             "email": "drmasyitah@moh.gov.my",
@@ -1139,12 +1091,6 @@ const STAFF_DATA = {
             "position": "Pegawai Perubatan",
             "email": "drrabiatul@moh.gov.my",
             "category": "Medical Officer (MO)"
-        },
-        {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
         },
         {
             "name": "EN. ZUNAIDI BIN RUSADI",
@@ -1221,12 +1167,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "MOHD NAZRI MD NASIR",
             "position": "Penolong Pegawai Perubatan",
             "email": "nazrinasir77.mnmn@gmail.com",
@@ -1283,12 +1223,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "AHMAD NASARUDDIN BIN MANSOR",
             "position": "Penolong Pegawai Perubatan",
             "email": "nasaruddin639@gmail.com",
@@ -1331,12 +1265,6 @@ const STAFF_DATA = {
             "position": "Pegawai Perubatan",
             "email": "norathiyahothman@gmail.com",
             "category": "Medical Officer (MO)"
-        },
-        {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
         },
         {
             "name": "MOHD NORDIN BIN MUHAMMAD",
@@ -1395,12 +1323,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "NOOR SHAHIRA BINTI ABD AZIZ",
             "position": "Penolong Pegawai Perubatan",
             "email": "shiera4387@gmail.com",
@@ -1439,12 +1361,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
-        },
-        {
             "name": "ABDUL RAHMAN BIN SULAIMAN",
             "position": "Penolong Pegawai Perubatan",
             "email": "arsman6090@gmail.com",
@@ -1481,12 +1397,6 @@ const STAFF_DATA = {
             "position": "Pegawai Perubatan",
             "email": "Sharif_Bismi@yahoo.com",
             "category": "Medical Officer (MO)"
-        },
-        {
-            "name": "PENOLONG PEGAWAI PERUBATAN",
-            "position": "",
-            "email": "",
-            "category": "Support Staff"
         },
         {
             "name": "EK NOORZA BIN HUSSAIN",
