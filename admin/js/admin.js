@@ -505,15 +505,19 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
                     return;
                 }
 
-                // Generate new staff_data.js content
+                // Generate new staff_data.js content (keep for backup if needed)
                 const jsContent = `const STAFF_DATA = ${JSON.stringify(newStaffData, null, 4)};`;
 
-                // Store in localStorage for the application to use
-                localStorage.setItem('staff_data_override', JSON.stringify(newStaffData));
-
-                // Update global STAFF_DATA for immediate use
-                if (typeof window !== 'undefined') {
-                    window.STAFF_DATA = newStaffData;
+                // Save to Firestore and local storage
+                if (typeof DB !== 'undefined' && DB.saveStaffData) {
+                    try {
+                        DB.saveStaffData(newStaffData);
+                    } catch (e) {
+                        console.error('Failed to save to Firestore:', e);
+                    }
+                } else {
+                    localStorage.setItem('medsafety_staff_db', JSON.stringify(newStaffData));
+                    if (typeof window !== 'undefined') window.STAFF_DATA = newStaffData;
                 }
 
                 // Notify success
@@ -521,19 +525,8 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
                     `✅ Successfully imported ${successCount} staff members!<br>` +
                     `📊 Facilities: ${facilityCount}<br>` +
                     (errors.length > 0 ? `⚠️ Warnings: ${errors.length}<br>` : '') +
-                    '<br><strong>Note:</strong> The report form will now use the updated staff data. To make this permanent, you need to update the staff_data.js file manually or download it below.'
+                    '<br><strong>Note:</strong> The system has been permanently updated.'
                 );
-
-
-                // Offer to download the new JS file
-                setTimeout(() => {
-                    if (confirm('Would you like to download the updated staff_data.js file?')) {
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = 'staff_data.js';
-                        link.click();
-                    }
-                }, 1000);
 
                 // Refresh staff list display
                 if (typeof AdminApp !== 'undefined' && AdminApp.renderStaffList) {
@@ -607,7 +600,7 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
         }
     },
 
-    saveNewStaff: (form) => {
+    saveNewStaff: async (form) => {
         const formData = new FormData(form);
         const facility = formData.get('facility').trim();
         const staff = {
@@ -624,13 +617,16 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
 
         // Get current data
         let allStaff = null;
-        const storedData = localStorage.getItem('staff_data_override');
-        if (storedData) {
-            try { allStaff = JSON.parse(storedData); } catch(e) {}
-        }
-        if (!allStaff && typeof STAFF_DATA !== 'undefined') {
-            // Need a deep copy so we can modify without issues
-            allStaff = JSON.parse(JSON.stringify(STAFF_DATA));
+        if (typeof DB !== 'undefined' && DB.getStaffData) {
+            allStaff = await DB.getStaffData();
+        } else {
+            const storedData = localStorage.getItem('medsafety_staff_db') || localStorage.getItem('staff_data_override');
+            if (storedData) {
+                try { allStaff = JSON.parse(storedData); } catch(e) {}
+            }
+            if (!allStaff && typeof STAFF_DATA !== 'undefined') {
+                allStaff = JSON.parse(JSON.stringify(STAFF_DATA));
+            }
         }
         if (!allStaff) allStaff = {};
         
@@ -641,13 +637,19 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
         
         allStaff[facility].push(staff);
         
-        // Save back to local storage and window variable
-        localStorage.setItem('staff_data_override', JSON.stringify(allStaff));
-        if (typeof window !== 'undefined') {
-            window.STAFF_DATA = allStaff;
+        // Save to Firestore and local storage
+        if (typeof DB !== 'undefined' && DB.saveStaffData) {
+            try {
+                await DB.saveStaffData(allStaff);
+            } catch (e) {
+                console.error('Failed to save to Firestore:', e);
+            }
+        } else {
+            localStorage.setItem('medsafety_staff_db', JSON.stringify(allStaff));
+            if (typeof window !== 'undefined') window.STAFF_DATA = allStaff;
         }
         
-        alert('Staff added successfully!\nNote: Download the updated staff data to make this permanent across the system.');
+        alert('Staff added successfully!');
         
         // Refresh UI
         form.reset();
@@ -657,17 +659,21 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
         }
     },
 
-    deleteStaff: (facility, name) => {
+    deleteStaff: async (facility, name) => {
         if (!confirm(`Are you sure you want to delete ${name} from ${facility}?`)) return;
 
         // Get current data
         let allStaff = null;
-        const storedData = localStorage.getItem('staff_data_override');
-        if (storedData) {
-            try { allStaff = JSON.parse(storedData); } catch(e) {}
-        }
-        if (!allStaff && typeof STAFF_DATA !== 'undefined') {
-            allStaff = JSON.parse(JSON.stringify(STAFF_DATA));
+        if (typeof DB !== 'undefined' && DB.getStaffData) {
+            allStaff = await DB.getStaffData();
+        } else {
+            const storedData = localStorage.getItem('medsafety_staff_db') || localStorage.getItem('staff_data_override');
+            if (storedData) {
+                try { allStaff = JSON.parse(storedData); } catch(e) {}
+            }
+            if (!allStaff && typeof STAFF_DATA !== 'undefined') {
+                allStaff = JSON.parse(JSON.stringify(STAFF_DATA));
+            }
         }
         if (!allStaff) allStaff = {};
 
@@ -679,13 +685,19 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
                 delete allStaff[facility];
             }
             
-            // Save back to local storage and window variable
-            localStorage.setItem('staff_data_override', JSON.stringify(allStaff));
-            if (typeof window !== 'undefined') {
-                window.STAFF_DATA = allStaff;
+            // Save to Firestore and local storage
+            if (typeof DB !== 'undefined' && DB.saveStaffData) {
+                try {
+                    await DB.saveStaffData(allStaff);
+                } catch (e) {
+                    console.error('Failed to save to Firestore:', e);
+                }
+            } else {
+                localStorage.setItem('medsafety_staff_db', JSON.stringify(allStaff));
+                if (typeof window !== 'undefined') window.STAFF_DATA = allStaff;
             }
             
-            alert('Staff deleted successfully!\nNote: Download the updated staff data to make this permanent across the system.');
+            alert('Staff deleted successfully!');
             
             // Refresh UI
             if (typeof AdminApp !== 'undefined' && AdminApp.renderStaffList) {
@@ -1583,7 +1595,7 @@ const AdminApp = {
     renderStaffList: () => {
         // Get staff data from localStorage or global STAFF_DATA
         let allStaff = null;
-        const storedData = localStorage.getItem('staff_data_override');
+        const storedData = localStorage.getItem('medsafety_staff_db') || localStorage.getItem('staff_data_override');
         if (storedData) {
             try {
                 allStaff = JSON.parse(storedData);

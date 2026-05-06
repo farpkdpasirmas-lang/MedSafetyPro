@@ -8,6 +8,7 @@ const DB = {
     COLLECTION_REPORTS: 'reports', // Restored name to pull primary 500 reports
     COLLECTION_USERS: 'users_v2',
     COLLECTION_NOTIFICATIONS: 'notifications',
+    COLLECTION_STAFF: 'staff_data',
 
     // --- Reports ---
 
@@ -555,5 +556,70 @@ const DB = {
             notifications.forEach(n => n.read = true);
             localStorage.setItem('admin_notifications', JSON.stringify(notifications));
         }
+    },
+
+    // --- Staff Data ---
+
+    /**
+     * Get staff data master list
+     * @returns Promise<Object>
+     */
+    getStaffData: async () => {
+        if (typeof db !== 'undefined' && db) {
+            try {
+                const doc = await db.collection(DB.COLLECTION_STAFF).doc('master').get();
+                if (doc.exists) {
+                    const data = doc.data().data;
+                    localStorage.setItem('medsafety_staff_db', JSON.stringify(data));
+                    return data;
+                }
+            } catch (error) {
+                console.warn("Firestore error for staff data. Falling back to local storage.", error);
+            }
+        }
+        
+        // Fallback
+        const localData = localStorage.getItem('medsafety_staff_db');
+        if (localData) return JSON.parse(localData);
+        if (typeof STAFF_DATA !== 'undefined') return JSON.parse(JSON.stringify(STAFF_DATA)); // Fallback to hardcoded JS
+        return {};
+    },
+
+    /**
+     * Save staff data master list
+     * @param {Object} staffData 
+     * @returns Promise<void>
+     */
+    saveStaffData: async (staffData) => {
+        if (typeof db !== 'undefined' && db) {
+            try {
+                await db.collection(DB.COLLECTION_STAFF).doc('master').set({ data: staffData });
+            } catch (error) {
+                console.error("Error saving staff data to Firestore:", error);
+                // We don't throw here to ensure local storage still updates even if offline
+            }
+        }
+        
+        // Always sync to local storage
+        localStorage.setItem('medsafety_staff_db', JSON.stringify(staffData));
+        window.STAFF_DATA = staffData;
     }
 };
+
+// Initialize Global Staff Data on Application Load
+document.addEventListener('DOMContentLoaded', () => {
+    // We delay slightly to allow Firebase to initialize
+    setTimeout(async () => {
+        if (typeof DB !== 'undefined') {
+            try {
+                window.STAFF_DATA = await DB.getStaffData();
+                // If we are on the admin page, refresh the staff list dynamically after fetch completes
+                if (typeof AdminApp !== 'undefined' && AdminApp.renderStaffList) {
+                    AdminApp.renderStaffList();
+                }
+            } catch(e) {
+                console.error("Failed to fetch initial staff data", e);
+            }
+        }
+    }, 300);
+});
