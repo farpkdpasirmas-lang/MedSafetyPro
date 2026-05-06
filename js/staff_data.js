@@ -1422,13 +1422,5 @@ const STAFF_DATA = {
             "email": "winkrazali@gmail.com",
             "category": "Pharmacy Assistant (PPF)"
         }
-    ],
-    "PKD Pasir Mas": [
-        {
-            "name": "ROHAYA BINTI HUSSIN",
-            "position": "UF14",
-            "email": "rohaya.hussin@moh.gov.my",
-            "category": "Pharmacist (PF)"
-        }
     ]
 };
