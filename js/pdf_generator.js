@@ -125,6 +125,19 @@ const PDFService = {
         let unitInvolved = "Kecemasan/OPD";
         if (setting === 'pharmacy') unitInvolved = "Farmasi";
 
+        // Determine position of the person who made the error
+        let errorPersonPosition = staffCategory || '';
+        if (typeof STAFF_DATA !== 'undefined' && staffName) {
+            for (const [fac, staffArray] of Object.entries(STAFF_DATA)) {
+                const found = staffArray.find(s => s.name && s.name.trim().toLowerCase() === staffName.trim().toLowerCase());
+                if (found && found.position) {
+                    errorPersonPosition = found.position;
+                    break;
+                }
+            }
+        }
+        const staffNameDisplay = staffName ? (errorPersonPosition ? `${staffName}\n(${errorPersonPosition})` : staffName) : '-';
+
         // Map outcomes and strings
         doc.autoTable({
             startY: yPos,
@@ -134,7 +147,7 @@ const PDFService = {
                 ['Tarikh dan Masa Kejadian', eventDateStr || '-'],
                 ['Pengesanan Kesilapan', detection || '-'],
                 ['Nama Pelapor', `${reporterName || '-'}`],
-                ['Nama Kakitangan Terlibat', `${staffName || '-'}`],
+                ['Nama Kakitangan Terlibat', staffNameDisplay],
                 ['Kategori kesilapan pengubatan', outcome || '-'],
                 ['Jenis kesilapan pengubatan (Kecemasan/OPD)', clinicErrorString],
                 ['Jenis kesilapan pengubatan (Farmasi)', pharmacyErrorString]
