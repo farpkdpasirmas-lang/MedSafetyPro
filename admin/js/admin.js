@@ -685,7 +685,7 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
                 window.STAFF_DATA = allStaff;
             }
             
-            alert('Staff deleted successfully!\\nNote: Download the updated staff data to make this permanent across the system.');
+            alert('Staff deleted successfully!\nNote: Download the updated staff data to make this permanent across the system.');
             
             // Refresh UI
             if (typeof AdminApp !== 'undefined' && AdminApp.renderStaffList) {
