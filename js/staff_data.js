@@ -191,6 +191,78 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "eideenmuhammad@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "SHA'ERAH BT MOHD YUSOFF",
+            "position": "UF14",
+            "email": "shaerah_my@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NOR AZRA BINTI SHOKSI",
+            "position": "UF14",
+            "email": "norazra@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NURUL KHAIRIYAH BINTI WANIK",
+            "position": "UF12",
+            "email": "nurulkhairiyah17@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "SITI FATIMAH BINTI YAAKUB",
+            "position": "UF14",
+            "email": "ctfatimah.y@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NURUL BAZLIAH BINTI AHMAD",
+            "position": "UF12",
+            "email": "n.bazliah@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NURUL IFFAH BINTI BADRUL AINI",
+            "position": "UF9",
+            "email": "iffahbadrul@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "AHMAD WAFEEQ MIRRZA BIN YUSOFF",
+            "position": "UF9",
+            "email": "wafeeqmirrza@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "MUHAMMAD AMRU HAIMAN BIN MAT ROFI",
+            "position": "UF9",
+            "email": "amruhaiman01@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NIK MOHD NAZRI BIN NIK OMAR",
+            "position": "U6 (tbk1)",
+            "email": "nikmohdnazrinikomar@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "SITI RABI'ATUL' ADAWIYAH BT. MOHD. RAHIM",
+            "position": "U5",
+            "email": "rabiatulm.rahim@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "ANUAR BIN MD SALIM",
+            "position": "U5",
+            "email": "anuar.mdsalim1983@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "SITI NOR SYAFIKA BINTI MAT RIPIN",
+            "position": "U5",
+            "email": "sitinorsyafikaaa@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Rantau Panjang": [
@@ -325,6 +397,66 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "miroazie@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "NURUL HASIKIN BINTI MOHD TAIB",
+            "position": "UF13",
+            "email": "hasikin.mtaib@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NOR LIYANA IZZATI BINTI HAMIL",
+            "position": "UF9",
+            "email": "norliyanaizzatihamil@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NADZIRAH BT ANUAR",
+            "position": "UF9",
+            "email": "nazirahanuar@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "MUHAMMAD HANIFF BIN RAMLI",
+            "position": "UF9",
+            "email": "muhdhaniff_93@yahoo.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "AZMA NURHANI BINTI AHMAD",
+            "position": "UF9",
+            "email": "azmanurhani@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "FAIZATUL ADIDA BT MOHAMAD RIDUAN",
+            "position": "U6",
+            "email": "faizatuladida@moh.gov.my",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "MOHD KHAIRUL RAHIMI BIN MOHD YATIM",
+            "position": "U6",
+            "email": "petedoherty78@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "SITI AYUNIE BT FAUZI",
+            "position": "U6 (TBK)",
+            "email": "einuya_unie@yahoo.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "NORSYAHIDAH BINTI MOHD ZAWAWI",
+            "position": "U5",
+            "email": "norsyahidah.zawawi@moh.gov.my",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "ROSILAWATI BINTI JUSOH",
+            "position": "U5",
+            "email": "rosilawatijusoh97@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Meranti": [
@@ -404,6 +536,84 @@ const STAFF_DATA = {
             "name": "PENOLONG PEGAWAI PERUBATAN",
             "position": "",
             "email": "",
+            "category": "Support Staff"
+        },
+        {
+            "name": "MUHAINI BINTI ABD HADI",
+            "position": "UF13",
+            "email": "muhaini_abd@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "MOHD AMINUDDIN BIN MOHAMED RAJIB",
+            "position": "UF12",
+            "email": "mohdaminuddin@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NUR SYAQIRA AMIRA BINTI SAMSUKI",
+            "position": "UF12",
+            "email": "myrasamsuki@yahoo.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NOOR FAZIHAN BINTI MOHAMED",
+            "position": "UF9",
+            "email": "dfazzmohamed@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NABILAH BINTI ISMAIL",
+            "position": "UF14",
+            "email": "nabilah.i@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "WAN MUHAMAD AZMAN BIN WAN MOHAMAD",
+            "position": "UF13",
+            "email": "wmazman@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "AZLAN BIN YUSOH",
+            "position": "U6(TBK)",
+            "email": "azlanyusoh891129@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "NORLINA BINTI ABDUL",
+            "position": "U6(TBK1)",
+            "email": "norlina.abdul@moh.gov.my",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "NASNURA BINTI NATI",
+            "position": "U6(KUP)",
+            "email": "nasnura.nati@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "MOHAMAD YUZAIMIN BIN USOFF",
+            "position": "N1",
+            "email": "yuzaimin@moh.gov.my",
+            "category": "Support Staff"
+        },
+        {
+            "name": "CHE ESHAH BINTI HUSIN",
+            "position": "N2",
+            "email": "cheeshah@moh.gov.my",
+            "category": "Support Staff"
+        },
+        {
+            "name": "KARTINA BT MUHAMAD",
+            "position": "N2",
+            "email": "kartinamuhamad@moh.gov.my",
+            "category": "Support Staff"
+        },
+        {
+            "name": "NORHASLIZA BINTI ZAINI",
+            "position": "H1",
+            "email": "syasyaoren@gmail.com",
             "category": "Support Staff"
         }
     ],
@@ -545,6 +755,54 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "najihahawani98@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "LIM EE LAINE",
+            "position": "UF14",
+            "email": "limeelaine66@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NUR NADILA ALIA BINTI HAMZAH",
+            "position": "UF13",
+            "email": "nadila@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NURUL EZZATI ARIFIN",
+            "position": "UF13",
+            "email": "nurulezzati@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "IZZATI SALIHAH BINTI AHMAD JOHARI",
+            "position": "UF9",
+            "email": "izzzati1214@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "INTAN AMALIYA BINTI IBRAHIM",
+            "position": "UF9",
+            "email": "intanamaliya98@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "SUNEETA BT SOHAIMI",
+            "position": "U6(KUP)",
+            "email": "suneetasohaimi87@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "NORAZILAH BINTI ADNAN",
+            "position": "U5",
+            "email": "azilah_ahze@yahoo.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "MUHD KHAIRUL  'ANAM BIN HAZAN MAGHDUM",
+            "position": "U6 (KUP)",
+            "email": "temilaboy@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Kangkong": [
@@ -637,6 +895,42 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "pppazlananjang@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "WAN HAZNI BINTI TUAN AZIZ",
+            "position": "UF14",
+            "email": "wanhazni@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NIK EZMIZA BINTI NIK ABD. RAHIM",
+            "position": "UF14",
+            "email": "ezmiza@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "SITI MASURI KARIMI BINTI MOHD AZLAN",
+            "position": "UF9",
+            "email": "sitimasurikarimi@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "SITI KHALIJAH BT MOHAMED",
+            "position": "U6(KUP)",
+            "email": "ctkhalijah72@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "AZIRA BINTI AZIZ@ABDUL AZIZ",
+            "position": "U6(TBK)",
+            "email": "aziraaziz786@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "NUR AYUNNI BINTI ADNAN",
+            "position": "U5",
+            "email": "ayunni.adnan@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK To Uban": [
@@ -747,6 +1041,36 @@ const STAFF_DATA = {
             "position": "Jururawat",
             "email": "balktiyahmat@gmail.com",
             "category": "Nurse"
+        },
+        {
+            "name": "MOHAMAD FAHMI BIN HASHIM",
+            "position": "UF14",
+            "email": "once9903@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "IZZATY BINTI ABDULLAH",
+            "position": "UF13",
+            "email": "izzatyabdullah@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "MUHAMAD TARMIZI BIN AB HAMID",
+            "position": "UF9",
+            "email": "tarmizi.abhamid97@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NORAZLINA BINTI IBRAHIM",
+            "position": "U6(KUP)",
+            "email": "norazlina1911@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "ZAWIAH BINTI ISMAIL",
+            "position": "U6(KUP)",
+            "email": "zawiahaza@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Chekok": [
@@ -851,6 +1175,30 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "mohdrozaliibrahim77@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "FATIN LAILI BINTI AHMAD BAHRI",
+            "position": "UF14",
+            "email": "fatinlaili.ab@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "MUHAMAD IDHAM BIN AHAMED",
+            "position": "UF13",
+            "email": "muhamadidham@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "TAN MAI SING",
+            "position": "U5",
+            "email": "singmay400@yahoo.com",
+            "category": "Pharmacy Assistant (PPF)"
+        },
+        {
+            "name": "MOHD NAZRI BIN MUHAMMAD",
+            "position": "U6 (KUP)",
+            "email": "nazri16041976@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Sungai Keladi": [
@@ -889,6 +1237,18 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "mmohdnazerizaidi@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "FATIN NABILA BINTI AB RAHMAN",
+            "position": "UF9",
+            "email": "fatinrahman@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "ANG WEE CHIAN",
+            "position": "U6 (KUP)",
+            "email": "angchian84@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Gual Periok": [
@@ -939,6 +1299,18 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "muhamadzamrijusoh@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "NURUL ASNIDA BINTI IBRAHIM",
+            "position": "UF9",
+            "email": "nurulasnidaibrahim@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "SUZILA BINTI AB HAMID",
+            "position": "U6 (KUP)",
+            "email": "suzilaabhamid74@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Kasar": [
@@ -983,6 +1355,18 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "mohdrosli@moh.gov.my",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "SITI NURFARAH AIANA BINTI MUHAMED",
+            "position": "UF9",
+            "email": "sitinurfarahaiana@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NURUL MAJIDAH BINTI KAMARRUDIN",
+            "position": "U6 (KUP)",
+            "email": "nurulmajidah83@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Pangkal Kala": [
@@ -1027,6 +1411,18 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "cheh6193@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "NIK NUR AZREEN BINTI NIK MAT",
+            "position": "UF10",
+            "email": "nik.nurazreen95@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "NUR SYAHIDDA BINTI MOHD ADNAN",
+            "position": "U5",
+            "email": "syahiddaadnan9292@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Cherang Hangus": [
@@ -1059,6 +1455,18 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "khairolhazri0@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "ZATI RUSYDINA BINTI BAHANUDIN",
+            "position": "UF9",
+            "email": "zati.rusydina@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "ROSHILAWANI BINTI ZAIN",
+            "position": "U7",
+            "email": "shilawani@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
         }
     ],
     "KK Baroh Pial": [
@@ -1091,6 +1499,26 @@ const STAFF_DATA = {
             "position": "Penolong Pegawai Perubatan",
             "email": "zamriabrahman7272@gmail.com",
             "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "ROHAYU A/P EH CHOY",
+            "position": "UF10",
+            "email": "rohayu.ec@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "QAWIEM BT CHE RAZALI",
+            "position": "U6 (TBK)",
+            "email": "winkrazali@gmail.com",
+            "category": "Pharmacy Assistant (PPF)"
+        }
+    ],
+    "PKD Pasir Mas": [
+        {
+            "name": "ROHAYA BINTI HUSSIN",
+            "position": "UF14",
+            "email": "rohaya.hussin@moh.gov.my",
+            "category": "Pharmacist (PF)"
         }
     ]
 };
