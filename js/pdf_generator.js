@@ -127,8 +127,9 @@ const PDFService = {
 
         // Determine position of the person who made the error
         let errorPersonPosition = staffCategory || '';
-        if (typeof STAFF_DATA !== 'undefined' && staffName) {
-            for (const [fac, staffArray] of Object.entries(STAFF_DATA)) {
+        const currentStaffData = window.STAFF_DATA || (typeof STAFF_DATA !== 'undefined' ? STAFF_DATA : null);
+        if (currentStaffData && staffName) {
+            for (const [fac, staffArray] of Object.entries(currentStaffData)) {
                 const found = staffArray.find(s => s.name && s.name.trim().toLowerCase() === staffName.trim().toLowerCase());
                 if (found && found.position) {
                     errorPersonPosition = found.position;
@@ -214,8 +215,9 @@ const PDFService = {
         let reporterPosition = "Pegawai Farmasi";
         let reporterFacility = facility || '-';
         
-        if (typeof STAFF_DATA !== 'undefined' && reporterName) {
-            for (const [fac, staffArray] of Object.entries(STAFF_DATA)) {
+        const currentStaffData = window.STAFF_DATA || (typeof STAFF_DATA !== 'undefined' ? STAFF_DATA : null);
+        if (currentStaffData && reporterName) {
+            for (const [fac, staffArray] of Object.entries(currentStaffData)) {
                 const found = staffArray.find(s => s.name && s.name.trim().toLowerCase() === reporterName.trim().toLowerCase());
                 if (found) {
                     reporterFacility = fac;

@@ -560,7 +560,7 @@
                     debounceTimer = setTimeout(() => {
                         const selectedFacility = facilityInput.value;
                         const enteredName = staffNameInput.value.trim();
-                        const staffList = STAFF_DATA[selectedFacility] || [];
+                        const staffList = (window.STAFF_DATA || STAFF_DATA)[selectedFacility] || [];
 
                         if (!enteredName || !selectedFacility) return;
 
@@ -596,7 +596,7 @@
                 // Update datalist when facility changes
                 facilityInput.addEventListener('change', () => {
                     const selectedFacility = facilityInput.value;
-                    const staffList = STAFF_DATA[selectedFacility] || [];
+                    const staffList = (window.STAFF_DATA || STAFF_DATA)[selectedFacility] || [];
 
                     // Clear existing options
                     staffDatalist.innerHTML = '';
