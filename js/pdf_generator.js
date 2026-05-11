@@ -215,7 +215,6 @@ const PDFService = {
         let reporterPosition = "Pegawai Farmasi";
         let reporterFacility = facility || '-';
         
-        const currentStaffData = window.STAFF_DATA || (typeof STAFF_DATA !== 'undefined' ? STAFF_DATA : null);
         if (currentStaffData && reporterName) {
             for (const [fac, staffArray] of Object.entries(currentStaffData)) {
                 const found = staffArray.find(s => s.name && s.name.trim().toLowerCase() === reporterName.trim().toLowerCase());
