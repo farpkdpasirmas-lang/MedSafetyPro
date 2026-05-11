@@ -1,3 +1,15 @@
+const getMalayRoleName = (category) => {
+    if (!category) return '';
+    const cat = category.toLowerCase();
+    if (cat.includes('specialist') || cat.includes('fms')) return "Pakar Perubatan Keluarga";
+    if (cat.includes('assistant medical officer') || cat.match(/\bma\b/)) return "Penolong Pegawai Perubatan";
+    if (cat.includes('medical officer') || cat.match(/\bmo\b/)) return "Pegawai Perubatan";
+    if (cat.includes('pharmacy assistant') || cat.includes('ppf')) return "Penolong Pegawai Farmasi";
+    if (cat.includes('pharmacist') || cat.match(/\bpf\b/)) return "Pegawai Farmasi";
+    if (cat.includes('nurse')) return "Jururawat";
+    return '';
+};
+
 const PDFService = {
     generatePDF: async (data, isFromAdmin = false) => {
         // Safe access to jsPDF
@@ -131,8 +143,13 @@ const PDFService = {
         if (currentStaffData && staffName) {
             for (const [fac, staffArray] of Object.entries(currentStaffData)) {
                 const found = staffArray.find(s => s.name && s.name.trim().toLowerCase() === staffName.trim().toLowerCase());
-                if (found && found.position) {
-                    errorPersonPosition = found.position;
+                if (found) {
+                    const mappedRole = getMalayRoleName(found.category || staffCategory);
+                    if (mappedRole) {
+                        errorPersonPosition = mappedRole;
+                    } else if (found.position) {
+                        errorPersonPosition = found.position;
+                    }
                     break;
                 }
             }
@@ -220,21 +237,11 @@ const PDFService = {
                 const found = staffArray.find(s => s.name && s.name.trim().toLowerCase() === reporterName.trim().toLowerCase());
                 if (found) {
                     reporterFacility = fac;
-                    const cat = (found.category || '').toLowerCase();
-                    if (cat.includes('pharmacist') || cat.includes('pf')) {
-                        reporterPosition = "Pegawai Farmasi";
-                    } else if (cat.includes('medical officer') || cat.includes('mo')) {
-                        reporterPosition = "Pegawai Perubatan";
-                    } else if (cat.includes('assistant medical officer') || cat.includes('ma')) {
-                        reporterPosition = "Penolong Pegawai Perubatan";
-                    } else if (cat.includes('pharmacy assistant') || cat.includes('ppf')) {
-                        reporterPosition = "Penolong Pegawai Farmasi";
-                    } else if (cat.includes('nurse')) {
-                        reporterPosition = "Jururawat";
-                    } else if (cat.includes('specialist')) {
-                        reporterPosition = "Pakar Perubatan Keluarga";
-                    } else {
-                        reporterPosition = found.position || "Pegawai Farmasi";
+                    const mappedRole = getMalayRoleName(found.category);
+                    if (mappedRole) {
+                        reporterPosition = mappedRole;
+                    } else if (found.position) {
+                        reporterPosition = found.position;
                     }
                     break;
                 }
