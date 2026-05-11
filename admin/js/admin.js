@@ -659,6 +659,75 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
         }
     },
 
+    saveEditedStaff: async (form) => {
+        const formData = new FormData(form);
+        const originalFacility = formData.get('originalFacility');
+        const originalName = formData.get('originalName');
+        
+        const newFacility = formData.get('facility').trim();
+        const staff = {
+            name: formData.get('name').trim().toUpperCase(),
+            position: formData.get('position').trim(),
+            email: formData.get('email').trim(),
+            category: formData.get('category')
+        };
+        
+        if (!newFacility || !staff.name) {
+            alert('Facility and Name are required');
+            return;
+        }
+
+        // Get current data
+        let allStaff = null;
+        if (typeof DB !== 'undefined' && DB.getStaffData) {
+            allStaff = await DB.getStaffData();
+        } else {
+            const storedData = localStorage.getItem('medsafety_staff_db') || localStorage.getItem('staff_data_override');
+            if (storedData) {
+                try { allStaff = JSON.parse(storedData); } catch(e) {}
+            }
+            if (!allStaff && typeof STAFF_DATA !== 'undefined') {
+                allStaff = JSON.parse(JSON.stringify(STAFF_DATA));
+            }
+        }
+        if (!allStaff) allStaff = {};
+        
+        // Remove old entry
+        if (allStaff[originalFacility]) {
+            allStaff[originalFacility] = allStaff[originalFacility].filter(s => (s.name || '').toUpperCase() !== (originalName || '').toUpperCase());
+            if (allStaff[originalFacility].length === 0) {
+                delete allStaff[originalFacility];
+            }
+        }
+        
+        // Add to new facility
+        if (!allStaff[newFacility]) {
+            allStaff[newFacility] = [];
+        }
+        allStaff[newFacility].push(staff);
+        
+        // Save to Firestore and local storage
+        if (typeof DB !== 'undefined' && DB.saveStaffData) {
+            try {
+                await DB.saveStaffData(allStaff);
+            } catch (e) {
+                console.error('Failed to save to Firestore:', e);
+            }
+        } else {
+            localStorage.setItem('medsafety_staff_db', JSON.stringify(allStaff));
+            if (typeof window !== 'undefined') window.STAFF_DATA = allStaff;
+        }
+        
+        alert('Staff updated successfully!');
+        
+        // Refresh UI
+        form.reset();
+        AdminApp.closeEditStaffModal();
+        if (typeof AdminApp !== 'undefined' && AdminApp.renderStaffList) {
+            AdminApp.renderStaffList();
+        }
+    },
+
     deleteStaff: async (facility, name) => {
         if (!confirm(`Are you sure you want to delete ${name} from ${facility}?`)) return;
 
@@ -678,7 +747,7 @@ KK Rantau Panjang,Dr. Fatimah binti Yusof,Pakar,fatimah@moh.gov.my,Medical Speci
         if (!allStaff) allStaff = {};
 
         if (allStaff[facility]) {
-            allStaff[facility] = allStaff[facility].filter(s => s.name.toUpperCase() !== name.toUpperCase());
+            allStaff[facility] = allStaff[facility].filter(s => (s.name || '').toUpperCase() !== (name || '').toUpperCase());
             
             // Clean up empty facility
             if (allStaff[facility].length === 0) {
@@ -1539,6 +1608,37 @@ const AdminApp = {
         if (form) form.reset();
     },
 
+    showEditStaffModal: (facility, name, position, email, category) => {
+        const modal = document.getElementById('edit-staff-modal');
+        if (!modal) return;
+        
+        document.getElementById('edit-original-facility').value = facility;
+        document.getElementById('edit-original-name').value = name;
+        document.getElementById('edit-facility').value = facility;
+        document.getElementById('edit-name').value = name;
+        document.getElementById('edit-position').value = position || '';
+        document.getElementById('edit-email').value = email || '';
+        
+        const catSelect = document.getElementById('edit-category');
+        if (catSelect && category) {
+            for (let i = 0; i < catSelect.options.length; i++) {
+                if (catSelect.options[i].value === category) {
+                    catSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        
+        modal.style.display = 'flex';
+    },
+
+    closeEditStaffModal: () => {
+        const modal = document.getElementById('edit-staff-modal');
+        if (modal) modal.style.display = 'none';
+        const form = document.getElementById('edit-staff-form');
+        if (form) form.reset();
+    },
+
     renderUserList: async () => {
         // Render Admins
         const adminTbody = document.getElementById('admin-table-body');
@@ -1687,7 +1787,8 @@ const AdminApp = {
                 </td>
                 <td style="padding: 0.75rem; font-size: 0.875rem; color: var(--color-text-muted);">${Security.sanitize(staff.category) || '-'}</td>
                 <td style="padding: 0.75rem; text-align: right;">
-                    <button class="btn-icon" style="color: #ef4444;" onclick="AdminService.deleteStaff('${Security.sanitize(staff.facility).replace(/'/g, "\\\\'")}', '${Security.sanitize(staff.name).replace(/'/g, "\\\\'")}')" title="Delete Staff">🗑️</button>
+                    <button class="btn-sm btn-outline" style="margin-right: 0.5rem;" onclick="AdminApp.showEditStaffModal(decodeURIComponent('${encodeURIComponent(staff.facility || '')}'), decodeURIComponent('${encodeURIComponent(staff.name || '')}'), decodeURIComponent('${encodeURIComponent(staff.position || '')}'), decodeURIComponent('${encodeURIComponent(staff.email || '')}'), decodeURIComponent('${encodeURIComponent(staff.category || '')}'))" title="Edit Staff Details">Edit</button>
+                    <button class="btn-sm btn-danger" onclick="AdminService.deleteStaff(decodeURIComponent('${encodeURIComponent(staff.facility || '')}'), decodeURIComponent('${encodeURIComponent(staff.name || '')}'))" title="Delete Staff">Delete</button>
                 </td>
             </tr>
     `).join('');

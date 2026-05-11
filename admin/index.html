@@ -601,6 +601,54 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Edit Staff Modal -->
+                <div id="edit-staff-modal" class="modal" onclick="if(event.target === this) AdminApp.closeEditStaffModal()">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>✏️ Edit Staff</h3>
+                            <button class="close-btn" onclick="AdminApp.closeEditStaffModal()">×</button>
+                        </div>
+                        <div id="edit-staff-body">
+                            <form id="edit-staff-form" onsubmit="event.preventDefault(); AdminService.saveEditedStaff(this);">
+                                <input type="hidden" name="originalFacility" id="edit-original-facility">
+                                <input type="hidden" name="originalName" id="edit-original-name">
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Facility *</label>
+                                    <input type="text" name="facility" id="edit-facility" required style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);">
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Staff Name *</label>
+                                    <input type="text" name="name" id="edit-name" required style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);">
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Position</label>
+                                    <input type="text" name="position" id="edit-position" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);">
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+                                    <input type="email" name="email" id="edit-email" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);">
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Category</label>
+                                    <select name="category" id="edit-category" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md);">
+                                        <option value="Medical Specialist / FMS">Medical Specialist / FMS</option>
+                                        <option value="Medical Officer (MO)">Medical Officer (MO)</option>
+                                        <option value="Assistant Medical Officer (MA)">Assistant Medical Officer (MA)</option>
+                                        <option value="Pharmacist (PF)">Pharmacist (PF)</option>
+                                        <option value="Pharmacy Assistant (PPF)">Pharmacy Assistant (PPF)</option>
+                                        <option value="Nurse">Nurse</option>
+                                        <option value="Support Staff">Support Staff</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                                    <button type="button" class="btn btn-outline" onclick="AdminApp.closeEditStaffModal()">Cancel</button>
+                                    <button type="submit" class="btn" style="background: #3b82f6; color: white;">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             `;
 
             // Add toggle all function
