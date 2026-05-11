@@ -851,6 +851,21 @@ const AdminApp = {
             });
         }
 
+        // Staff search and filter functionality
+        const staffSearchInput = document.getElementById('staff-search');
+        if (staffSearchInput) {
+            staffSearchInput.addEventListener('input', () => {
+                AdminApp.renderStaffList();
+            });
+        }
+
+        const facilityFilter = document.getElementById('facility-filter');
+        if (facilityFilter) {
+            facilityFilter.addEventListener('change', () => {
+                AdminApp.renderStaffList();
+            });
+        }
+
         // Backup restore file input
         const restoreInput = document.getElementById('restore-file');
         if (restoreInput) {
