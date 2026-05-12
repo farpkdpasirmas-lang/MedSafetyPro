@@ -66,7 +66,7 @@
                 try {
                     const allReports = await DB.getAllReports();
                     const userReports = allReports.filter(r => r.staffEmail === currentUser.email);
-                    const feedbacks = JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
+                    const feedbacks = await DB.getAllFeedback();
                     const submittedReportIds = new Set(feedbacks.filter(f => f.submittedEmail === currentUser.email).map(f => f.reportId));
 
                     if (userReports.length === 0) {
@@ -442,10 +442,8 @@
                         return;
                     }
 
-                    // Save to localStorage
-                    const feedbacks = JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
-                    feedbacks.push(formData);
-                    localStorage.setItem('medsafety_feedback_db', JSON.stringify(feedbacks));
+                    // Save to Firestore (with localStorage fallback handled internally)
+                    await DB.saveFeedback(formData);
 
                     // Send email notification via EmailJS
                     if (typeof emailjs !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {

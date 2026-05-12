@@ -27,15 +27,13 @@ const AdminService = {
     },
 
     // ============= FEEDBACK MANAGEMENT =============
-    getAllFeedback: () => {
-        return JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
+    getAllFeedback: async () => {
+        return await DB.getAllFeedback();
     },
 
-    deleteFeedback: (id) => {
+    deleteFeedback: async (id) => {
         if (!confirm('Are you sure you want to delete this feedback entry? This action cannot be undone.')) return;
-        const allFeedback = AdminService.getAllFeedback();
-        const updatedFeedback = allFeedback.filter(f => f.id !== id);
-        localStorage.setItem('medsafety_feedback_db', JSON.stringify(updatedFeedback));
+        await DB.deleteFeedback(id);
         // Re-render the feedback tables
         if (typeof AdminApp !== 'undefined' && AdminApp.renderFeedbackManagement) {
             AdminApp.renderFeedbackManagement();
@@ -1817,7 +1815,7 @@ const AdminApp = {
 
         try {
             const allUsers = await AdminService.getAllUsers();
-            const allFeedback = AdminService.getAllFeedback();
+            const allFeedback = await AdminService.getAllFeedback();
 
             // Get report IDs that HAVE submitted feedback
             const submittedReportIds = new Set(allFeedback.map(f => f.reportId));
@@ -1938,9 +1936,7 @@ const AdminApp = {
             ]
         };
 
-        const allFeedback = AdminService.getAllFeedback();
-        allFeedback.push(dummyFeedback);
-        localStorage.setItem('medsafety_feedback_db', JSON.stringify(allFeedback));
+        await DB.saveFeedback(dummyFeedback);
 
         // Re-render the tables
         AdminApp.renderFeedbackManagement();
@@ -1949,8 +1945,8 @@ const AdminApp = {
         alert('Feedback requirement dismissed successfully.');
     },
 
-    viewFeedbackDetails: (feedbackId) => {
-        const allFeedback = AdminService.getAllFeedback();
+    viewFeedbackDetails: async (feedbackId) => {
+        const allFeedback = await AdminService.getAllFeedback();
         const feedback = allFeedback.find(f => f.id === feedbackId);
 
         if (!feedback) return;

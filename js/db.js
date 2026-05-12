@@ -9,6 +9,7 @@ const DB = {
     COLLECTION_USERS: 'users_v2',
     COLLECTION_NOTIFICATIONS: 'notifications',
     COLLECTION_STAFF: 'staff_data',
+    COLLECTION_FEEDBACK: 'feedbacks',
 
     // --- Reports ---
 
@@ -603,6 +604,92 @@ const DB = {
         // Always sync to local storage
         localStorage.setItem('medsafety_staff_db', JSON.stringify(staffData));
         window.STAFF_DATA = staffData;
+    },
+
+    // --- Feedback ---
+
+    /**
+     * Save feedback
+     * @param {Object} feedbackData 
+     * @returns Promise
+     */
+    saveFeedback: async (feedbackData) => {
+        if (db) {
+            try {
+                if (feedbackData.id) {
+                    await db.collection(DB.COLLECTION_FEEDBACK).doc(feedbackData.id).set(feedbackData);
+                } else {
+                    const docRef = await db.collection(DB.COLLECTION_FEEDBACK).add(feedbackData);
+                    feedbackData.id = docRef.id;
+                }
+            } catch (error) {
+                console.warn("Firestore permission denied for feedback. Falling back to local storage.", error);
+            }
+        } 
+        
+        // LocalStorage Sync/Fallback
+        const feedbacks = JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
+        if (!feedbackData.id) {
+            feedbackData.id = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 5);
+        }
+        const index = feedbacks.findIndex(f => f.id === feedbackData.id);
+        if (index !== -1) {
+            feedbacks[index] = feedbackData;
+        } else {
+            feedbacks.push(feedbackData);
+        }
+        localStorage.setItem('medsafety_feedback_db', JSON.stringify(feedbacks));
+        return feedbackData;
+    },
+
+    /**
+     * Get all feedback
+     * @returns Promise<Array>
+     */
+    getAllFeedback: async () => {
+        if (db) {
+            try {
+                const snapshot = await db.collection(DB.COLLECTION_FEEDBACK).orderBy('submittedAt', 'desc').get();
+                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (error) {
+                console.warn("Firestore error for feedback. Falling back to local storage.", error);
+                
+                // Fallback attempt without orderBy in case of missing index
+                if (error.message && error.message.includes('requires an index')) {
+                     try {
+                         const fallbackSnapshot = await db.collection(DB.COLLECTION_FEEDBACK).get();
+                         const feedbacks = fallbackSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                         return feedbacks.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+                     } catch(fallbackErr) {
+                         console.warn("Fallback query failed as well.");
+                     }
+                }
+            }
+        }
+        
+        // LocalStorage Mode
+        const feedbacks = JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
+        return feedbacks.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    },
+
+    /**
+     * Delete feedback
+     * @param {string} feedbackId 
+     * @returns Promise<void>
+     */
+    deleteFeedback: async (feedbackId) => {
+        if (db) {
+            try {
+                await db.collection(DB.COLLECTION_FEEDBACK).doc(feedbackId).delete();
+            } catch (error) {
+                console.warn("Firestore permission denied for deleting feedback. Falling back to local storage.");
+            }
+        } 
+        
+        // Fallback local storage execution
+        const feedbacks = JSON.parse(localStorage.getItem('medsafety_feedback_db') || '[]');
+        const newFeedbacks = feedbacks.filter(f => f.id !== feedbackId);
+        localStorage.setItem('medsafety_feedback_db', JSON.stringify(newFeedbacks));
     }
 };
 
