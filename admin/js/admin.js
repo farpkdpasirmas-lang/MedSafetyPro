@@ -40,6 +40,68 @@ const AdminService = {
         }
     },
 
+    exportFeedbackToCSV: async () => {
+        try {
+            const feedbacks = await AdminService.getAllFeedback();
+            if (!feedbacks || feedbacks.length === 0) {
+                alert('No feedback to export.');
+                return;
+            }
+
+            const reports = await AdminService.getAllReports();
+
+            // Define CSV headers
+            const headers = [
+                'Date Submitted',
+                'Submitted By',
+                'Email',
+                'Report Serial Number',
+                'Factors Identified',
+                'Details'
+            ];
+
+            const csvRows = [headers.join(',')];
+
+            feedbacks.forEach(f => {
+                const escapeCsv = (str) => {
+                    if (str === null || str === undefined) return '""';
+                    return `"${String(str).replace(/"/g, '""')}"`;
+                };
+
+                const dateStr = f.submittedAt ? new Date(f.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A';
+                const factorsList = (f.factors || []).map(factor => factor.label).join('; ');
+                const factorDetails = (f.factors || []).map(factor => `${factor.label}: ${factor.explanation || ''}`).join(' | ');
+                
+                const linkedReport = reports.find(r => r.id === f.reportId);
+                const serialNo = linkedReport ? linkedReport.serialNumber : f.reportId;
+
+                const row = [
+                    escapeCsv(dateStr),
+                    escapeCsv(f.submittedBy),
+                    escapeCsv(f.submittedEmail),
+                    escapeCsv(serialNo),
+                    escapeCsv(factorsList),
+                    escapeCsv(factorDetails)
+                ];
+                csvRows.push(row.join(','));
+            });
+
+            const csvData = csvRows.join('\n');
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `medsafety_feedback_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (error) {
+            console.error("Error exporting feedback to CSV:", error);
+            alert("An error occurred while generating the CSV.");
+        }
+    },
+
     // ============= REPORT MANAGEMENT =============
     getAllReports: async () => {
         try {
