@@ -123,15 +123,19 @@ const AdminService = {
             // Define CSV headers
             const headers = [
                 'Serial No.',
-                'Date',
-                'Time',
-                'Reporter',
+                'Event Date',
+                'Event Time',
+                'Submission Timestamp',
+                'Reporter Name',
+                'Facility',
+                'Setting',
+                'Detection Method',
+                'Outcome Category',
+                'Staff Category',
                 'Staff Involved',
-                'Category',
-                'Location',
-                'Drug Name',
-                'Error Type',
-                'Stage of Error',
+                'Staff Email',
+                'Error Types (Pharmacy)',
+                'Error Types (Clinic)',
                 'Description'
             ];
 
@@ -146,27 +150,46 @@ const AdminService = {
                     return `"${stringified.replace(/"/g, '""')}"`;
                 };
 
-                let dateStr = 'N/A';
-                let timeStr = 'N/A';
+                let eventDateStr = 'N/A';
+                let eventTimeStr = 'N/A';
+                if (r.date) {
+                    try {
+                        const d = new Date(r.date);
+                        if (!isNaN(d.getTime())) {
+                            eventDateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            eventTimeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        } else {
+                            eventDateStr = r.date;
+                        }
+                    } catch(e) { eventDateStr = r.date; }
+                }
+
+                let submissionStr = 'N/A';
                 if (r.timestamp) {
                     const d = new Date(r.timestamp);
                     if (!isNaN(d.getTime())) {
-                        dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                        timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        submissionStr = `${d.toLocaleDateString('en-GB')} ${d.toLocaleTimeString('en-US')}`;
                     }
                 }
 
+                const pharmErrors = (r.pharmacyErrors || []).join('; ');
+                const clinicErrors = (r.clinicErrors || []).join('; ');
+
                 const row = [
                     escapeCsv(r.serialNumber),
-                    escapeCsv(dateStr),
-                    escapeCsv(timeStr),
-                    escapeCsv(r.reporterName || r.staffEmail || 'Anonymous'),
+                    escapeCsv(eventDateStr),
+                    escapeCsv(eventTimeStr),
+                    escapeCsv(submissionStr),
+                    escapeCsv(r.reporterName || 'Anonymous'),
+                    escapeCsv(r.facility || 'N/A'),
+                    escapeCsv(r.setting || 'N/A'),
+                    escapeCsv(r.detection || 'N/A'),
+                    escapeCsv(r.outcome || 'N/A'),
+                    escapeCsv(r.staffCategory || 'N/A'),
                     escapeCsv(r.staffName || 'Unknown'),
-                    escapeCsv(r.category || 'N/A'),
-                    escapeCsv(r.location || r.facility || 'N/A'),
-                    escapeCsv(r.drugName || 'N/A'),
-                    escapeCsv(r.errorType || 'N/A'),
-                    escapeCsv(r.stage || 'N/A'),
+                    escapeCsv(r.staffEmail || 'N/A'),
+                    escapeCsv(pharmErrors),
+                    escapeCsv(clinicErrors),
                     escapeCsv(r.description || 'N/A')
                 ];
                 csvRows.push(row.join(','));
@@ -1739,15 +1762,19 @@ const AdminApp = {
             // Define CSV headers
             const headers = [
                 'Serial No.',
-                'Date',
-                'Time',
-                'Reporter',
+                'Event Date',
+                'Event Time',
+                'Submission Timestamp',
+                'Reporter Name',
+                'Facility',
+                'Setting',
+                'Detection Method',
+                'Outcome Category',
+                'Staff Category',
                 'Staff Involved',
-                'Category',
-                'Location',
-                'Drug Name',
-                'Error Type',
-                'Stage of Error',
+                'Staff Email',
+                'Error Types (Pharmacy)',
+                'Error Types (Clinic)',
                 'Description'
             ];
 
@@ -1762,27 +1789,46 @@ const AdminApp = {
                     return `"${stringified.replace(/"/g, '""')}"`;
                 };
 
-                let dateStr = 'N/A';
-                let timeStr = 'N/A';
+                let eventDateStr = 'N/A';
+                let eventTimeStr = 'N/A';
+                if (r.date) {
+                    try {
+                        const d = new Date(r.date);
+                        if (!isNaN(d.getTime())) {
+                            eventDateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            eventTimeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        } else {
+                            eventDateStr = r.date;
+                        }
+                    } catch(e) { eventDateStr = r.date; }
+                }
+
+                let submissionStr = 'N/A';
                 if (r.timestamp) {
                     const d = new Date(r.timestamp);
                     if (!isNaN(d.getTime())) {
-                        dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                        timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        submissionStr = `${d.toLocaleDateString('en-GB')} ${d.toLocaleTimeString('en-US')}`;
                     }
                 }
 
+                const pharmErrors = (r.pharmacyErrors || []).join('; ');
+                const clinicErrors = (r.clinicErrors || []).join('; ');
+
                 const row = [
                     escapeCsv(r.serialNumber),
-                    escapeCsv(dateStr),
-                    escapeCsv(timeStr),
-                    escapeCsv(r.reporterName || r.staffEmail || 'Anonymous'),
+                    escapeCsv(eventDateStr),
+                    escapeCsv(eventTimeStr),
+                    escapeCsv(submissionStr),
+                    escapeCsv(r.reporterName || 'Anonymous'),
+                    escapeCsv(r.facility || 'N/A'),
+                    escapeCsv(r.setting || 'N/A'),
+                    escapeCsv(r.detection || 'N/A'),
+                    escapeCsv(r.outcome || 'N/A'),
+                    escapeCsv(r.staffCategory || 'N/A'),
                     escapeCsv(r.staffName || 'Unknown'),
-                    escapeCsv(r.category || 'N/A'),
-                    escapeCsv(r.location || r.facility || 'N/A'),
-                    escapeCsv(r.drugName || 'N/A'),
-                    escapeCsv(r.errorType || 'N/A'),
-                    escapeCsv(r.stage || 'N/A'),
+                    escapeCsv(r.staffEmail || 'N/A'),
+                    escapeCsv(pharmErrors),
+                    escapeCsv(clinicErrors),
                     escapeCsv(r.description || 'N/A')
                 ];
                 csvRows.push(row.join(','));
