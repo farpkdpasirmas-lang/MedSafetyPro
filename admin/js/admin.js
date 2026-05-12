@@ -273,12 +273,22 @@ const AdminService = {
         const reports = AdminApp.allReports;
         const lowerQuery = query.toLowerCase();
 
-        return reports.filter(r =>
-            r.facility?.toLowerCase().includes(lowerQuery) ||
-            r.staffName?.toLowerCase().includes(lowerQuery) ||
-            r.staffEmail?.toLowerCase().includes(lowerQuery) ||
-            r.description?.toLowerCase().includes(lowerQuery)
-        );
+        return reports.filter(r => {
+            let timeStr = '';
+            if (r.timestamp) {
+                const d = new Date(r.timestamp);
+                if (!isNaN(d.getTime())) {
+                    timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+                }
+            }
+
+            return r.facility?.toLowerCase().includes(lowerQuery) ||
+                r.staffName?.toLowerCase().includes(lowerQuery) ||
+                r.staffEmail?.toLowerCase().includes(lowerQuery) ||
+                r.description?.toLowerCase().includes(lowerQuery) ||
+                r.serialNumber?.toLowerCase().includes(lowerQuery) ||
+                timeStr.includes(lowerQuery);
+        });
     },
 
     filterReports: (filters) => {
@@ -1711,6 +1721,93 @@ const AdminApp = {
                 AdminApp.updateBulkActions();
             }
         });
+    },
+
+    bulkDownload: async () => {
+        const ids = Array.from(AdminApp.selectedReports);
+        if (ids.length === 0) return;
+
+        try {
+            const allReports = await AdminService.getAllReports();
+            const selectedReports = allReports.filter(r => ids.includes(r.id));
+
+            if (selectedReports.length === 0) {
+                alert('No selected reports found to export.');
+                return;
+            }
+
+            // Define CSV headers
+            const headers = [
+                'Serial No.',
+                'Date',
+                'Time',
+                'Reporter',
+                'Staff Involved',
+                'Category',
+                'Location',
+                'Drug Name',
+                'Error Type',
+                'Stage of Error',
+                'Description'
+            ];
+
+            // Build CSV rows
+            const csvRows = [headers.join(',')];
+
+            selectedReports.forEach(r => {
+                // Escape quotes and wrap in quotes for CSV compatibility
+                const escapeCsv = (str) => {
+                    if (str === null || str === undefined) return '""';
+                    const stringified = String(str);
+                    return `"${stringified.replace(/"/g, '""')}"`;
+                };
+
+                let dateStr = 'N/A';
+                let timeStr = 'N/A';
+                if (r.timestamp) {
+                    const d = new Date(r.timestamp);
+                    if (!isNaN(d.getTime())) {
+                        dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    }
+                }
+
+                const row = [
+                    escapeCsv(r.serialNumber),
+                    escapeCsv(dateStr),
+                    escapeCsv(timeStr),
+                    escapeCsv(r.reporterName || r.staffEmail || 'Anonymous'),
+                    escapeCsv(r.staffName || 'Unknown'),
+                    escapeCsv(r.category || 'N/A'),
+                    escapeCsv(r.location || r.facility || 'N/A'),
+                    escapeCsv(r.drugName || 'N/A'),
+                    escapeCsv(r.errorType || 'N/A'),
+                    escapeCsv(r.stage || 'N/A'),
+                    escapeCsv(r.description || 'N/A')
+                ];
+                csvRows.push(row.join(','));
+            });
+
+            // Trigger download
+            const csvData = csvRows.join('\n');
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `medsafety_selected_reports_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Optional: clear selection after download
+            AdminApp.selectedReports.clear();
+            AdminApp.updateBulkActions();
+            AdminApp.renderReportList(); // refresh checkboxes
+
+        } catch (error) {
+            console.error("Error exporting to CSV:", error);
+            alert("An error occurred while generating the CSV.");
+        }
     },
 
     viewReport: async (id) => {

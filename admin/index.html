@@ -263,15 +263,18 @@
                             
                             <div class="action-bar">
                                 <div class="search-box">
-                                    <input type="text" id="report-search" placeholder="🔍 Search reports by facility, staff name, or email...">
+                                    <input type="text" id="report-search" placeholder="🔍 Search reports by facility, staff name, email, or time...">
                                 </div>
                                 <button onclick="AdminApp.renderReportList()" class="btn btn-outline">🔄 Refresh</button>
                                 <button onclick="AdminService.exportReportsToCSV()" class="btn" style="background: #10b981; color: white;">📥 Download All to CSV</button>
                             </div>
 
-                            <div id="bulk-actions" class="bulk-actions">
+                            <div id="bulk-actions" class="bulk-actions" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                                 <strong><span id="selected-count">0</span> report(s) selected</strong>
-                                <button onclick="AdminApp.bulkDelete()" class="btn" style="background: #e11d48; color: white; margin-left: 1rem;">
+                                <button onclick="AdminApp.bulkDownload()" class="btn" style="background: #10b981; color: white;">
+                                    📥 Download Selected to CSV
+                                </button>
+                                <button onclick="AdminApp.bulkDelete()" class="btn" style="background: #e11d48; color: white;">
                                     🗑️ Delete Selected
                                 </button>
                             </div>
