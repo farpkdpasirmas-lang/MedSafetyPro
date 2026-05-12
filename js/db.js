@@ -608,8 +608,7 @@ const DB = {
 
 // Initialize Global Staff Data on Application Load
 document.addEventListener('DOMContentLoaded', () => {
-    // We delay slightly to allow Firebase to initialize
-    setTimeout(async () => {
+    const fetchInitialData = async () => {
         if (typeof DB !== 'undefined') {
             try {
                 window.STAFF_DATA = await DB.getStaffData();
@@ -621,5 +620,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Failed to fetch initial staff data", e);
             }
         }
-    }, 300);
+    };
+
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+        // Wait for Firebase Auth state to resolve before fetching to ensure we send the auth token
+        const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+            fetchInitialData();
+            unsubscribe(); // Run only once
+        });
+        
+        // Failsafe timeout in case auth state takes too long or fails
+        setTimeout(() => {
+            if (!window.STAFF_DATA) {
+                fetchInitialData();
+            }
+        }, 2000);
+    } else {
+        // Fallback for purely local execution without Firebase
+        setTimeout(fetchInitialData, 300);
+    }
 });
