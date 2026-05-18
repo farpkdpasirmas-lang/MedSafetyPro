@@ -90,9 +90,9 @@ const Components = {
                 <div class="header-right" style="display: flex; align-items: center;">
                     ${notificationHtml}
                     <div class="user-profile">
-                        <div class="avatar">${user ? user.fullname.charAt(0).toUpperCase() : 'U'}</div>
+                        <div class="avatar">${user && user.fullname ? user.fullname.charAt(0).toUpperCase() : 'U'}</div>
                         <div class="user-info">
-                            <span class="user-name">${user ? user.fullname : 'Guest'}</span>
+                            <span class="user-name">${user && user.fullname ? user.fullname : (user ? user.email : 'Guest')}</span>
                             <span class="user-role">${user ? user.role : ''}</span>
                         </div>
                     </div>
