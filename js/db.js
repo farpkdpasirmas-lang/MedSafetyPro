@@ -134,6 +134,7 @@ const DB = {
                 fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
                     method: 'POST',
                     mode: 'no-cors', // Prevents CORS errors from browser when pushing to Google Apps Script
+                    keepalive: true, // Guarantees the request completes even if the page redirects immediately
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ rowArray: mappedRow })
                 }).then(() => console.log('Google Sheet Sync request sent.'))
