@@ -351,7 +351,8 @@ const AuthService = {
                 } else {
                     console.info("Count admins fallback triggered due to expected permissions check.");
                 }
-                return 0; // Return 0 to allow registration to proceed
+                const localUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                return localUsers.filter(user => user.role === 'admin').length;
             }
         } else {
             // Fallback
