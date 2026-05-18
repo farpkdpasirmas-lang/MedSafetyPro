@@ -6,7 +6,7 @@
 
 // Google Sheets Webhook URL for automated backups
 // Paste your deployed Google Apps Script Web App URL here
-const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz8LcxlkSUpURgY2h-xkT7PtjkhTuDZ_DQfhBm2yoZ6cfpPxOCB3X8C1jX-x_oOitOwkQ/exec";
+const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzNzceWnrFpVcA-P-RySEP3YgwowCufZhHsEYyRz3H1YZACb-ltNIdrhyq3a3xXpIZlBQ/exec";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAFn195fBVfpwlKNAirr12l7dpey3GQSHA",
