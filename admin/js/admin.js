@@ -451,7 +451,7 @@ const AdminService = {
                 const labelling = getMatches(pharmErr, ['Wrong drug', 'Wrong dose/ frequency/ dosage form', 'Wrong instruction', "Wrong patient's name"]);
                 const filling = getMatches(pharmErr, ['Wrong drug', 'Wrong strength/ dosage form', 'Wrong quantity', 'Unfilled drug']);
 
-                let eventDateTime = r.date || '';
+                eventDateTime = r.date || '';
                 if (eventDateTime) {
                     try {
                         const dateObj = new Date(eventDateTime);
