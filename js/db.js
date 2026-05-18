@@ -108,11 +108,33 @@ const DB = {
                     return sourceArr.filter(v => possibleVals.includes(v)).join(', ');
                 };
 
+                // Format Incident Date to DD/MM/YYYY HH:MM:SS
+                let formattedIncidentDate = reportData.date || '';
+                if (formattedIncidentDate) {
+                    try {
+                        const dateObj = new Date(formattedIncidentDate);
+                        if (!isNaN(dateObj.getTime())) {
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const year = dateObj.getFullYear();
+                            const hours = String(dateObj.getHours()).padStart(2, '0');
+                            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                            formattedIncidentDate = `${day}/${month}/${year} ${hours}:${minutes}:00`;
+                        }
+                    } catch(e) {}
+                }
+
+                // Capitalize the first letter of the Unit (Setting)
+                let unitSetting = reportData.setting || '';
+                if (unitSetting) {
+                    unitSetting = unitSetting.charAt(0).toUpperCase() + unitSetting.slice(1);
+                }
+
                 const mappedRow = [
                     timestampStr,
-                    reportData.date || '',
+                    formattedIncidentDate,
                     reportData.facility || '',
-                    reportData.setting || '',
+                    unitSetting,
                     reportData.detection || '',
                     getMatches(clinicErr, ['Patient data', 'Medication', 'Dose', 'Frequency', 'Duration', 'Signature/Stamp/Proxy signature']),
                     getMatches(clinicErr, ['Medication', 'Dose', 'Frequency', 'Duration']),

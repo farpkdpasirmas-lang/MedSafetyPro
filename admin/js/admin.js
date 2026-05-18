@@ -451,11 +451,31 @@ const AdminService = {
                 const labelling = getMatches(pharmErr, ['Wrong drug', 'Wrong dose/ frequency/ dosage form', 'Wrong instruction', "Wrong patient's name"]);
                 const filling = getMatches(pharmErr, ['Wrong drug', 'Wrong strength/ dosage form', 'Wrong quantity', 'Unfilled drug']);
 
+                let eventDateTime = r.date || '';
+                if (eventDateTime) {
+                    try {
+                        const dateObj = new Date(eventDateTime);
+                        if (!isNaN(dateObj.getTime())) {
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const year = dateObj.getFullYear();
+                            const hours = String(dateObj.getHours()).padStart(2, '0');
+                            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                            eventDateTime = `${day}/${month}/${year} ${hours}:${minutes}:00`;
+                        }
+                    } catch(e) {}
+                }
+
+                let unitSetting = r.setting || '';
+                if (unitSetting) {
+                    unitSetting = unitSetting.charAt(0).toUpperCase() + unitSetting.slice(1);
+                }
+
                 const row = [
                     escapeCsv(timestampStr),
                     escapeCsv(eventDateTime),
                     escapeCsv(r.facility),
-                    escapeCsv(r.setting),
+                    escapeCsv(unitSetting),
                     escapeCsv(r.detection),
                     escapeCsv(preskripsiTidakLengkap),
                     escapeCsv(regimenTidakSesuai),
