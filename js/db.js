@@ -86,6 +86,64 @@ const DB = {
             reports.push(reportData);
         }
         localStorage.setItem('medsafety_reports_db', JSON.stringify(reports));
+
+        // Attempt Google Sheet Webhook Sync
+        if (typeof GOOGLE_SHEETS_WEBHOOK_URL !== 'undefined' && GOOGLE_SHEETS_WEBHOOK_URL.trim() !== '') {
+            try {
+                // Map the report data for the Webhook exactly like the CSV format
+                let timestampStr = '';
+                if (reportData.timestamp) {
+                    const d = new Date(reportData.timestamp);
+                    if (!isNaN(d.getTime())) {
+                        timestampStr = `${d.toLocaleDateString('en-GB')} ${d.toLocaleTimeString('en-US', { hour12: false })}`;
+                    } else {
+                        timestampStr = reportData.timestamp;
+                    }
+                }
+
+                const clinicErr = reportData.clinicErrors || [];
+                const pharmErr = reportData.pharmacyErrors || [];
+
+                const getMatches = (sourceArr, possibleVals) => {
+                    return sourceArr.filter(v => possibleVals.includes(v)).join(', ');
+                };
+
+                const mappedRow = [
+                    timestampStr,
+                    reportData.date || '',
+                    reportData.facility || '',
+                    reportData.setting || '',
+                    reportData.detection || '',
+                    getMatches(clinicErr, ['Patient data', 'Medication', 'Dose', 'Frequency', 'Duration', 'Signature/Stamp/Proxy signature']),
+                    getMatches(clinicErr, ['Medication', 'Dose', 'Frequency', 'Duration']),
+                    getMatches(clinicErr, ['Wrong patient', 'Polypharmacy', 'Contraindications', 'Drug interactions', 'Incompatibility']),
+                    getMatches(clinicErr, ['Medication not in the list', 'Illegible handwriting', 'Authenticity']),
+                    getMatches(pharmErr, ['Wrong drug', 'Wrong dose/ frequency/ dosage form', "Wrong patient's name", 'Omission of drug']),
+                    getMatches(pharmErr, ['Wrong drug', 'Wrong dose/ frequency/ dosage form', 'Wrong instruction', "Wrong patient's name"]),
+                    getMatches(pharmErr, ['Wrong drug', 'Wrong strength/ dosage form', 'Wrong quantity', 'Unfilled drug']),
+                    reportData.outcome || '',
+                    reportData.staffCategory || '',
+                    reportData.description || '',
+                    reportData.staffName || '',
+                    reportData.staffEmail || '',
+                    reportData.hasImage ? 'Image Attached in App' : '',
+                    reportData.reporterName || ''
+                ];
+
+                // Execute async fetch without blocking the save operation return
+                fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Prevents CORS errors from browser when pushing to Google Apps Script
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ rowArray: mappedRow })
+                }).then(() => console.log('Google Sheet Sync request sent.'))
+                  .catch(err => console.error('Google Sheet Sync Error:', err));
+
+            } catch (webhookErr) {
+                console.error("Error formatting data for Google Sheet webhook:", webhookErr);
+            }
+        }
+
         return reportData;
     },
 

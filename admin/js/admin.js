@@ -383,6 +383,115 @@ const AdminService = {
         link.click();
     },
 
+    exportToGoogleSheetFormatCSV: async () => {
+        try {
+            const reports = await AdminService.getAllReports();
+            if (!reports || reports.length === 0) {
+                alert('No reports to export.');
+                return;
+            }
+
+            // Define CSV headers exactly matching Google Sheet
+            const headers = [
+                'Timestamp',
+                'Tarikh dan Masa Kejadian',
+                'Fasiliti dimana kejadian kesilapan pengubatan berlaku',
+                'Unit dimana kejadian kesilapan pengubatan berlaku',
+                'Pengesanan Kesilapan',
+                'Preskripsi tidak lengkap',
+                'Regimen tidak sesuai',
+                'Preskripsi tidak sesuai',
+                'Lain-lain',
+                'Data Entry',
+                'Labelling',
+                'Filling',
+                'Kategori',
+                'Kategori individu yang membuat kesilapan',
+                'Ringkasan laporan kesilapan pengubatan',
+                'Nama individu yang membuat kesilapan pengubatan',
+                'email individu yang membuat kesilapan pengubatan',
+                'Gambar preskripsi/ gambar berkaitan yang menunjukkan kesilapan pengubatan',
+                'Pelapor'
+            ];
+
+            const csvRows = [headers.join(',')];
+
+            reports.forEach(r => {
+                const escapeCsv = (str) => {
+                    if (str === null || str === undefined) return '""';
+                    const stringified = String(str);
+                    return `"${stringified.replace(/"/g, '""')}"`;
+                };
+
+                let timestampStr = '';
+                if (r.timestamp) {
+                    const d = new Date(r.timestamp);
+                    if (!isNaN(d.getTime())) {
+                        timestampStr = `${d.toLocaleDateString('en-GB')} ${d.toLocaleTimeString('en-US', { hour12: false })}`;
+                    } else {
+                        timestampStr = r.timestamp;
+                    }
+                }
+
+                let eventDateTime = r.date || '';
+
+                const clinicErr = r.clinicErrors || [];
+                const pharmErr = r.pharmacyErrors || [];
+
+                const getMatches = (sourceArr, possibleVals) => {
+                    return sourceArr.filter(v => possibleVals.includes(v)).join(', ');
+                };
+
+                const preskripsiTidakLengkap = getMatches(clinicErr, ['Patient data', 'Medication', 'Dose', 'Frequency', 'Duration', 'Signature/Stamp/Proxy signature']);
+                const regimenTidakSesuai = getMatches(clinicErr, ['Medication', 'Dose', 'Frequency', 'Duration']);
+                const preskripsiTidakSesuai = getMatches(clinicErr, ['Wrong patient', 'Polypharmacy', 'Contraindications', 'Drug interactions', 'Incompatibility']);
+                const lainLain = getMatches(clinicErr, ['Medication not in the list', 'Illegible handwriting', 'Authenticity']);
+
+                const dataEntry = getMatches(pharmErr, ['Wrong drug', 'Wrong dose/ frequency/ dosage form', "Wrong patient's name", 'Omission of drug']);
+                const labelling = getMatches(pharmErr, ['Wrong drug', 'Wrong dose/ frequency/ dosage form', 'Wrong instruction', "Wrong patient's name"]);
+                const filling = getMatches(pharmErr, ['Wrong drug', 'Wrong strength/ dosage form', 'Wrong quantity', 'Unfilled drug']);
+
+                const row = [
+                    escapeCsv(timestampStr),
+                    escapeCsv(eventDateTime),
+                    escapeCsv(r.facility),
+                    escapeCsv(r.setting),
+                    escapeCsv(r.detection),
+                    escapeCsv(preskripsiTidakLengkap),
+                    escapeCsv(regimenTidakSesuai),
+                    escapeCsv(preskripsiTidakSesuai),
+                    escapeCsv(lainLain),
+                    escapeCsv(dataEntry),
+                    escapeCsv(labelling),
+                    escapeCsv(filling),
+                    escapeCsv(r.outcome),
+                    escapeCsv(r.staffCategory),
+                    escapeCsv(r.description),
+                    escapeCsv(r.staffName),
+                    escapeCsv(r.staffEmail),
+                    escapeCsv(r.hasImage ? 'Image Attached in App' : ''),
+                    escapeCsv(r.reporterName)
+                ];
+                
+                csvRows.push(row.join(','));
+            });
+
+            const csvData = csvRows.join('\n');
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `medsafety_gsheet_backup_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (error) {
+            console.error("Error exporting to Google Sheet CSV format:", error);
+            alert("An error occurred while generating the CSV.");
+        }
+    },
+
     // ============= BACKUP & RESTORE =============
     backupAllData: async () => {
         const backup = {
