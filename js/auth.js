@@ -208,11 +208,13 @@ const AuthService = {
 
                 const mergedUser = { ...userDetails, email: user.email, id: user.uid };
 
+                /* TEMPORARILY DISABLED: Allow all users to log in without approval
                 if (!mergedUser.approved && mergedUser.role !== 'admin') {
                     // Sign out because they shouldn't actually be logged in
                     await auth.signOut();
                     return { success: false, message: 'Your account is pending admin approval.' };
                 }
+                */
 
                 localStorage.setItem(AUTH_KEY, JSON.stringify(mergedUser));
                 return { success: true, user: mergedUser };
@@ -234,9 +236,11 @@ const AuthService = {
                             }
                             
                             if (isValid) {
+                                /* TEMPORARILY DISABLED
                                 if (!localUser.approved && localUser.role !== 'admin') {
                                     return { success: false, message: 'Your account is pending admin approval.' };
                                 }
+                                */
                                 const { password, ...userWithoutPass } = localUser;
                                 localStorage.setItem(AUTH_KEY, JSON.stringify(userWithoutPass));
                                 return { success: true, user: userWithoutPass };
@@ -265,9 +269,11 @@ const AuthService = {
                 }
 
                 if (isValid) {
+                    /* TEMPORARILY DISABLED
                     if (!user.approved && user.role !== 'admin') {
                         return { success: false, message: 'Your account is pending admin approval.' };
                     }
+                    */
 
                     const { password, ...userWithoutPass } = user;
                     localStorage.setItem(AUTH_KEY, JSON.stringify(userWithoutPass));
