@@ -634,7 +634,9 @@ const DB = {
                     return data;
                 }
             } catch (error) {
-                console.warn("Firestore error for staff data. Falling back to local storage.", error);
+                if (error.code !== 'permission-denied') {
+                    console.warn("Firestore error for staff data. Falling back to local storage.", error);
+                }
             }
         }
         
