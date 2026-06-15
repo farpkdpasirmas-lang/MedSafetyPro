@@ -316,55 +316,61 @@ const AdminService = {
         }
     },
 
-    searchReports: (query) => {
+    searchReports: (query, type) => {
         const reports = AdminApp.allReports;
         const lowerQuery = query.toLowerCase().trim();
         if (!lowerQuery) return reports;
 
+        const searchType = type || document.getElementById('report-search-type')?.value || 'all';
+
         return reports.filter(r => {
             // Check text fields (KK/facility, staff name, reporter name, staff email, description, serial number)
             const matchesText = 
-                r.facility?.toLowerCase().includes(lowerQuery) ||
-                r.staffName?.toLowerCase().includes(lowerQuery) ||
-                r.reporterName?.toLowerCase().includes(lowerQuery) ||
-                r.staffEmail?.toLowerCase().includes(lowerQuery) ||
-                r.description?.toLowerCase().includes(lowerQuery) ||
-                r.serialNumber?.toLowerCase().includes(lowerQuery);
+                ((searchType === 'all' || searchType === 'kk') && r.facility?.toLowerCase().includes(lowerQuery)) ||
+                ((searchType === 'all' || searchType === 'name') && r.staffName?.toLowerCase().includes(lowerQuery)) ||
+                ((searchType === 'all' || searchType === 'name') && r.reporterName?.toLowerCase().includes(lowerQuery)) ||
+                (searchType === 'all' && (
+                    r.staffEmail?.toLowerCase().includes(lowerQuery) ||
+                    r.description?.toLowerCase().includes(lowerQuery) ||
+                    r.serialNumber?.toLowerCase().includes(lowerQuery)
+                ));
 
             if (matchesText) return true;
 
             // Check date/time fields using parsed dates (both timestamp and date fields)
-            const dateFields = [r.timestamp, r.date].filter(Boolean);
-            for (const dateVal of dateFields) {
-                const d = parseReportDate(dateVal);
-                if (d && d.getTime() !== 0) {
-                    const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
-                    const dateDisplayStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).toLowerCase(); // e.g. "15/06/2026"
-                    
-                    const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
-                    const monthShortNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-                    
-                    const monthName = monthNames[d.getMonth()];
-                    const monthShortName = monthShortNames[d.getMonth()];
-                    const day = d.getDate().toString();
-                    const year = d.getFullYear().toString();
-                    
-                    const longDate = `${day} ${monthName} ${year}`;
-                    const shortDate = `${day} ${monthShortName} ${year}`;
-                    const monthYearLong = `${monthName} ${year}`;
-                    const monthYearShort = `${monthShortName} ${year}`;
+            if (searchType === 'all' || searchType === 'date') {
+                const dateFields = [r.timestamp, r.date].filter(Boolean);
+                for (const dateVal of dateFields) {
+                    const d = parseReportDate(dateVal);
+                    if (d && d.getTime() !== 0) {
+                        const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+                        const dateDisplayStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).toLowerCase(); // e.g. "15/06/2026"
+                        
+                        const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+                        const monthShortNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+                        
+                        const monthName = monthNames[d.getMonth()];
+                        const monthShortName = monthShortNames[d.getMonth()];
+                        const day = d.getDate().toString();
+                        const year = d.getFullYear().toString();
+                        
+                        const longDate = `${day} ${monthName} ${year}`;
+                        const shortDate = `${day} ${monthShortName} ${year}`;
+                        const monthYearLong = `${monthName} ${year}`;
+                        const monthYearShort = `${monthShortName} ${year}`;
 
-                    if (
-                        timeStr.includes(lowerQuery) ||
-                        dateDisplayStr.includes(lowerQuery) ||
-                        longDate.includes(lowerQuery) ||
-                        shortDate.includes(lowerQuery) ||
-                        monthYearLong.includes(lowerQuery) ||
-                        monthYearShort.includes(lowerQuery) ||
-                        dateVal.toLowerCase().includes(lowerQuery)
-                     ) {
-                         return true;
-                     }
+                        if (
+                            timeStr.includes(lowerQuery) ||
+                            dateDisplayStr.includes(lowerQuery) ||
+                            longDate.includes(lowerQuery) ||
+                            shortDate.includes(lowerQuery) ||
+                            monthYearLong.includes(lowerQuery) ||
+                            monthYearShort.includes(lowerQuery) ||
+                            dateVal.toLowerCase().includes(lowerQuery)
+                         ) {
+                             return true;
+                         }
+                    }
                 }
             }
 
@@ -1204,6 +1210,15 @@ const AdminApp = {
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 const results = AdminService.searchReports(e.target.value);
+                AdminApp.renderReportList(results);
+            });
+        }
+
+        const searchTypeSelect = document.getElementById('report-search-type');
+        if (searchTypeSelect) {
+            searchTypeSelect.addEventListener('change', () => {
+                const query = searchInput ? searchInput.value : '';
+                const results = AdminService.searchReports(query);
                 AdminApp.renderReportList(results);
             });
         }

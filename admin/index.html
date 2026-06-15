@@ -118,14 +118,40 @@
         .search-box {
             flex: 1;
             min-width: 250px;
+            display: flex;
+            gap: 0.5rem;
         }
 
         .search-box input {
-            width: 100%;
+            flex: 1;
             padding: 0.75rem 1rem;
             border: 1px solid #e2e8f0;
             border-radius: var(--radius-md);
             font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .search-type-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            background-color: white;
+            color: var(--color-text-main);
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-type-select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
         .btn-icon {
@@ -263,7 +289,13 @@
                             
                             <div class="action-bar">
                                 <div class="search-box">
-                                    <input type="text" id="report-search" placeholder="🔍 Search reports by KK, date, name, email, or time...">
+                                    <input type="text" id="report-search" placeholder="🔍 Search reports...">
+                                    <select id="report-search-type" class="search-type-select">
+                                        <option value="all">🔍 All Fields</option>
+                                        <option value="kk">🏥 KK / Facility</option>
+                                        <option value="date">📅 Date</option>
+                                        <option value="name">👤 Name (Staff/Reporter)</option>
+                                    </select>
                                 </div>
                                 <button onclick="AdminApp.renderReportList()" class="btn btn-outline">🔄 Refresh</button>
                                 <button onclick="AdminService.exportReportsToCSV()" class="btn" style="background: #10b981; color: white;">📥 Download All to CSV</button>
