@@ -6,6 +6,30 @@
 // Embedded staff data - automatically available
 // Duplicate STAFF_DATA definition removed
 
+// Helper function to safely parse dates that might be in DD/MM/YYYY format
+const parseReportDate = (dateStr) => {
+    if (!dateStr) return new Date(0);
+
+    // Check if it's strictly DD/MM/YYYY (or DD/MM/YYYY HH:mm)
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(dateStr)) {
+        // Split date and optional time parts
+        const parts = dateStr.split(' ');
+        const dateParts = parts[0].split('/');
+
+        // Construct ISO string YYYY-MM-DD
+        const isoDateStr = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+
+        if (parts[1]) {
+            return new Date(`${isoDateStr}T${parts[1]}`);
+        }
+        return new Date(isoDateStr);
+    }
+
+    // Fallback to standard parsing
+    const parsed = new Date(dateStr);
+    return isNaN(parsed.getTime()) ? new Date(0) : parsed;
+};
+
 const AdminService = {
     // ============= USER MANAGEMENT =============
     getAllUsers: async () => {
@@ -294,23 +318,57 @@ const AdminService = {
 
     searchReports: (query) => {
         const reports = AdminApp.allReports;
-        const lowerQuery = query.toLowerCase();
+        const lowerQuery = query.toLowerCase().trim();
+        if (!lowerQuery) return reports;
 
         return reports.filter(r => {
-            let timeStr = '';
-            if (r.timestamp) {
-                const d = new Date(r.timestamp);
-                if (!isNaN(d.getTime())) {
-                    timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+            // Check text fields (KK/facility, staff name, reporter name, staff email, description, serial number)
+            const matchesText = 
+                r.facility?.toLowerCase().includes(lowerQuery) ||
+                r.staffName?.toLowerCase().includes(lowerQuery) ||
+                r.reporterName?.toLowerCase().includes(lowerQuery) ||
+                r.staffEmail?.toLowerCase().includes(lowerQuery) ||
+                r.description?.toLowerCase().includes(lowerQuery) ||
+                r.serialNumber?.toLowerCase().includes(lowerQuery);
+
+            if (matchesText) return true;
+
+            // Check date/time fields using parsed dates (both timestamp and date fields)
+            const dateFields = [r.timestamp, r.date].filter(Boolean);
+            for (const dateVal of dateFields) {
+                const d = parseReportDate(dateVal);
+                if (d && d.getTime() !== 0) {
+                    const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+                    const dateDisplayStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).toLowerCase(); // e.g. "15/06/2026"
+                    
+                    const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+                    const monthShortNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+                    
+                    const monthName = monthNames[d.getMonth()];
+                    const monthShortName = monthShortNames[d.getMonth()];
+                    const day = d.getDate().toString();
+                    const year = d.getFullYear().toString();
+                    
+                    const longDate = `${day} ${monthName} ${year}`;
+                    const shortDate = `${day} ${monthShortName} ${year}`;
+                    const monthYearLong = `${monthName} ${year}`;
+                    const monthYearShort = `${monthShortName} ${year}`;
+
+                    if (
+                        timeStr.includes(lowerQuery) ||
+                        dateDisplayStr.includes(lowerQuery) ||
+                        longDate.includes(lowerQuery) ||
+                        shortDate.includes(lowerQuery) ||
+                        monthYearLong.includes(lowerQuery) ||
+                        monthYearShort.includes(lowerQuery) ||
+                        dateVal.toLowerCase().includes(lowerQuery)
+                     ) {
+                         return true;
+                     }
                 }
             }
 
-            return r.facility?.toLowerCase().includes(lowerQuery) ||
-                r.staffName?.toLowerCase().includes(lowerQuery) ||
-                r.staffEmail?.toLowerCase().includes(lowerQuery) ||
-                r.description?.toLowerCase().includes(lowerQuery) ||
-                r.serialNumber?.toLowerCase().includes(lowerQuery) ||
-                timeStr.includes(lowerQuery);
+            return false;
         });
     },
 
@@ -1718,30 +1776,6 @@ const AdminApp = {
         if (!tbody) return;
 
         let reports = filteredReports || AdminApp.allReports;
-
-        // Helper function to safely parse dates that might be in DD/MM/YYYY format
-        const parseReportDate = (dateStr) => {
-            if (!dateStr) return new Date(0);
-
-            // Check if it's strictly DD/MM/YYYY (or DD/MM/YYYY HH:mm)
-            if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(dateStr)) {
-                // Split date and optional time parts
-                const parts = dateStr.split(' ');
-                const dateParts = parts[0].split('/');
-
-                // Construct ISO string YYYY-MM-DD
-                const isoDateStr = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
-
-                if (parts[1]) {
-                    return new Date(`${isoDateStr}T${parts[1]}`);
-                }
-                return new Date(isoDateStr);
-            }
-
-            // Fallback to standard parsing
-            const parsed = new Date(dateStr);
-            return isNaN(parsed.getTime()) ? new Date(0) : parsed;
-        };
 
         // Sort logic
         reports.sort((a, b) => {
