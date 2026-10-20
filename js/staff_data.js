@@ -1,33 +1,21 @@
 const STAFF_DATA = {
     "KK Bandar Pasir Mas": [
         {
-            "name": "DR JUSOH B. AWANG SENIK",
+            "name": "DR. JUSOH B. AWANG SENIK",
             "position": "Pakar",
             "email": "drjusoh69@yahoo.com",
             "category": "Medical Specialist / FMS"
         },
         {
-            "name": "DR SHIMILAAIDA BT MOHD ALI JANAF",
+            "name": "DR. SHIMILAAIDA BT MOHD ALI JANAF",
             "position": "Pakar",
             "email": "shimilaaida@moh.gov.my",
             "category": "Medical Specialist / FMS"
         },
         {
-            "name": "DR. NUR NADZIRAH BT MOHD NAZIR",
-            "position": "Pegawai Perubatan",
-            "email": "nadzirahnazir@gmail.com",
-            "category": "Medical Officer (MO)"
-        },
-        {
             "name": "DR. HANIF B. ISMAIL",
             "position": "Pegawai Perubatan",
             "email": "anyp99@hotmail.com",
-            "category": "Medical Officer (MO)"
-        },
-        {
-            "name": "DR.NIK KHADIJAH BINTI NIK MUSTAFFA SHAPRI",
-            "position": "Pegawai Perubatan",
-            "email": "nikkhadijahshapri@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
@@ -40,12 +28,6 @@ const STAFF_DATA = {
             "name": "DR. NOR MAZLINA BT MOHAMED",
             "position": "Pegawai Perubatan",
             "email": "drnormazlina@moh.gov.my",
-            "category": "Medical Officer (MO)"
-        },
-        {
-            "name": "DR NURUL SHAZWANI BINTI SULAIMAN",
-            "position": "Pegawai Perubatan",
-            "email": "inaw1106@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
@@ -67,12 +49,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR. ANIS BT AB WAHAB",
-            "position": "Pegawai Perubatan",
-            "email": "anisabwahab534@gmail.com",
-            "category": "Medical Officer (MO)"
-        },
-        {
             "name": "DR. ZULHASHIMIE B ZULKEFLI",
             "position": "Pegawai Perubatan",
             "email": "drzulhashime@moh.gov.my",
@@ -85,25 +61,19 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR NUR SYAMIMI BT ROSLEY",
+            "name": "DR. NUR SYAMIMI BT ROSLEY",
             "position": "Pegawai Perubatan",
             "email": "mimiey_mamito@yahoo.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR. SYAFIQUE B ABDULLAH@SHAMSUDDIN",
-            "position": "Pegawai Perubatan",
-            "email": "syafique911@gmail.com",
-            "category": "Medical Officer (MO)"
-        },
-        {
-            "name": "DR MOHD MUSTASSRIKH BIN MAT ZAIN",
+            "name": "DR. MOHD MUSTASSRIKH BIN MAT ZAIN",
             "position": "Pegawai Perubatan",
             "email": "mustassrikh@moh.gov.my",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR SITI ROSMALINDA BINTI YUNUS",
+            "name": "DR. SITI ROSMALINDA BINTI YUNUS",
             "position": "Pegawai Perubatan",
             "email": "lindayunus2404@gmail.com",
             "category": "Medical Officer (MO)"
@@ -145,118 +115,154 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "EN. MOHD ZULKIFLI BIN ALIAS",
+            "name": "DR. NUR AIN FATIHAH BT. ABDULLAH",
+            "position": "Pegawai Perubatan",
+            "email": "ainfatihah93@gmail.com",
+            "category": "Medical Officer (MO)"
+        },
+        {
+            "name": "DR SHUHAINIE NADIA BINTI YUSOF",
+            "position": "Pegawai Perubatan",
+            "email": "shuhainienadia@moh.gov.my",
+            "category": "Medical Officer (MO)"
+        },
+        {
+            "name": "DR NUR AFIFAH BINTI  ZOLKEFILI @ ZULKIFLI",
+            "position": "Pegawai Perubatan",
+            "email": "afifahzolkefili@gmail.com",
+            "category": "Medical Officer (MO)"
+        },
+        {
+            "name": "MOHD ZULKIFLI BIN ALIAS",
             "position": "Penolong Pegawai Perubatan",
-            "email": "",
+            "email": "mohdzulkiflialias@moh.gov.my",
             "category": "Assistant Medical Officer (MA)"
         },
         {
-            "name": "EN. MOHD RUSDI B. JUSOH @ AB.HALIM",
+            "name": "MOHD RUSDI B. JUSOH @ AB.HALIM",
             "position": "Penolong Pegawai Perubatan",
-            "email": "",
+            "email": "rusdiabdhalim@gmail.com",
             "category": "Assistant Medical Officer (MA)"
         },
         {
-            "name": "EN. SAYID MOHD AZMI B. SAYID YUSOFF",
+            "name": "MOHD ZUKI BIN MOHD ZAIN",
             "position": "Penolong Pegawai Perubatan",
-            "email": "",
+            "email": "zukimohdzain@gmail.com",
             "category": "Assistant Medical Officer (MA)"
         },
         {
-            "name": "EN. SAID ADLI B SAID AHAMAD MASTAFAR",
+            "name": "SAYID MOHD AZMI B. SAYID YUSOFF",
+            "position": "Penolong Pegawai Perubatan",
+            "email": "Sayidazmi995@gmail.com",
+            "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "SAID ADLI B SAID AHAMAD MASTAFAR",
             "position": "Penolong Pegawai Perubatan",
             "email": "saidadlisaidahamadmastafar@gmail.com",
             "category": "Assistant Medical Officer (MA)"
         },
         {
-            "name": "EN. MOHD BAKRI B. RAZALI",
+            "name": "MOHD BAKRI B. RAZALI",
             "position": "Penolong Pegawai Perubatan",
             "email": "mrbarbarikblack7777@gmail.com",
             "category": "Assistant Medical Officer (MA)"
         },
         {
-            "name": "EN. AHMAD FAUZI B. SAAT",
+            "name": "AHMAD FAUZI B. SAAT",
             "position": "Penolong Pegawai Perubatan",
             "email": "afauzisaat@gmail.com",
             "category": "Assistant Medical Officer (MA)"
         },
         {
-            "name": "EN.MOHD NOR B. MUHAMAD",
+            "name": "MOHD NOR B. MUHAMAD",
             "position": "Penolong Pegawai Perubatan",
             "email": "eideenmuhammad@gmail.com",
             "category": "Assistant Medical Officer (MA)"
         },
         {
+            "name": "PN. ROHAYA BINTI HUSSIN",
+            "position": "Pegawai Farmasi",
+            "email": "rohaya.hussin@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
             "name": "SHA'ERAH BT MOHD YUSOFF",
-            "position": "UF14",
+            "position": "Pegawai Farmasi",
             "email": "shaerah_my@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
+            "name": "MAZNIRA BINTI DERAMAN",
+            "position": "Pegawai Farmasi",
+            "email": "maznira2@moh.gov.my",
+            "category": "Pharmacist (PF)"
+        },
+        {
             "name": "NOR AZRA BINTI SHOKSI",
-            "position": "UF14",
+            "position": "Pegawai Farmasi",
             "email": "norazra@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NURUL KHAIRIYAH BINTI WANIK",
-            "position": "UF12",
+            "position": "Pegawai Farmasi",
             "email": "nurulkhairiyah17@gmail.com",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "SITI FATIMAH BINTI YAAKUB",
-            "position": "UF14",
+            "position": "Pegawai Farmasi",
             "email": "ctfatimah.y@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NURUL BAZLIAH BINTI AHMAD",
-            "position": "UF12",
+            "position": "Pegawai Farmasi",
             "email": "n.bazliah@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NURUL IFFAH BINTI BADRUL AINI",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "iffahbadrul@gmail.com",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "AHMAD WAFEEQ MIRRZA BIN YUSOFF",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "wafeeqmirrza@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
-            "name": "MUHAMMAD AMRU HAIMAN BIN MAT ROFI",
-            "position": "UF9",
-            "email": "amruhaiman01@gmail.com",
+            "name": "MUHAMMAD ANAS BIN MOHD AZKAH",
+            "position": "Pegawai Farmasi",
+            "email": "anasazkah63@gmail.com",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NIK MOHD NAZRI BIN NIK OMAR",
-            "position": "U6 (tbk1)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "nikmohdnazrinikomar@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "SITI RABI'ATUL' ADAWIYAH BT. MOHD. RAHIM",
-            "position": "U5",
+            "position": "Penolong Pegawai Farmasi",
             "email": "rabiatulm.rahim@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
-            "name": "ANUAR BIN MD SALIM",
-            "position": "U5",
-            "email": "anuar.mdsalim1983@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "name": "NABILAH BINTI MOHD @ MOHD SABRY",
+            "position": "Penolong Pegawai Farmasi",
+            "email": "nabilahwna24@gmail.com",
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "SITI NOR SYAFIKA BINTI MAT RIPIN",
-            "position": "U5",
+            "position": "Penolong Pegawai Farmasi",
             "email": "sitinorsyafikaaa@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         }
     ],
     "KK Rantau Panjang": [
@@ -285,7 +291,7 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "SITI NORIDAYU BINTI SHAFIE",
+            "name": "DR SITI NORIDAYU BINTI SHAFIE",
             "position": "Pegawai Perubatan",
             "email": "idayushafie94@gmail.com",
             "category": "Medical Officer (MO)"
@@ -387,69 +393,93 @@ const STAFF_DATA = {
             "category": "Assistant Medical Officer (MA)"
         },
         {
+            "name": "MUHAMMAD AFIQ BIN ZAHIDI",
+            "position": "Penolong Pegawai Perubatan",
+            "email": "afiqzahidi@moh.gov.my",
+            "category": "Assistant Medical Officer (MA)"
+        },
+        {
             "name": "NURUL HASIKIN BINTI MOHD TAIB",
-            "position": "UF13",
+            "position": "Pegawai Farmasi",
             "email": "hasikin.mtaib@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
-            "name": "NOR LIYANA IZZATI BINTI HAMIL",
-            "position": "UF9",
-            "email": "norliyanaizzatihamil@moh.gov.my",
+            "name": "NUR AMALINA ZAIZA BINTI ZAHARI",
+            "position": "Pegawai Farmasi",
+            "email": "nuramalinazaiza@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NADZIRAH BT ANUAR",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "nazirahanuar@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
-            "name": "MUHAMMAD HANIFF BIN RAMLI",
-            "position": "UF9",
-            "email": "muhdhaniff_93@yahoo.com",
+            "name": "SAIFUL HAZIM BIN SULAIMAN",
+            "position": "Pegawai Farmasi",
+            "email": "saifulhazim.sulaiman@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "AZMA NURHANI BINTI AHMAD",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "azmanurhani@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
-            "name": "FAIZATUL ADIDA BT MOHAMAD RIDUAN",
-            "position": "U6",
-            "email": "faizatuladida@moh.gov.my",
-            "category": "Pharmacy Assistant (PPF)"
-        },
-        {
             "name": "MOHD KHAIRUL RAHIMI BIN MOHD YATIM",
-            "position": "U6",
+            "position": "Penolong Pegawai Farmasi",
             "email": "petedoherty78@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "SITI AYUNIE BT FAUZI",
-            "position": "U6 (TBK)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "einuya_unie@yahoo.com",
-            "category": "Pharmacy Assistant (PPF)"
-        },
-        {
-            "name": "NORSYAHIDAH BINTI MOHD ZAWAWI",
-            "position": "U5",
-            "email": "norsyahidah.zawawi@moh.gov.my",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "ROSILAWATI BINTI JUSOH",
-            "position": "U5",
+            "position": "Penolong Pegawai Farmasi",
             "email": "rosilawatijusoh97@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
+        },
+        {
+            "name": "NOR AZNI BINTI AZIZ",
+            "position": "Jururawat Kesihatan",
+            "email": "azni666666@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "NOOR ANIZA BINTI MOHAMAD ANUAR",
+            "position": "Jururawat Kesihatan",
+            "email": "nooraniza7282@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "YUSTINI BINTI MAT YUSOF",
+            "position": "Jururawat Kesihatan",
+            "email": "yustini80@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "NOORHIDAYAH BINTI SHAHIRING",
+            "position": "Jururawat Kesihatan",
+            "email": "hidayahshahiring@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "HILMIAH BINTI ZAMRI",
+            "position": "Jururawat Kesihatan",
+            "email": "kaklongawie@gmail.com",
+            "category": "Nurse"
         }
     ],
     "KK Meranti": [
         {
-            "name": "DR. NOR ASMAH BT HASAN",
+            "name": "DR NOR ASMAH BT HASAN",
             "position": "Pakar",
             "email": "norasmah_hasan@moh.gov.my",
             "category": "Medical Specialist / FMS"
@@ -461,25 +491,25 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR.NOR SHAKIRAH BT ZAWAWI",
+            "name": "DR NOR SHAKIRAH BT ZAWAWI",
             "position": "Pegawai Perubatan",
             "email": "syakira_akira@yahoo.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR. MOHD SYAZWAN BIN ZAID",
+            "name": "DR MOHD SYAZWAN BIN ZAID",
             "position": "Pegawai Perubatan",
             "email": "haxard17@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR.MUHAMMAD HISYAM BIN ABDU AZIZ",
+            "name": "DR MUHAMMAD HISYAM BIN ABDU AZIZ",
             "position": "Pegawai Perubatan",
             "email": "hisyamaziz1991@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR. AIDA ZURINA BINTI SHAARI",
+            "name": "DR AIDA ZURINA BINTI SHAARI",
             "position": "Pegawai Perubatan",
             "email": "aidazurina@moh.gov.my",
             "category": "Medical Officer (MO)"
@@ -503,100 +533,124 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR SITI NURUL AMIRAH  MAHIAN @ NORDIN",
+            "name": "DR SITI NURUL AMIRAH MAHIAN @ NORDIN",
             "position": "Pegawai Perubatan",
             "email": "amirahmahian@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR. SITI SYAZWANI BT MOHD",
+            "name": "DR SITI SYAZWANI BT MOHD",
             "position": "Pegawai Perubatan",
             "email": "sitisyazwanimohd@yahoo.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR DR ROSMAH  CHE ALI",
+            "name": "DR ROSMAH CHE ALI",
             "position": "Pegawai Perubatan",
             "email": "drrosmah@moh.gov.my",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "MUHAINI BINTI ABD HADI",
-            "position": "UF13",
-            "email": "muhaini_abd@moh.gov.my",
+            "name": "DR FATIMAH HANIM BINTI ZAKARIA",
+            "position": "Pakar",
+            "email": "fatimah_hanim88@yahoo.com",
+            "category": "Medical Specialist / FMS"
+        },
+        {
+            "name": "DR INIRAH SYAZWIN BINTI MOHD RAZALLY",
+            "position": "Pegawai Perubatan",
+            "email": "inirahsyazrin5789@gmail.com",
+            "category": "Medical Officer (MO)"
+        },
+        {
+            "name": "MOHD KAMARUDDIN BIN AB MAJID",
+            "position": "Penolong Pegawai Perubatan",
+            "email": "mohd.kamaruddin@moh.gov.my",
+            "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "ZAKY HAYAT BIN AZHAR",
+            "position": "Penolong Pegawai Perubatan",
+            "email": "zakyhayat95@yahoo.com",
+            "category": "Assistant Medical Officer (MA)"
+        },
+        {
+            "name": "NURUL FHARIHA BINTI KAMARUDIN",
+            "position": "Pegawai Farmasi",
+            "email": "fhariha@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "MOHD AMINUDDIN BIN MOHAMED RAJIB",
-            "position": "UF12",
+            "position": "Pegawai Farmasi",
             "email": "mohdaminuddin@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NUR SYAQIRA AMIRA BINTI SAMSUKI",
-            "position": "UF12",
-            "email": "myrasamsuki@yahoo.com",
+            "position": "Pegawai Farmasi",
+            "email": "nursyaqiraamira@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NOOR FAZIHAN BINTI MOHAMED",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "dfazzmohamed@gmail.com",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NABILAH BINTI ISMAIL",
-            "position": "UF14",
+            "position": "Pegawai Farmasi",
             "email": "nabilah.i@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "WAN MUHAMAD AZMAN BIN WAN MOHAMAD",
-            "position": "UF13",
+            "position": "Pegawai Farmasi",
             "email": "wmazman@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "AZLAN BIN YUSOH",
-            "position": "U6(TBK)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "azlanyusoh891129@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "NORLINA BINTI ABDUL",
-            "position": "U6(TBK1)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "norlina.abdul@moh.gov.my",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "NASNURA BINTI NATI",
-            "position": "U6(KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "nasnura.nati@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
-            "name": "MOHAMAD YUZAIMIN BIN USOFF",
-            "position": "N1",
-            "email": "yuzaimin@moh.gov.my",
-            "category": "Support Staff"
+            "name": "ANIZIAH BINTI ABDUL RAZAK",
+            "position": "Ketua Jururawat",
+            "email": "aniziah@moh.gov.my",
+            "category": "Nurse"
         },
         {
-            "name": "CHE ESHAH BINTI HUSIN",
-            "position": "N2",
-            "email": "cheeshah@moh.gov.my",
-            "category": "Support Staff"
+            "name": "MAIZINI BINTI MUHAMAD",
+            "position": "Jururawat Masyarakat",
+            "email": "maizini7676@gmail.com",
+            "category": "Nurse"
         },
         {
-            "name": "KARTINA BT MUHAMAD",
-            "position": "N2",
-            "email": "kartinamuhamad@moh.gov.my",
-            "category": "Support Staff"
+            "name": "NORHASIMAH BINTI CHE SOH",
+            "position": "Jururawat Kesihatan",
+            "email": "omahasimah1978@gmail.com",
+            "category": "Nurse"
         },
         {
-            "name": "NORHASLIZA BINTI ZAINI",
-            "position": "H1",
-            "email": "syasyaoren@gmail.com",
-            "category": "Support Staff"
+            "name": "ROSLIZA BINTI MOKHTAR",
+            "position": "Jururawat Kesihatan",
+            "email": "roslimokhtarsn@gmail.com",
+            "category": "Nurse"
         }
     ],
     "KK Tendong": [
@@ -631,7 +685,7 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR MOHD HAIRUL FITRI BIN MOHHAIRI",
+            "name": "DR. MOHD HAIRUL FITRI BIN MOHHAIRI",
             "position": "Pegawai Perubatan",
             "email": "m.hairulfitri@gmail.com",
             "category": "Medical Officer (MO)"
@@ -661,27 +715,15 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR HELWA FARHANI BINTI MAT ALI",
+            "name": "DR. HELWA FARHANI BINTI MAT ALI",
             "position": "Pegawai Perubatan",
             "email": "helwafma_88@yahoo.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR. SITI NABILALLHUDA BINTI AZMI",
+            "name": "DR. AINDAH BINTI ROSLI",
             "position": "Pegawai Perubatan",
-            "email": "snabilaazmi@gmail.com",
-            "category": "Medical Officer (MO)"
-        },
-        {
-            "name": "DR MUHAMMAD ZAID BIN IBRAHIM",
-            "position": "Pegawai Perubatan",
-            "email": "zaidm001311@yahoo.com",
-            "category": "Medical Officer (MO)"
-        },
-        {
-            "name": "DR AINDAH",
-            "position": "Pegawai Perubatan",
-            "email": "draindah@moh.gov.my",
+            "email": "draindah @moh.gov.my",
             "category": "Medical Officer (MO)"
         },
         {
@@ -734,104 +776,104 @@ const STAFF_DATA = {
         },
         {
             "name": "LIM EE LAINE",
-            "position": "UF14",
+            "position": "Pegawai Farmasi",
             "email": "limeelaine66@gmail.com",
             "category": "Pharmacist (PF)"
         },
         {
-            "name": "NUR NADILA ALIA BINTI HAMZAH",
-            "position": "UF13",
-            "email": "nadila@moh.gov.my",
-            "category": "Pharmacist (PF)"
-        },
-        {
             "name": "NURUL EZZATI ARIFIN",
-            "position": "UF13",
+            "position": "Pegawai Farmasi",
             "email": "nurulezzati@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "IZZATI SALIHAH BINTI AHMAD JOHARI",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "izzzati1214@gmail.com",
             "category": "Pharmacist (PF)"
         },
         {
-            "name": "INTAN AMALIYA BINTI IBRAHIM",
-            "position": "UF9",
-            "email": "intanamaliya98@gmail.com",
+            "name": "NUR TASNIM ADLINA BINTI MAZDI",
+            "position": "Pegawai Farmasi",
+            "email": "tasnimadlina01@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
+            "name": "MUHAMMAD AMRU HAIMAN BIN MAT ROFI",
+            "position": "Pegawai Farmasi",
+            "email": "amruhaiman01@gmail.com",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "SUNEETA BT SOHAIMI",
-            "position": "U6(KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "suneetasohaimi87@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "NORAZILAH BINTI ADNAN",
-            "position": "U5",
+            "position": "Penolong Pegawai Farmasi",
             "email": "azilah_ahze@yahoo.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "MUHD KHAIRUL  'ANAM BIN HAZAN MAGHDUM",
-            "position": "U6 (KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "temilaboy@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         }
     ],
     "KK Kangkong": [
         {
-            "name": "RODZIAH BINTI ALI",
+            "name": "DR RODZIAH BINTI ALI",
             "position": "Pakar",
             "email": "drrodziah@moh.gov.my",
             "category": "Medical Specialist / FMS"
         },
         {
-            "name": "NIK FADHILAH BINTI NIK SOH",
+            "name": "DR NIK FADHILAH BINTI NIK SOH",
             "position": "Pegawai Perubatan",
             "email": "drfadhilah@moh.gov.my",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "NURULATIQAH BINTI ISMAIL",
+            "name": "DR NURULATIQAH BINTI ISMAIL",
             "position": "Pegawai Perubatan",
             "email": "drnurulatiqahismail@moh.gov.my",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "TENGKU NUR FARAH UMAINA BINTI TENGKU MIZAM",
+            "name": "DR TENGKU NUR FARAH UMAINA BINTI TENGKU MIZAM",
             "position": "Pegawai Perubatan",
             "email": "farahmizam87@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "WAN MOHD HAFIZULLAH BIN WAN MANSOR",
+            "name": "DR WAN MOHD HAFIZULLAH BIN WAN MANSOR",
             "position": "Pegawai Perubatan",
             "email": "wanhafizullah@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "ZATIL AQMAR BINTI MOHD ZIN",
+            "name": "DR ZATIL AQMAR BINTI MOHD ZIN",
             "position": "Pegawai Perubatan",
             "email": "adhwa253@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "NURUL IZZAH BINTI CHE MAT",
+            "name": "DR NURUL IZZAH BINTI CHE MAT",
             "position": "Pegawai Perubatan",
             "email": "nurzza92@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "MUHAMMAD BASHEER BIN YAHYA",
+            "name": "DR MUHAMMAD BASHEER BIN YAHYA",
             "position": "Pegawai Perubatan",
             "email": "basheer.yahya@yahoo.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "MUHAMMAD ZULHUSNI BIN MUHAMMAD NAJIB",
+            "name": "DR MUHAMMAD ZULHUSNI BIN MUHAMMAD NAJIB",
             "position": "Pegawai Perubatan",
             "email": "muhd.zulhusni@gmail.com",
             "category": "Medical Officer (MO)"
@@ -868,42 +910,48 @@ const STAFF_DATA = {
         },
         {
             "name": "WAN HAZNI BINTI TUAN AZIZ",
-            "position": "UF14",
+            "position": "Pegawai Farmasi",
             "email": "wanhazni@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NIK EZMIZA BINTI NIK ABD. RAHIM",
-            "position": "UF14",
+            "position": "Pegawai Farmasi",
             "email": "ezmiza@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "SITI MASURI KARIMI BINTI MOHD AZLAN",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "sitimasurikarimi@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "SITI KHALIJAH BT MOHAMED",
-            "position": "U6(KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "ctkhalijah72@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
-            "name": "AZIRA BINTI AZIZ@ABDUL AZIZ",
-            "position": "U6(TBK)",
-            "email": "aziraaziz786@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "name": "TAN MAI SING",
+            "position": "Penolong Pegawai Farmasi",
+            "email": "singmay400@yahoo.com",
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "NUR AYUNNI BINTI ADNAN",
-            "position": "U5",
+            "position": "Penolong Pegawai Farmasi",
             "email": "ayunni.adnan@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         }
     ],
     "KK To' Uban": [
+        {
+            "name": "DR RODZIAH BINTI ALI",
+            "position": "Pakar",
+            "email": "drrodziah@moh.gov.my",
+            "category": "Medical Specialist / FMS"
+        },
         {
             "name": "DR. FADRUL HISYAM BIN MOHAMAD",
             "position": "Pegawai Perubatan",
@@ -929,12 +977,6 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR. IHSAN MUSTAEIN BIN KORI",
-            "position": "Pegawai Perubatan",
-            "email": "ihsankori@gmail.com",
-            "category": "Medical Officer (MO)"
-        },
-        {
             "name": "DR.NUR HANIM MARISA BINTI IDRIS",
             "position": "Pegawai Perubatan",
             "email": "hanimrisaidris@gmail.com",
@@ -947,15 +989,21 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
+            "name": "DR. NUR ATHIRAH BINTI HUZAIMI",
+            "position": "Pegawai Perubatan",
+            "email": "athirahuzaimi@gmail.com",
+            "category": "Medical Officer (MO)"
+        },
+        {
+            "name": "DR SITI 'ATIQAH BINTI MOHAMAD SHAM",
+            "position": "Pegawai Pergigian",
+            "email": "sititiqah@moh.gov.my",
+            "category": "Medical Officer (MO)"
+        },
+        {
             "name": "MOHD FIRDAUS B. ABD. RAHMAN",
             "position": "Penolong Pegawai Perubatan",
             "email": "mfirdaus@moh.gov.my",
-            "category": "Assistant Medical Officer (MA)"
-        },
-        {
-            "name": "MOHAMAD AZAM BIN MAT NOOR @ RASHID",
-            "position": "Penolong Pegawai Perubatan",
-            "email": "retenprimerazam2018@gmail.com",
             "category": "Assistant Medical Officer (MA)"
         },
         {
@@ -971,78 +1019,78 @@ const STAFF_DATA = {
             "category": "Assistant Medical Officer (MA)"
         },
         {
-            "name": "AZLINA BINTI ISMAIL",
-            "position": "Jururawat",
-            "email": "azlina.ismail@moh.gov.my",
-            "category": "Nurse"
-        },
-        {
-            "name": "ROSNANI IBRAHIM",
-            "position": "Jururawat",
-            "email": "rosnaniibrahim05@gmail.com",
-            "category": "Nurse"
-        },
-        {
-            "name": "NORUL HANIZA BINTI MUSA",
-            "position": "Jururawat",
-            "email": "umminh86@gmail.com",
-            "category": "Nurse"
-        },
-        {
-            "name": "SHARIFAH BINTI JUSOH",
-            "position": "Jururawat",
-            "email": "sharifahjusoh1971@gmail.com",
-            "category": "Nurse"
-        },
-        {
-            "name": "ZETY NOOR EFNEY BINTI ZAKARIA",
-            "position": "Jururawat",
-            "email": "noorefney@gmail.com",
-            "category": "Nurse"
-        },
-        {
-            "name": "BALKTIYAH BINTI MAT",
-            "position": "Jururawat",
-            "email": "balktiyahmat@gmail.com",
-            "category": "Nurse"
-        },
-        {
             "name": "MOHAMAD FAHMI BIN HASHIM",
-            "position": "UF14",
-            "email": "once9903@gmail.com",
+            "position": "Pegawai Farmasi",
+            "email": "mohamadfahmi@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "IZZATY BINTI ABDULLAH",
-            "position": "UF13",
+            "position": "Pegawai Farmasi",
             "email": "izzatyabdullah@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "MUHAMAD TARMIZI BIN AB HAMID",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "tarmizi.abhamid97@gmail.com",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NORAZLINA BINTI IBRAHIM",
-            "position": "U6(KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "norazlina1911@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "ZAWIAH BINTI ISMAIL",
-            "position": "U6(KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "zawiahaza@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
+        },
+        {
+            "name": "AZLINA BINTI ISMAIL",
+            "position": "Penyelia Jururawat",
+            "email": "azlina.ismail@moh.gov.my",
+            "category": "Nurse"
+        },
+        {
+            "name": "ROSNANI IBRAHIM",
+            "position": "Jururawat Kesihatan",
+            "email": "rosnaniibrahim05@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "NORUL HANIZA BINTI MUSA",
+            "position": "Jururawat Kesihatan",
+            "email": "umminh86@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "SHARIFAH BINTI JUSOH",
+            "position": "Jururawat Kesihatan",
+            "email": "sharifahjusoh1971@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "ZETY NOOR EFNEY BINTI ZAKARIA",
+            "position": "Jururawat Kesihatan",
+            "email": "noorefney@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "BALKTIYAH BINTI MAT",
+            "position": "Jururawat Kesihatan",
+            "email": "balktiyahmat@gmail.com",
+            "category": "Nurse"
         }
     ],
     "KK Chekok": [
         {
-            "name": "DR. MASYITAH BINTI HASSAN",
-            "position": "Pegawai Perubatan",
-            "email": "drmasyitah@moh.gov.my",
-            "category": "Medical Officer (MO)"
+            "name": "DR. JUSOH B. AWANG SENIK",
+            "position": "Pakar",
+            "email": "drjusoh69@yahoo.com",
+            "category": "Medical Specialist / FMS"
         },
         {
             "name": "DR. NUR FATIN ZAHIRAH BT CHE AWANG",
@@ -1124,27 +1172,27 @@ const STAFF_DATA = {
         },
         {
             "name": "FATIN LAILI BINTI AHMAD BAHRI",
-            "position": "UF14",
+            "position": "Pegawai Farmasi",
             "email": "fatinlaili.ab@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "MUHAMAD IDHAM BIN AHAMED",
-            "position": "UF13",
+            "position": "Pegawai Farmasi",
             "email": "muhamadidham@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
-            "name": "TAN MAI SING",
-            "position": "U5",
-            "email": "singmay400@yahoo.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "name": "AZIRA BINTI AZIZ@ABDUL AZIZ",
+            "position": "Penolong Pegawai Farmasi",
+            "email": "aziraaziz786@gmail.com",
+            "category": "Assistant Pharmacist (PPF)"
         },
         {
             "name": "MOHD NAZRI BIN MUHAMMAD",
-            "position": "U6 (KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "nazri16041976@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         }
     ],
     "KK Sungai Keladi": [
@@ -1180,15 +1228,39 @@ const STAFF_DATA = {
         },
         {
             "name": "FATIN NABILA BINTI AB RAHMAN",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "fatinrahman@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "ANG WEE CHIAN",
-            "position": "U6 (KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "angchian84@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
+        },
+        {
+            "name": "SITI NOR AFIZA BINTI AZIZ",
+            "position": "Jururawat Masyarakat",
+            "email": "afizaaziz1983@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "SITI NOR AINI BINTI AZHARI",
+            "position": "Jururawat Masyarakat",
+            "email": "sitinurainiazhari86@gamil.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "KOR KIM SIAN",
+            "position": "Jururawat Kesihatan",
+            "email": "kkimsian@yahoo.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "SITI FATIMAH BINTI YUSOF",
+            "position": "Jururawat Kesihatan",
+            "email": "sitifatimahyusof78@gmail.com",
+            "category": "Nurse"
         }
     ],
     "KK Gual Periok": [
@@ -1205,28 +1277,16 @@ const STAFF_DATA = {
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR SITI NUR AINDAH BINTI RUSLI",
-            "position": "Pegawai Perubatan",
-            "email": "draindah@moh.gov.my",
-            "category": "Medical Officer (MO)"
-        },
-        {
-            "name": "DR WAN AMYRAH ATIQAH BINTI WAN ZAINALAM",
-            "position": "Pegawai Perubatan",
-            "email": "amyrahatiqah@gmail.com",
-            "category": "Medical Officer (MO)"
-        },
-        {
             "name": "DR FARAH AUNI BT MOHD RODZALI",
             "position": "Pegawai Perubatan",
             "email": "farahauni235@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "AHMAD NASARUDDIN BIN MANSOR",
-            "position": "Penolong Pegawai Perubatan",
-            "email": "nasaruddin639@gmail.com",
-            "category": "Assistant Medical Officer (MA)"
+            "name": "DR FATIN SYAHIRAH BINTI SULAIMAN",
+            "position": "Pegawai Perubatan",
+            "email": "fatin250991@gmail.com",
+            "category": "Medical Officer (MO)"
         },
         {
             "name": "MOHAMAD ZAMRI BIN JUSOH",
@@ -1235,35 +1295,47 @@ const STAFF_DATA = {
             "category": "Assistant Medical Officer (MA)"
         },
         {
+            "name": "NORAZLAN BIN MOHD AMIN @ NORDIN",
+            "position": "Penolong Pegawai Perubatan",
+            "email": "mr.azlannordin@gmail.com",
+            "category": "Assistant Medical Officer (MA)"
+        },
+        {
             "name": "NURUL ASNIDA BINTI IBRAHIM",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "nurulasnidaibrahim@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "SUZILA BINTI AB HAMID",
-            "position": "U6 (KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "suzilaabhamid74@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
         }
     ],
     "KK Kasar": [
         {
-            "name": "DR SITI NUR AMIRAH BT ZAKARIA",
+            "name": "DR AHMAD ABIR BIN AB. GHANI (VISITING)",
+            "position": "Pakar",
+            "email": "drabir@moh.gov.my",
+            "category": "Medical Specialist / FMS"
+        },
+        {
+            "name": "DR MOHD YUSOF BIN ZAINAL",
             "position": "Pegawai Perubatan",
-            "email": "drsnuramirah@moh.gov.my",
+            "email": "drmyusof@moh.gov.my",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR NURUL AFIQAH BINTI IBRAHIM",
+            "name": "DR NORHAINI BINTI YAACOB",
             "position": "Pegawai Perubatan",
-            "email": "nurul.afiqah09@gmail.com",
+            "email": "drnorhaini@moh.gov.my",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "DR NOR ATHIYAH BT OTHMAN",
+            "name": "DR NUR AIMILIYANA BINTI ISMAIL",
             "position": "Pegawai Perubatan",
-            "email": "norathiyahothman@gmail.com",
+            "email": "nuraimi1606@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
@@ -1286,15 +1358,75 @@ const STAFF_DATA = {
         },
         {
             "name": "SITI NURFARAH AIANA BINTI MUHAMED",
-            "position": "UF9",
+            "position": "Pegawai Farmasi",
             "email": "sitinurfarahaiana@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
+            "name": "INTAN AMALIYA BINTI IBRAHIM",
+            "position": "Pegawai Farmasi",
+            "email": "intanamaliya98@gmail.com",
+            "category": "Pharmacist (PF)"
+        },
+        {
             "name": "NURUL MAJIDAH BINTI KAMARRUDIN",
-            "position": "U6 (KUP)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "nurulmajidah83@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
+        },
+        {
+            "name": "MARZIYATI BINTI MAT ZAIN",
+            "position": "Jururawat Kesihatan",
+            "email": "marziyati.mz@moh.gov.my",
+            "category": "Nurse"
+        },
+        {
+            "name": "HARTINI BINTI ABDUL HALIM",
+            "position": "Jururawat Kesihatan",
+            "email": "tinierizqi@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "SALASIAH BINTI MOHD ZAIN",
+            "position": "Jururawat Kesihatan",
+            "email": "salasiahmohdzain73@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "YUSNIZAWATI BINTI MOHD ARIFFIN @ MOHAMED",
+            "position": "Jururawat Kesihatan",
+            "email": "yusnizawati@moh.gov.my",
+            "category": "Nurse"
+        },
+        {
+            "name": "NORMA BINTI MOHD HANIF",
+            "position": "Jururawat Masyarakat",
+            "email": "mamissy38@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "NOR HASNI BINTI ISMAIL",
+            "position": "Jururawat Masyarakat",
+            "email": "hasniannur@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "NORLIZA BINTI AB HADI",
+            "position": "Jururawat Masyarakat",
+            "email": "norlizahadi79@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "ROSILAWATI BINTI HAMID",
+            "position": "Jururawat Masyarakat",
+            "email": "shielarose2808@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "ZURANI BINTI AB RAHMAN",
+            "position": "Jururawat Masyarakat",
+            "email": "zuraniabrahman@gmail.com",
+            "category": "Nurse"
         }
     ],
     "KK Pangkal Kala": [
@@ -1336,22 +1468,58 @@ const STAFF_DATA = {
         },
         {
             "name": "NIK NUR AZREEN BINTI NIK MAT",
-            "position": "UF10",
+            "position": "Pegawai Farmasi",
             "email": "nik.nurazreen95@gmail.com",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "NUR SYAHIDDA BINTI MOHD ADNAN",
-            "position": "U5",
+            "position": "Penolong Pegawai Farmasi",
             "email": "syahiddaadnan9292@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
+        },
+        {
+            "name": "ZALINA BINTI ZAKARIA",
+            "position": "Jururawat Masyarakat",
+            "email": "zzalina4271@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "NOR KASMILA BINTI IBRAHIM",
+            "position": "Jururawat Masyarakat",
+            "email": "norkasmila1982@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "TUAN ROZILAWATI BINTI TUAN SEMAN",
+            "position": "Jururawat Masyarakat",
+            "email": "rozilawatiseman557400@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "AZAMI BINTI CHE ABAS",
+            "position": "Jururawat Masyarakat",
+            "email": "azamicheabas@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "NOOR RITA BINTI MD ISA",
+            "position": "Jururawat Masyarakat",
+            "email": "else5440@gmail.com",
+            "category": "Nurse"
         }
     ],
     "KK Cherang Hangus": [
         {
-            "name": "DR MUHAMMAD KHAIRUL HAFIZAN BIN RAMLI",
+            "name": "DR. SHIMILAAIDA BT MOHD ALI JANAF",
+            "position": "Pakar",
+            "email": "shimilaaida@moh.gov.my",
+            "category": "Medical Specialist / FMS"
+        },
+        {
+            "name": "DR IHSAN MUSTAEIN BIN KORI",
             "position": "Pegawai Perubatan",
-            "email": "khairul.hafizan90@gmail.com",
+            "email": "ihsankori@gmail.com",
             "category": "Medical Officer (MO)"
         },
         {
@@ -1374,26 +1542,56 @@ const STAFF_DATA = {
         },
         {
             "name": "ZATI RUSYDINA BINTI BAHANUDIN",
-            "position": "UF9",
-            "email": "zati.rusydina@gmail.com",
+            "position": "Pegawai Farmasi",
+            "email": "zatirusydina@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "ROSHILAWANI BINTI ZAIN",
-            "position": "U7",
+            "position": "Penolong Pegawai Farmasi",
             "email": "shilawani@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
+        },
+        {
+            "name": "ROHANI BINTI MAT",
+            "position": "Jururawat Kesihatan",
+            "email": "rohanimatani@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "ZURAINI BINTI MOHAMED DI",
+            "position": "Jururawat Kesihatan",
+            "email": "zurainizikui@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "AIDA BINTI MAMAT",
+            "position": "Jururawat Masyarakat",
+            "email": "idamamat5402@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "NORLIZA BINTI HSHIM @ MAHMUD",
+            "position": "Jururawat Masyarakat",
+            "email": "norliza5102@gmail.com",
+            "category": "Nurse"
         }
     ],
     "KK Baroh Pial": [
         {
-            "name": "ZULAIKHA BT MAT JUSOH",
+            "name": "DR NORZARINA IRENY BT MOHD NAZRI",
+            "position": "Pakar",
+            "email": "drnorzarinaireny@moh.gov.my",
+            "category": "Medical Specialist / FMS"
+        },
+        {
+            "name": "DR ZULAIKHA BT MAT JUSOH",
             "position": "Pegawai Perubatan",
             "email": "drzulaikha.mj@moh.gov.my",
             "category": "Medical Officer (MO)"
         },
         {
-            "name": "MOHD SHARIFUDDIN BIN ISMAIL",
+            "name": "DR MOHD SHARIFUDDIN BIN ISMAIL",
             "position": "Pegawai Perubatan",
             "email": "Sharif_Bismi@yahoo.com",
             "category": "Medical Officer (MO)"
@@ -1411,16 +1609,46 @@ const STAFF_DATA = {
             "category": "Assistant Medical Officer (MA)"
         },
         {
-            "name": "ROHAYU A/P EH CHOY",
-            "position": "UF10",
-            "email": "rohayu.ec@moh.gov.my",
+            "name": "AINAH BINTI MUHAMAD TALMIZI",
+            "position": "Pegawai Farmasi",
+            "email": "ainahtalmizi@moh.gov.my",
             "category": "Pharmacist (PF)"
         },
         {
             "name": "QAWIEM BT CHE RAZALI",
-            "position": "U6 (TBK)",
+            "position": "Penolong Pegawai Farmasi",
             "email": "winkrazali@gmail.com",
-            "category": "Pharmacy Assistant (PPF)"
+            "category": "Assistant Pharmacist (PPF)"
+        },
+        {
+            "name": "ANIRA BINTI BEDOL",
+            "position": "Jururawat Kesihatan",
+            "email": "anira6900@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "ROZITA BINTI ABD AZIZ",
+            "position": "Jururawat Kesihatan",
+            "email": "rozitazita48@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "NOOR ROHAIDA BINTI BAHARI",
+            "position": "Jururawat Kesihatan",
+            "email": "aidabahari84@gmail.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "WAN MARDHIYAH BINTI WAN MOHAMAD",
+            "position": "Jururawat Masyarakat",
+            "email": "wanmardhiyah_1984@yahoo.com",
+            "category": "Nurse"
+        },
+        {
+            "name": "MARIATI BINTI ABD AZIZ",
+            "position": "Jururawat Masyarakat",
+            "email": "mariatiaziz8@gmail.com",
+            "category": "Nurse"
         }
     ]
 };

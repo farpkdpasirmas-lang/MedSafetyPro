@@ -575,7 +575,9 @@
 
                         if (matchedStaff) {
                             staffEmailInput.value = matchedStaff.email || '';
-                            staffCategoryInput.value = matchedStaff.category || '';
+                            let staffCat = matchedStaff.category || '';
+                            if (staffCat === 'Pharmacy Assistant (PPF)') staffCat = 'Assistant Pharmacist (PPF)';
+                            staffCategoryInput.value = staffCat;
 
                             // Visual feedback
                             if (matchedStaff.email) {
