@@ -723,7 +723,7 @@ const STAFF_DATA = {
         {
             "name": "DR. AINDAH BINTI ROSLI",
             "position": "Pegawai Perubatan",
-            "email": "draindah @moh.gov.my",
+            "email": "draindah@moh.gov.my",
             "category": "Medical Officer (MO)"
         },
         {
@@ -1161,7 +1161,7 @@ const STAFF_DATA = {
         {
             "name": "PN. WAN NOR HIDAYAT BINTI W MOHMAD",
             "position": "Penolong Pegawai Perubatan",
-            "email": "wnhidayattt@gmail.cm",
+            "email": "wnhidayattt@gmail.com",
             "category": "Assistant Medical Officer (MA)"
         },
         {
@@ -1247,7 +1247,7 @@ const STAFF_DATA = {
         {
             "name": "SITI NOR AINI BINTI AZHARI",
             "position": "Jururawat Masyarakat",
-            "email": "sitinurainiazhari86@gamil.com",
+            "email": "sitinurainiazhari86@gmail.com",
             "category": "Nurse"
         },
         {
