@@ -710,23 +710,7 @@
                             );
                         }
 
-                        // 3. Generate PDF First for attachment and download
-                        let pdfDataUri = null;
-                        const saveOfflineElement = document.getElementById('save-offline');
-                        const isSaveOfflineChecked = saveOfflineElement ? saveOfflineElement.checked : false;
-
-                        if (!isSaveOfflineChecked && Security.isOnline()) {
-                            try {
-                                // Automatically download PDF report and get base64
-                                const pdfResult = await PDFService.generatePDF(formData);
-                                pdfDataUri = pdfResult ? pdfResult.base64 : null;
-                            } catch (pdfError) {
-                                console.error('Error generating PDF:', pdfError);
-                                alert('Laporan berjaya dihantar, tetapi PDF gagal dijana.');
-                            }
-                        }
-
-                        // 4. Send Email Notification via EmailJS (if available)
+                        // 3. Send Email Notification via EmailJS FIRST (before PDF download, which aborts fetch on iOS Safari)
                         let emailSentSuccess = false;
                         if (emailJsAvailable && formData.staffEmail) {
                             try {
@@ -775,6 +759,22 @@
                                 const errorMsg = error.text || error.message || JSON.stringify(error);
                                 UI.showToast('Email sending failed: ' + errorMsg, 'error', 10000); // 10s duration
                                 // Non-blocking
+                            }
+                        }
+
+                        // 4. Generate and download PDF AFTER EmailJS has completed
+                        let pdfDataUri = null;
+                        const saveOfflineElement = document.getElementById('save-offline');
+                        const isSaveOfflineChecked = saveOfflineElement ? saveOfflineElement.checked : false;
+
+                        if (!isSaveOfflineChecked && Security.isOnline()) {
+                            try {
+                                // Automatically download PDF report and get base64
+                                const pdfResult = await PDFService.generatePDF(formData);
+                                pdfDataUri = pdfResult ? pdfResult.base64 : null;
+                            } catch (pdfError) {
+                                console.error('Error generating PDF:', pdfError);
+                                alert('Laporan berjaya dihantar, tetapi PDF gagal dijana.');
                             }
                         }
 
