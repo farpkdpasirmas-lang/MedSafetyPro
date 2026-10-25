@@ -7,12 +7,12 @@
     <title>Report Error - MedSafety Pro</title>
 
     <link rel="stylesheet" href="css/style.css">
-    <script src="js/auth.js"></script>
-    <script src="js/security.js"></script>
-    <script src="js/components.js"></script>
-    <script src="js/staff_data.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/notifications.js"></script>
+    <script src="js/auth.js?v=3"></script>
+    <script src="js/security.js?v=3"></script>
+    <script src="js/components.js?v=3"></script>
+    <script src="js/staff_data.js?v=3"></script>
+    <script src="js/ui.js?v=3"></script>
+    <script src="js/notifications.js?v=3"></script>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -20,8 +20,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <!-- App Data Layer -->
-    <script src="js/firebase-config.js?v=2"></script>
-    <script src="js/db.js?v=2"></script>
+    <script src="js/firebase-config.js?v=3"></script>
+    <script src="js/db.js?v=3"></script>
 
     <!-- EmailJS SDK for Email Notifications -->
     <!-- EmailJS SDK (Local) -->
@@ -555,26 +555,48 @@
 
                 let debounceTimer;
 
+                function getMergedStaffList(selectedFacility) {
+                    if (!selectedFacility) return [];
+                    const baseList = (typeof STAFF_DATA !== 'undefined' && STAFF_DATA[selectedFacility]) ? STAFF_DATA[selectedFacility] : [];
+                    const dynList = (window.STAFF_DATA && window.STAFF_DATA[selectedFacility]) ? window.STAFF_DATA[selectedFacility] : [];
+                    if (!dynList.length) return baseList;
+                    if (!baseList.length) return dynList;
+
+                    const merged = dynList.map(s => ({ ...s }));
+                    baseList.forEach(baseStaff => {
+                        if (!baseStaff || !baseStaff.name) return;
+                        const norm = baseStaff.name.trim().toLowerCase();
+                        const found = merged.find(s => s && s.name && s.name.trim().toLowerCase() === norm);
+                        if (found) {
+                            if (baseStaff.email) found.email = baseStaff.email.trim();
+                            if (!found.category && baseStaff.category) found.category = baseStaff.category;
+                            if (!found.position && baseStaff.position) found.position = baseStaff.position;
+                        } else {
+                            merged.push(baseStaff);
+                        }
+                    });
+                    return merged;
+                }
+
+                function findMatchedStaff(selectedFacility, enteredName) {
+                    if (!enteredName || !selectedFacility) return null;
+                    const staffList = getMergedStaffList(selectedFacility);
+                    const enteredLower = enteredName.trim().toLowerCase();
+                    return staffList.find(s => s && s.name && s.name.trim().toLowerCase() === enteredLower) || null;
+                }
+
                 function checkAutoFill() {
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => {
                         const selectedFacility = facilityInput.value;
                         const enteredName = staffNameInput.value.trim();
-                        const staffList = (window.STAFF_DATA || STAFF_DATA)[selectedFacility] || [];
 
                         if (!enteredName || !selectedFacility) return;
 
-                        // Try exact match first
-                        let matchedStaff = staffList.find(s => s.name === enteredName);
-
-                        // If no exact match, try case-insensitive
-                        if (!matchedStaff) {
-                            const enteredLower = enteredName.toLowerCase();
-                            matchedStaff = staffList.find(s => s.name.toLowerCase() === enteredLower);
-                        }
+                        const matchedStaff = findMatchedStaff(selectedFacility, enteredName);
 
                         if (matchedStaff) {
-                            staffEmailInput.value = matchedStaff.email || '';
+                            staffEmailInput.value = (matchedStaff.email || '').trim().replace(/\s+/g, '');
                             let staffCat = matchedStaff.category || '';
                             if (staffCat === 'Pharmacy Assistant (PPF)') staffCat = 'Assistant Pharmacist (PPF)';
                             staffCategoryInput.value = staffCat;
@@ -598,7 +620,7 @@
                 // Update datalist when facility changes
                 facilityInput.addEventListener('change', () => {
                     const selectedFacility = facilityInput.value;
-                    const staffList = (window.STAFF_DATA || STAFF_DATA)[selectedFacility] || [];
+                    const staffList = getMergedStaffList(selectedFacility);
 
                     // Clear existing options
                     staffDatalist.innerHTML = '';
@@ -606,7 +628,7 @@
                     // Add new options
                     staffList.forEach(staff => {
                         const option = document.createElement('option');
-                        option.value = staff.name ? staff.name.toUpperCase() : '';
+                        option.value = staff.name ? staff.name.trim().toUpperCase() : '';
                         staffDatalist.appendChild(option);
                     });
 
@@ -662,19 +684,33 @@
 
                         // 1. Gather Data for Storage
                         console.log('Gathering form data...');
+                        const selectedFacilityVal = document.getElementById('facility').value;
+                        const enteredStaffNameVal = document.getElementById('staff-name').value.trim();
+                        let resolvedStaffEmail = document.getElementById('staff-email').value.trim().replace(/\s+/g, '');
+
+                        // Ensure email is cross-checked against STAFF_DATA in case autocomplete was still debouncing
+                        if (!resolvedStaffEmail && typeof STAFF_DATA !== 'undefined' && selectedFacilityVal && enteredStaffNameVal) {
+                            const baseList = STAFF_DATA[selectedFacilityVal] || [];
+                            const match = baseList.find(s => s && s.name && s.name.trim().toLowerCase() === enteredStaffNameVal.toLowerCase());
+                            if (match && match.email) {
+                                resolvedStaffEmail = match.email.trim().replace(/\s+/g, '');
+                                document.getElementById('staff-email').value = resolvedStaffEmail;
+                            }
+                        }
+
                         const formData = {
                             id: Date.now().toString(),
                             serialNumber: serialNumber,
                             timestamp: new Date().toISOString(),
                             date: document.getElementById('event-date').value,
-                            facility: document.getElementById('facility').value,
+                            facility: selectedFacilityVal,
                             setting: document.getElementById('setting-select').value,
                             detection: document.getElementById('error-detection').value,
                             outcome: document.getElementById('outcome-category').value,
                             staffCategory: document.getElementById('staff-category').value,
                             description: document.getElementById('error-description').value,
-                            staffName: document.getElementById('staff-name').value.trim(),
-                            staffEmail: document.getElementById('staff-email').value.trim().replace(/\s+/g, ''),
+                            staffName: enteredStaffNameVal,
+                            staffEmail: resolvedStaffEmail,
                             reporterName: document.getElementById('reporter-name').value,
                             pharmacyErrors: Array.from(document.querySelectorAll('input[name="pharmacy_err"]:checked')).map(el => el.value),
                             clinicErrors: Array.from(document.querySelectorAll('input[name="clinic_err"]:checked')).map(el => el.value),
@@ -687,30 +723,7 @@
                         await DB.saveReport(formData);
                         console.log('Saved to DB');
 
-                        // 2.5. Create admin notification
-                        if (typeof AdminNotifications !== 'undefined') {
-                            const user = AuthService.getCurrentUser();
-                            const notificationMessage = `Reporter: ${user ? user.fullname : formData.reporterName} - Facility: ${formData.facility}`;
-                            await AdminNotifications.create(
-                                'report',
-                                'New Medication Error Report',
-                                notificationMessage,
-                                formData.id
-                            );
-                        }
-
-                        // 2.6. Create notification for the REPORTED STAFF member
-                        if (typeof UserNotifications !== 'undefined' && formData.staffEmail) {
-                            await UserNotifications.create(
-                                formData.staffEmail,
-                                'report_involved',
-                                'You have been mentioned in a report',
-                                `A medication error report involving you has been submitted. ID: ${formData.serialNumber || formData.id}`,
-                                formData.id
-                            );
-                        }
-
-                        // 3. Send Email Notification via EmailJS FIRST (before PDF download, which aborts fetch on iOS Safari)
+                        // 3. Send Email Notification via EmailJS FIRST (before notifications & PDF download, so nothing can block or abort it)
                         let emailSentSuccess = false;
                         if (emailJsAvailable && formData.staffEmail) {
                             try {
@@ -725,7 +738,13 @@
                                     to_email: formData.staffEmail, // Send to the reported staff member
                                     email: formData.staffEmail,
                                     user_email: formData.staffEmail,
+                                    staff_email: formData.staffEmail,
+                                    recipient_email: formData.staffEmail,
+                                    recipient: formData.staffEmail,
+                                    to: formData.staffEmail,
+                                    reply_to: user && user.email ? user.email : formData.staffEmail,
                                     to_name: formData.staffName,
+                                    user_name: formData.staffName,
                                     message: messageContent,
                                     report_id: formData.serialNumber || formData.id,
                                     reporter_name: user ? user.fullname : formData.reporterName,
@@ -741,7 +760,6 @@
                                     error_types: errorTypes || 'Not specified',
                                     outcome: formData.outcome,
                                     staff_name: formData.staffName,
-                                    staff_email: formData.staffEmail,
                                     staff_category: formData.staffCategory,
                                     description: formData.description,
                                     has_image: formData.hasImage ? 'Yes' : 'No'
@@ -760,6 +778,32 @@
                                 UI.showToast('Email sending failed: ' + errorMsg, 'error', 10000); // 10s duration
                                 // Non-blocking
                             }
+                        }
+
+                        // 3.5. Create admin and staff in-app notifications (wrapped in try/catch so Firestore permissions never block submission)
+                        try {
+                            if (typeof AdminNotifications !== 'undefined') {
+                                const user = AuthService.getCurrentUser();
+                                const notificationMessage = `Reporter: ${user ? user.fullname : formData.reporterName} - Facility: ${formData.facility}`;
+                                await AdminNotifications.create(
+                                    'report',
+                                    'New Medication Error Report',
+                                    notificationMessage,
+                                    formData.id
+                                );
+                            }
+
+                            if (typeof UserNotifications !== 'undefined' && formData.staffEmail) {
+                                await UserNotifications.create(
+                                    formData.staffEmail,
+                                    'report_involved',
+                                    'You have been mentioned in a report',
+                                    `A medication error report involving you has been submitted. ID: ${formData.serialNumber || formData.id}`,
+                                    formData.id
+                                );
+                            }
+                        } catch (notifError) {
+                            console.warn('In-app notification creation skipped or failed:', notifError);
                         }
 
                         // 4. Generate and download PDF AFTER EmailJS has completed

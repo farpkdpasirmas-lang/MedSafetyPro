@@ -351,27 +351,26 @@ const DB = {
                 }
                 return notification;
             } catch (error) {
-                console.error("Error saving notification: ", error);
-                throw error;
+                console.warn("Firestore permission denied or error saving notification. Falling back to local storage.", error);
             }
-        } else {
-            // Local fallback
-            const isUserNotif = !!notification.userEmail;
-            const key = isUserNotif ? 'user_notifications_' + notification.userEmail.toLowerCase() : 'admin_notifications';
-            const notifications = JSON.parse(localStorage.getItem(key) || '[]');
-            
-            // Ensure unique ID if not provided
-            if (!notification.id) notification.id = Date.now().toString();
-            
-            notifications.unshift(notification);
-            
-            // Keep bounds
-            if (isUserNotif && notifications.length > 50) notifications.splice(50);
-            if (!isUserNotif && notifications.length > 100) notifications.splice(100);
-            
-            localStorage.setItem(key, JSON.stringify(notifications));
-            return notification;
         }
+
+        // Local fallback
+        const isUserNotif = !!notification.userEmail;
+        const key = isUserNotif ? 'user_notifications_' + notification.userEmail.toLowerCase() : 'admin_notifications';
+        const notifications = JSON.parse(localStorage.getItem(key) || '[]');
+        
+        // Ensure unique ID if not provided
+        if (!notification.id) notification.id = Date.now().toString();
+        
+        notifications.unshift(notification);
+        
+        // Keep bounds
+        if (isUserNotif && notifications.length > 50) notifications.splice(50);
+        if (!isUserNotif && notifications.length > 100) notifications.splice(100);
+        
+        localStorage.setItem(key, JSON.stringify(notifications));
+        return notification;
     },
 
     /**
@@ -524,22 +523,22 @@ const DB = {
         if (db) {
             try {
                 await db.collection(DB.COLLECTION_NOTIFICATIONS).doc(notificationId).delete();
+                return;
             } catch (error) {
-                console.error("Error deleting notification: ", error);
-                throw error;
+                console.warn("Firestore error deleting notification. Falling back to local storage:", error);
             }
+        }
+
+        // LocalStorage fallback
+        if (userEmail) {
+            const key = 'user_notifications_' + userEmail.toLowerCase();
+            let notifications = JSON.parse(localStorage.getItem(key) || '[]');
+            notifications = notifications.filter(n => n.id !== notificationId);
+            localStorage.setItem(key, JSON.stringify(notifications));
         } else {
-            // LocalStorage fallback
-            if (userEmail) {
-                const key = 'user_notifications_' + userEmail.toLowerCase();
-                let notifications = JSON.parse(localStorage.getItem(key) || '[]');
-                notifications = notifications.filter(n => n.id !== notificationId);
-                localStorage.setItem(key, JSON.stringify(notifications));
-            } else {
-                let notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
-                notifications = notifications.filter(n => n.id !== notificationId);
-                localStorage.setItem('admin_notifications', JSON.stringify(notifications));
-            }
+            let notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+            notifications = notifications.filter(n => n.id !== notificationId);
+            localStorage.setItem('admin_notifications', JSON.stringify(notifications));
         }
     },
 
@@ -553,27 +552,27 @@ const DB = {
         if (db) {
             try {
                 await db.collection(DB.COLLECTION_NOTIFICATIONS).doc(notificationId).update({ read: true });
+                return;
             } catch (error) {
-                console.error("Error marking notification as read: ", error);
-                throw error;
+                console.warn("Firestore error marking notification as read. Falling back to local storage:", error);
+            }
+        }
+
+        // LocalStorage fallback
+        if (userEmail) {
+            const key = 'user_notifications_' + userEmail.toLowerCase();
+            const notifications = JSON.parse(localStorage.getItem(key) || '[]');
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification) {
+                notification.read = true;
+                localStorage.setItem(key, JSON.stringify(notifications));
             }
         } else {
-            // LocalStorage fallback
-            if (userEmail) {
-                const key = 'user_notifications_' + userEmail.toLowerCase();
-                const notifications = JSON.parse(localStorage.getItem(key) || '[]');
-                const notification = notifications.find(n => n.id === notificationId);
-                if (notification) {
-                    notification.read = true;
-                    localStorage.setItem(key, JSON.stringify(notifications));
-                }
-            } else {
-                const notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
-                const notification = notifications.find(n => n.id === notificationId);
-                if (notification) {
-                    notification.read = true;
-                    localStorage.setItem('admin_notifications', JSON.stringify(notifications));
-                }
+            const notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification) {
+                notification.read = true;
+                localStorage.setItem('admin_notifications', JSON.stringify(notifications));
             }
         }
     },
@@ -598,16 +597,16 @@ const DB = {
                     });
                     await batch.commit();
                 }
+                return;
             } catch (error) {
-                console.error("Error marking all user notifications as read: ", error);
-                throw error;
+                console.warn("Firestore error marking all user notifications as read. Falling back to local storage:", error);
             }
-        } else {
-            const key = 'user_notifications_' + userEmail.toLowerCase();
-            const notifications = JSON.parse(localStorage.getItem(key) || '[]');
-            notifications.forEach(n => n.read = true);
-            localStorage.setItem(key, JSON.stringify(notifications));
         }
+
+        const key = 'user_notifications_' + userEmail.toLowerCase();
+        const notifications = JSON.parse(localStorage.getItem(key) || '[]');
+        notifications.forEach(n => n.read = true);
+        localStorage.setItem(key, JSON.stringify(notifications));
     },
 
     /**
@@ -629,15 +628,15 @@ const DB = {
                     });
                     await batch.commit();
                 }
+                return;
             } catch (error) {
-                console.error("Error marking all admin notifications as read: ", error);
-                throw error;
+                console.warn("Firestore error marking all admin notifications as read. Falling back to local storage:", error);
             }
-        } else {
-            const notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
-            notifications.forEach(n => n.read = true);
-            localStorage.setItem('admin_notifications', JSON.stringify(notifications));
         }
+
+        const notifications = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+        notifications.forEach(n => n.read = true);
+        localStorage.setItem('admin_notifications', JSON.stringify(notifications));
     },
 
     // --- Staff Data ---
@@ -647,13 +646,14 @@ const DB = {
      * @returns Promise<Object>
      */
     getStaffData: async () => {
+        const baseData = (typeof STAFF_DATA !== 'undefined') ? JSON.parse(JSON.stringify(STAFF_DATA)) : {};
+        let remoteData = null;
+
         if (typeof db !== 'undefined' && db) {
             try {
                 const doc = await db.collection(DB.COLLECTION_STAFF).doc('master').get();
-                if (doc.exists) {
-                    const data = doc.data().data;
-                    localStorage.setItem('medsafety_staff_db', JSON.stringify(data));
-                    return data;
+                if (doc.exists && doc.data() && doc.data().data) {
+                    remoteData = doc.data().data;
                 }
             } catch (error) {
                 if (error.code !== 'permission-denied') {
@@ -661,12 +661,49 @@ const DB = {
                 }
             }
         }
-        
-        // Fallback
-        const localData = localStorage.getItem('medsafety_staff_db');
-        if (localData) return JSON.parse(localData);
-        if (typeof STAFF_DATA !== 'undefined') return JSON.parse(JSON.stringify(STAFF_DATA)); // Fallback to hardcoded JS
-        return {};
+
+        if (!remoteData) {
+            const localData = localStorage.getItem('medsafety_staff_db');
+            if (localData) {
+                try {
+                    remoteData = JSON.parse(localData);
+                } catch (e) {}
+            }
+        }
+
+        if (remoteData && typeof remoteData === 'object') {
+            // Merge baseData (latest js/staff_data.js with fixed emails) into remoteData
+            const merged = JSON.parse(JSON.stringify(remoteData));
+            for (const [facility, baseList] of Object.entries(baseData)) {
+                if (!Array.isArray(merged[facility])) {
+                    merged[facility] = baseList;
+                } else {
+                    baseList.forEach(baseStaff => {
+                        if (!baseStaff || !baseStaff.name) return;
+                        const normName = baseStaff.name.trim().toLowerCase();
+                        const existing = merged[facility].find(s => s && s.name && s.name.trim().toLowerCase() === normName);
+                        if (existing) {
+                            // Always sync corrected email from js/staff_data.js if present
+                            if (baseStaff.email) {
+                                existing.email = baseStaff.email.trim();
+                            }
+                            if (!existing.category && baseStaff.category) {
+                                existing.category = baseStaff.category;
+                            }
+                            if (!existing.position && baseStaff.position) {
+                                existing.position = baseStaff.position;
+                            }
+                        } else {
+                            merged[facility].push(baseStaff);
+                        }
+                    });
+                }
+            }
+            localStorage.setItem('medsafety_staff_db', JSON.stringify(merged));
+            return merged;
+        }
+
+        return baseData;
     },
 
     /**
