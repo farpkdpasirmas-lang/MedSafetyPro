@@ -11,7 +11,7 @@ const getMalayRoleName = (category) => {
 };
 
 const PDFService = {
-    generatePDF: async (data, isFromAdmin = false) => {
+    generatePDF: async (data, isFromAdmin = false, shouldDownload = true) => {
         // Safe access to jsPDF
         if (!window.jspdf) {
             console.error('jsPDF not loaded');
@@ -266,11 +266,15 @@ const PDFService = {
 
         const safeDate = new Date().toISOString().split('T')[0];
         const filename = serialNumber ? `Laporan_${serialNumber}.pdf` : `Laporan_Kesilapan_Pengubatan_${safeDate}.pdf`;
-        doc.save(filename);
+        const base64DataUri = doc.output('datauristring');
+        if (shouldDownload) {
+            doc.save(filename);
+        }
         
         return {
             filename: filename,
-            base64: doc.output('datauristring')
+            base64: base64DataUri,
+            download: () => doc.save(filename)
         };
     }
 };

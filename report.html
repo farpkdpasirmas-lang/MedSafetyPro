@@ -7,12 +7,12 @@
     <title>Report Error - MedSafety Pro</title>
 
     <link rel="stylesheet" href="css/style.css">
-    <script src="js/auth.js?v=3"></script>
-    <script src="js/security.js?v=3"></script>
-    <script src="js/components.js?v=3"></script>
-    <script src="js/staff_data.js?v=3"></script>
-    <script src="js/ui.js?v=3"></script>
-    <script src="js/notifications.js?v=3"></script>
+    <script src="js/auth.js?v=4"></script>
+    <script src="js/security.js?v=4"></script>
+    <script src="js/components.js?v=4"></script>
+    <script src="js/staff_data.js?v=4"></script>
+    <script src="js/ui.js?v=4"></script>
+    <script src="js/notifications.js?v=4"></script>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -20,8 +20,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <!-- App Data Layer -->
-    <script src="js/firebase-config.js?v=3"></script>
-    <script src="js/db.js?v=3"></script>
+    <script src="js/firebase-config.js?v=4"></script>
+    <script src="js/db.js?v=4"></script>
 
     <!-- EmailJS SDK for Email Notifications -->
     <!-- EmailJS SDK (Local) -->
@@ -75,7 +75,7 @@
 
     <script src="js/vendor/jspdf.umd.min.js"></script>
     <script src="js/vendor/jspdf.plugin.autotable.min.js"></script>
-    <script src="js/pdf_generator.js"></script>
+    <script src="js/pdf_generator.js?v=4"></script>
 
     <script>
         // Initialize EmailJS safely
@@ -719,9 +719,22 @@
                         };
                         console.log('Form Data acquired:', formData);
 
-                        // 2. Save to Data Layer (Firebase or LocalStorage)
-                        await DB.saveReport(formData);
-                        console.log('Saved to DB');
+                        // 1.8 Build PDF in memory first (without triggering browser download yet) so it can be attached to the instant Google Apps Script email
+                        let pdfResult = null;
+                        let pdfDataUri = null;
+                        try {
+                            pdfResult = await PDFService.generatePDF(formData, false, false);
+                            pdfDataUri = pdfResult ? pdfResult.base64 : null;
+                        } catch (pdfError) {
+                            console.error('Error pre-generating PDF in memory:', pdfError);
+                        }
+
+                        // 2. Save to Data Layer (Firebase or LocalStorage) & send instant Google Sheets + Email Webhook (with PDF attachment)
+                        await DB.saveReport(formData, {
+                            pdfBase64: pdfDataUri,
+                            pdfFilename: pdfResult ? pdfResult.filename : `Laporan_${serialNumber}.pdf`
+                        });
+                        console.log('Saved to DB and triggered instant Google Apps Script webhook');
 
                         // 3. Send Email Notification via EmailJS FIRST (before notifications & PDF download, so nothing can block or abort it)
                         let emailSentSuccess = false;
@@ -806,18 +819,20 @@
                             console.warn('In-app notification creation skipped or failed:', notifError);
                         }
 
-                        // 4. Generate and download PDF AFTER EmailJS has completed
-                        let pdfDataUri = null;
+                        // 4. Download pre-generated PDF AFTER EmailJS & Webhook have completed
                         const saveOfflineElement = document.getElementById('save-offline');
                         const isSaveOfflineChecked = saveOfflineElement ? saveOfflineElement.checked : false;
 
                         if (!isSaveOfflineChecked && Security.isOnline()) {
                             try {
-                                // Automatically download PDF report and get base64
-                                const pdfResult = await PDFService.generatePDF(formData);
-                                pdfDataUri = pdfResult ? pdfResult.base64 : null;
+                                if (pdfResult && typeof pdfResult.download === 'function') {
+                                    pdfResult.download();
+                                } else {
+                                    pdfResult = await PDFService.generatePDF(formData);
+                                    pdfDataUri = pdfResult ? pdfResult.base64 : null;
+                                }
                             } catch (pdfError) {
-                                console.error('Error generating PDF:', pdfError);
+                                console.error('Error downloading PDF:', pdfError);
                                 alert('Laporan berjaya dihantar, tetapi PDF gagal dijana.');
                             }
                         }

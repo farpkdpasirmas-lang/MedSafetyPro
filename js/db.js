@@ -55,9 +55,10 @@ const DB = {
     /**
      * Save a new report
      * @param {Object} reportData 
+     * @param {Object} options Optional metadata (e.g. pdfBase64, pdfFilename) for webhook email attachment
      * @returns Promise
      */
-    saveReport: async (reportData) => {
+    saveReport: async (reportData, options = {}) => {
         if (db) {
             // Firebase Mode
             try {
@@ -152,18 +153,38 @@ const DB = {
                     reportData.reporterName || ''
                 ];
 
-                // Execute async fetch without blocking the save operation return
-                fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                const rawPdfBase64 = options.pdfBase64
+                    ? (options.pdfBase64.includes('base64,') ? options.pdfBase64.split('base64,')[1] : options.pdfBase64)
+                    : '';
+
+                const webhookPayload = {
+                    rowArray: mappedRow,
+                    pdfBase64: rawPdfBase64,
+                    pdfFilename: options.pdfFilename || `Laporan_${reportData.serialNumber || reportData.id || 'MedSafety'}.pdf`,
+                    emailData: {
+                        to: (reportData.staffEmail || '').trim(),
+                        staffName: reportData.staffName || '',
+                        facility: reportData.facility || '',
+                        setting: unitSetting,
+                        incidentDate: formattedIncidentDate,
+                        timestamp: timestampStr,
+                        description: reportData.description || '',
+                        serialNumber: reportData.serialNumber || reportData.id || '',
+                        reporterName: reportData.reporterName || ''
+                    }
+                };
+
+                // Await webhook POST so Google Apps Script immediately logs row + sends email before page redirect
+                await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
                     method: 'POST',
                     mode: 'no-cors', // Prevents CORS errors from browser when pushing to Google Apps Script
-                    keepalive: true, // Guarantees the request completes even if the page redirects immediately
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ rowArray: mappedRow })
-                }).then(() => console.log('Google Sheet Sync request sent.'))
-                  .catch(err => console.error('Google Sheet Sync Error:', err));
+                    body: JSON.stringify(webhookPayload)
+                });
+                console.log('Google Sheet Sync & Email Webhook request completed.');
 
             } catch (webhookErr) {
-                console.error("Error formatting data for Google Sheet webhook:", webhookErr);
+                console.error("Error sending data to Google Sheet webhook:", webhookErr);
             }
         }
 
