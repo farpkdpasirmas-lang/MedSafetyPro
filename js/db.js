@@ -55,10 +55,9 @@ const DB = {
     /**
      * Save a new report
      * @param {Object} reportData 
-     * @param {Object} options Optional metadata (e.g. pdfBase64, pdfFilename) for webhook email attachment
      * @returns Promise
      */
-    saveReport: async (reportData, options = {}) => {
+    saveReport: async (reportData) => {
         if (db) {
             // Firebase Mode
             try {
@@ -153,25 +152,9 @@ const DB = {
                     reportData.reporterName || ''
                 ];
 
-                const rawPdfBase64 = options.pdfBase64
-                    ? (options.pdfBase64.includes('base64,') ? options.pdfBase64.split('base64,')[1] : options.pdfBase64)
-                    : '';
-
+                // Send purely row data to Google Sheets (no email data or large PDF attachments)
                 const webhookPayload = {
-                    rowArray: mappedRow,
-                    pdfBase64: rawPdfBase64,
-                    pdfFilename: options.pdfFilename || `Laporan_${reportData.serialNumber || reportData.id || 'MedSafety'}.pdf`,
-                    emailData: {
-                        to: (reportData.staffEmail || '').trim(),
-                        staffName: reportData.staffName || '',
-                        facility: reportData.facility || '',
-                        setting: unitSetting,
-                        incidentDate: formattedIncidentDate,
-                        timestamp: timestampStr,
-                        description: reportData.description || '',
-                        serialNumber: reportData.serialNumber || reportData.id || '',
-                        reporterName: reportData.reporterName || ''
-                    }
+                    rowArray: mappedRow
                 };
 
                 // Send to Google Apps Script with an 8-second timeout guard so it never blocks or hangs
@@ -186,14 +169,14 @@ const DB = {
                         body: JSON.stringify(webhookPayload),
                         signal: webhookController ? webhookController.signal : undefined
                     });
-                    console.log('Google Sheet Sync & Email Webhook request completed.');
+                    console.log('Google Sheet Data Sync completed.');
                 } finally {
                     if (webhookTimeout) clearTimeout(webhookTimeout);
                 }
 
             } catch (webhookErr) {
                 if (webhookErr && webhookErr.name === 'AbortError') {
-                    console.warn("Google Sheet webhook timed out after 8s (continuing in background without blocking)");
+                    console.warn("Google Sheet sync timed out after 8s (continuing in background without blocking)");
                 } else {
                     console.error("Error sending data to Google Sheet webhook:", webhookErr);
                 }

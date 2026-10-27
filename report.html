@@ -20,8 +20,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <!-- App Data Layer -->
-    <script src="js/firebase-config.js?v=5"></script>
-    <script src="js/db.js?v=5"></script>
+    <script src="js/firebase-config.js?v=6"></script>
+    <script src="js/db.js?v=6"></script>
 
     <!-- EmailJS SDK for Email Notifications -->
     <!-- EmailJS SDK (Local) -->
@@ -776,23 +776,10 @@
                             }
                         })();
 
-                        // 2. Build PDF in memory for Google Apps Script attachment
-                        let pdfResult = null;
-                        let pdfDataUri = null;
-                        try {
-                            pdfResult = await PDFService.generatePDF(formData, false, false);
-                            pdfDataUri = pdfResult ? pdfResult.base64 : null;
-                        } catch (pdfError) {
-                            console.error('Error pre-generating PDF in memory:', pdfError);
-                        }
+                        // 2. Save to Data Layer (Firebase or LocalStorage) & sync purely row data to Google Sheets
+                        const saveDbPromise = DB.saveReport(formData);
 
-                        // 3. Save to Data Layer (Firebase or LocalStorage) & send instant Google Sheets Webhook in parallel
-                        const saveDbPromise = DB.saveReport(formData, {
-                            pdfBase64: pdfDataUri,
-                            pdfFilename: pdfResult ? pdfResult.filename : `Laporan_${serialNumber}.pdf`
-                        });
-
-                        // 4. Create admin and staff in-app notifications in parallel
+                        // 3. Create admin and staff in-app notifications in parallel
                         const sendNotifsPromise = (async () => {
                             try {
                                 if (typeof AdminNotifications !== 'undefined') {
@@ -820,7 +807,7 @@
                             }
                         })();
 
-                        // 5. Wait for background dispatches (EmailJS, DB Save / Webhook, Notifications)
+                        // 4. Wait for background dispatches (EmailJS exclusively for emails, DB / Google Sheet for storage)
                         const [emailSettled] = await Promise.allSettled([
                             sendEmailPromise,
                             saveDbPromise,
@@ -832,25 +819,20 @@
                             UI.showToast('Email sending notice: ' + emailErrorMessage, 'warning', 8000);
                         }
 
-                        // 6. Download pre-generated PDF
+                        // 5. Download PDF only if user opted in
                         const saveOfflineElement = document.getElementById('save-offline');
                         const isSaveOfflineChecked = saveOfflineElement ? saveOfflineElement.checked : false;
 
                         if (!isSaveOfflineChecked && Security.isOnline()) {
                             try {
-                                if (pdfResult && typeof pdfResult.download === 'function') {
-                                    pdfResult.download();
-                                } else {
-                                    pdfResult = await PDFService.generatePDF(formData);
-                                    pdfDataUri = pdfResult ? pdfResult.base64 : null;
-                                }
+                                await PDFService.generatePDF(formData, false, true);
                             } catch (pdfError) {
                                 console.error('Error downloading PDF:', pdfError);
                                 alert('Laporan berjaya dihantar, tetapi PDF gagal dijana.');
                             }
                         }
 
-                        // 7. Show success message and redirect
+                        // 6. Show success message and redirect
                         const emailStatus = emailSentSuccess ? ` Email sent to ${formData.staffEmail}.` : '';
                         UI.hideSpinner();
                         UI.showToast(`Report ${serialNumber} submitted successfully!` + emailStatus, 'success', 5000);
