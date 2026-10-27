@@ -174,17 +174,29 @@ const DB = {
                     }
                 };
 
-                // Await webhook POST so Google Apps Script immediately logs row + sends email before page redirect
-                await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Prevents CORS errors from browser when pushing to Google Apps Script
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(webhookPayload)
-                });
-                console.log('Google Sheet Sync & Email Webhook request completed.');
+                // Send to Google Apps Script with an 8-second timeout guard so it never blocks or hangs
+                const webhookController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                const webhookTimeout = webhookController ? setTimeout(() => webhookController.abort(), 8000) : null;
+
+                try {
+                    await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', // Prevents CORS errors from browser when pushing to Google Apps Script
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(webhookPayload),
+                        signal: webhookController ? webhookController.signal : undefined
+                    });
+                    console.log('Google Sheet Sync & Email Webhook request completed.');
+                } finally {
+                    if (webhookTimeout) clearTimeout(webhookTimeout);
+                }
 
             } catch (webhookErr) {
-                console.error("Error sending data to Google Sheet webhook:", webhookErr);
+                if (webhookErr && webhookErr.name === 'AbortError') {
+                    console.warn("Google Sheet webhook timed out after 8s (continuing in background without blocking)");
+                } else {
+                    console.error("Error sending data to Google Sheet webhook:", webhookErr);
+                }
             }
         }
 

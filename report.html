@@ -20,8 +20,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <!-- App Data Layer -->
-    <script src="js/firebase-config.js?v=4"></script>
-    <script src="js/db.js?v=4"></script>
+    <script src="js/firebase-config.js?v=5"></script>
+    <script src="js/db.js?v=5"></script>
 
     <!-- EmailJS SDK for Email Notifications -->
     <!-- EmailJS SDK (Local) -->
@@ -719,26 +719,10 @@
                         };
                         console.log('Form Data acquired:', formData);
 
-                        // 1.8 Build PDF in memory first (without triggering browser download yet) so it can be attached to the instant Google Apps Script email
-                        let pdfResult = null;
-                        let pdfDataUri = null;
-                        try {
-                            pdfResult = await PDFService.generatePDF(formData, false, false);
-                            pdfDataUri = pdfResult ? pdfResult.base64 : null;
-                        } catch (pdfError) {
-                            console.error('Error pre-generating PDF in memory:', pdfError);
-                        }
-
-                        // 2. Save to Data Layer (Firebase or LocalStorage) & send instant Google Sheets + Email Webhook (with PDF attachment)
-                        await DB.saveReport(formData, {
-                            pdfBase64: pdfDataUri,
-                            pdfFilename: pdfResult ? pdfResult.filename : `Laporan_${serialNumber}.pdf`
-                        });
-                        console.log('Saved to DB and triggered instant Google Apps Script webhook');
-
-                        // 3. Send Email Notification via EmailJS FIRST (before notifications & PDF download, so nothing can block or abort it)
-                        let emailSentSuccess = false;
-                        if (emailJsAvailable && formData.staffEmail) {
+                        // 1. Kick off EmailJS Notification IMMEDIATELY in parallel (does NOT wait for PDF or DB or Webhook)
+                        let emailErrorMessage = null;
+                        const sendEmailPromise = (async () => {
+                            if (!emailJsAvailable || !formData.staffEmail) return false;
                             try {
                                 const user = AuthService.getCurrentUser();
                                 const errorTypes = formData.setting === 'pharmacy' ?
@@ -783,43 +767,72 @@
                                     "template_sr0w2pg",
                                     templateParams
                                 );
-                                emailSentSuccess = true;
                                 console.log('Email notification sent successfully to ' + formData.staffEmail);
+                                return true;
                             } catch (error) {
                                 console.error('Email sending failed:', error);
-                                const errorMsg = error.text || error.message || JSON.stringify(error);
-                                UI.showToast('Email sending failed: ' + errorMsg, 'error', 10000); // 10s duration
-                                // Non-blocking
+                                emailErrorMessage = error.text || error.message || JSON.stringify(error);
+                                return false;
                             }
-                        }
+                        })();
 
-                        // 3.5. Create admin and staff in-app notifications (wrapped in try/catch so Firestore permissions never block submission)
+                        // 2. Build PDF in memory for Google Apps Script attachment
+                        let pdfResult = null;
+                        let pdfDataUri = null;
                         try {
-                            if (typeof AdminNotifications !== 'undefined') {
-                                const user = AuthService.getCurrentUser();
-                                const notificationMessage = `Reporter: ${user ? user.fullname : formData.reporterName} - Facility: ${formData.facility}`;
-                                await AdminNotifications.create(
-                                    'report',
-                                    'New Medication Error Report',
-                                    notificationMessage,
-                                    formData.id
-                                );
-                            }
-
-                            if (typeof UserNotifications !== 'undefined' && formData.staffEmail) {
-                                await UserNotifications.create(
-                                    formData.staffEmail,
-                                    'report_involved',
-                                    'You have been mentioned in a report',
-                                    `A medication error report involving you has been submitted. ID: ${formData.serialNumber || formData.id}`,
-                                    formData.id
-                                );
-                            }
-                        } catch (notifError) {
-                            console.warn('In-app notification creation skipped or failed:', notifError);
+                            pdfResult = await PDFService.generatePDF(formData, false, false);
+                            pdfDataUri = pdfResult ? pdfResult.base64 : null;
+                        } catch (pdfError) {
+                            console.error('Error pre-generating PDF in memory:', pdfError);
                         }
 
-                        // 4. Download pre-generated PDF AFTER EmailJS & Webhook have completed
+                        // 3. Save to Data Layer (Firebase or LocalStorage) & send instant Google Sheets Webhook in parallel
+                        const saveDbPromise = DB.saveReport(formData, {
+                            pdfBase64: pdfDataUri,
+                            pdfFilename: pdfResult ? pdfResult.filename : `Laporan_${serialNumber}.pdf`
+                        });
+
+                        // 4. Create admin and staff in-app notifications in parallel
+                        const sendNotifsPromise = (async () => {
+                            try {
+                                if (typeof AdminNotifications !== 'undefined') {
+                                    const user = AuthService.getCurrentUser();
+                                    const notificationMessage = `Reporter: ${user ? user.fullname : formData.reporterName} - Facility: ${formData.facility}`;
+                                    await AdminNotifications.create(
+                                        'report',
+                                        'New Medication Error Report',
+                                        notificationMessage,
+                                        formData.id
+                                    );
+                                }
+
+                                if (typeof UserNotifications !== 'undefined' && formData.staffEmail) {
+                                    await UserNotifications.create(
+                                        formData.staffEmail,
+                                        'report_involved',
+                                        'You have been mentioned in a report',
+                                        `A medication error report involving you has been submitted. ID: ${formData.serialNumber || formData.id}`,
+                                        formData.id
+                                    );
+                                }
+                            } catch (notifError) {
+                                console.warn('In-app notification creation skipped or failed:', notifError);
+                            }
+                        })();
+
+                        // 5. Wait for background dispatches (EmailJS, DB Save / Webhook, Notifications)
+                        const [emailSettled] = await Promise.allSettled([
+                            sendEmailPromise,
+                            saveDbPromise,
+                            sendNotifsPromise
+                        ]);
+                        const emailSentSuccess = emailSettled.status === 'fulfilled' && emailSettled.value === true;
+
+                        if (!emailSentSuccess && emailErrorMessage) {
+                            UI.showToast('Email sending notice: ' + emailErrorMessage, 'warning', 8000);
+                        }
+
+                        // 6. Download pre-generated PDF
                         const saveOfflineElement = document.getElementById('save-offline');
                         const isSaveOfflineChecked = saveOfflineElement ? saveOfflineElement.checked : false;
 
@@ -837,14 +850,14 @@
                             }
                         }
 
-                        // 5. Show success message and redirect after a short delay so toasts & downloads complete
+                        // 7. Show success message and redirect
                         const emailStatus = emailSentSuccess ? ` Email sent to ${formData.staffEmail}.` : '';
                         UI.hideSpinner();
                         UI.showToast(`Report ${serialNumber} submitted successfully!` + emailStatus, 'success', 5000);
 
                         setTimeout(() => {
                             window.location.href = 'dashboard.html';
-                        }, emailSentSuccess ? 2000 : 4000);
+                        }, emailSentSuccess ? 2000 : 3500);
 
                     } catch (error) {
                         console.error('Submission error:', error);
