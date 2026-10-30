@@ -55,9 +55,10 @@ const DB = {
     /**
      * Save a new report
      * @param {Object} reportData 
+     * @param {Object} options Optional metadata (e.g. pdfBase64, pdfFilename) for webhook email attachment
      * @returns Promise
      */
-    saveReport: async (reportData) => {
+    saveReport: async (reportData, options = {}) => {
         if (db) {
             // Firebase Mode
             try {
@@ -152,14 +153,35 @@ const DB = {
                     reportData.reporterName || ''
                 ];
 
-                // Send purely row data to Google Sheets (no email data or large PDF attachments)
+                // Extract raw PDF base64 if provided
+                const rawPdfBase64 = options.pdfBase64
+                    ? (options.pdfBase64.includes('base64,') ? options.pdfBase64.split('base64,')[1] : options.pdfBase64)
+                    : '';
+
+                const customEmailMessage = "Assalamualaikum dan Salam Sejahtera,\n\n" +
+                    "Peringatan mesra. Kami dapati terdapat kesilapan pengubatan dalam preskripsi yang ditulis. Sehubungan itu, pihak tuan diminta untuk mengemukakan maklum balas melalui aplikasi MedSafety Pro.\n\n" +
+                    "Terima kasih atas keprihatinan dan kerjasama tuan dalam membantu meningkatkan keselamatan pengubatan.";
+
+                // Send both sheet row data & email notification data (with PDF attachment)
                 const webhookPayload = {
-                    rowArray: mappedRow
+                    rowArray: mappedRow,
+                    pdfBase64: rawPdfBase64,
+                    pdfFilename: options.pdfFilename || `Laporan_${reportData.serialNumber || reportData.id || 'MedSafety'}.pdf`,
+                    emailData: {
+                        to: (reportData.staffEmail || '').trim(),
+                        staffName: reportData.staffName || '',
+                        serialNumber: reportData.serialNumber || reportData.id || '',
+                        facility: reportData.facility || '',
+                        setting: unitSetting,
+                        incidentDate: formattedIncidentDate,
+                        reporterName: reportData.reporterName || '',
+                        message: customEmailMessage
+                    }
                 };
 
-                // Send to Google Apps Script with an 8-second timeout guard so it never blocks or hangs
+                // Send to Google Apps Script with a 12-second timeout guard so it has ample time to log + email
                 const webhookController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-                const webhookTimeout = webhookController ? setTimeout(() => webhookController.abort(), 8000) : null;
+                const webhookTimeout = webhookController ? setTimeout(() => webhookController.abort(), 12000) : null;
 
                 try {
                     await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
@@ -169,14 +191,14 @@ const DB = {
                         body: JSON.stringify(webhookPayload),
                         signal: webhookController ? webhookController.signal : undefined
                     });
-                    console.log('Google Sheet Data Sync completed.');
+                    console.log('Google Sheet Sync & Email Webhook completed.');
                 } finally {
                     if (webhookTimeout) clearTimeout(webhookTimeout);
                 }
 
             } catch (webhookErr) {
                 if (webhookErr && webhookErr.name === 'AbortError') {
-                    console.warn("Google Sheet sync timed out after 8s (continuing in background without blocking)");
+                    console.warn("Google Sheet webhook timed out after 12s (continuing in background without blocking)");
                 } else {
                     console.error("Error sending data to Google Sheet webhook:", webhookErr);
                 }

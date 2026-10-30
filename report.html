@@ -20,12 +20,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <!-- App Data Layer -->
-    <script src="js/firebase-config.js?v=6"></script>
-    <script src="js/db.js?v=6"></script>
-
-    <!-- EmailJS SDK for Email Notifications -->
-    <!-- EmailJS SDK (Local) -->
-    <script src="js/vendor/email.min.js"></script>
+    <script src="js/firebase-config.js?v=8"></script>
+    <script src="js/db.js?v=8"></script>
 
     <style>
         .form-section {
@@ -78,22 +74,6 @@
     <script src="js/pdf_generator.js?v=4"></script>
 
     <script>
-        // Initialize EmailJS safely
-        let emailJsAvailable = false;
-        try {
-            if (typeof emailjs !== 'undefined') {
-                emailjs.init({
-                    publicKey: "nNWVl0z63PnC1p8z4",
-                });
-                emailJsAvailable = true;
-                console.log('EmailJS initialized successfully.');
-            } else {
-                console.warn('EmailJS library not loaded. Email notifications will be disabled.');
-            }
-        } catch (e) {
-            console.error('Error initializing EmailJS:', e);
-        }
-
         // Global variable for image
         let uploadedImageBase64 = null;
 
@@ -719,65 +699,21 @@
                         };
                         console.log('Form Data acquired:', formData);
 
-                        // 1. Kick off EmailJS Notification IMMEDIATELY in parallel (does NOT wait for PDF or DB or Webhook)
-                        let emailErrorMessage = null;
-                        const sendEmailPromise = (async () => {
-                            if (!emailJsAvailable || !formData.staffEmail) return false;
-                            try {
-                                const user = AuthService.getCurrentUser();
-                                const errorTypes = formData.setting === 'pharmacy' ?
-                                    formData.pharmacyErrors.join(', ') :
-                                    formData.clinicErrors.join(', ');
+                        // 1. Pre-generate PDF in memory so it can be attached to the Google Apps Script email
+                        let pdfResult = null;
+                        let pdfDataUri = null;
+                        try {
+                            pdfResult = await PDFService.generatePDF(formData, false, false);
+                            pdfDataUri = pdfResult ? pdfResult.base64 : null;
+                        } catch (pdfError) {
+                            console.error('Error pre-generating PDF in memory:', pdfError);
+                        }
 
-                                const messageContent = "Assalamualaikum dan Salam Sejahtera,\n\nAnda telah melakukan kesilapan pengubatan. Sila buat maklum balas di aplikasi MedSafety.\n\nTerima kasih";
-
-                                const templateParams = {
-                                    to_email: formData.staffEmail, // Send to the reported staff member
-                                    email: formData.staffEmail,
-                                    user_email: formData.staffEmail,
-                                    staff_email: formData.staffEmail,
-                                    recipient_email: formData.staffEmail,
-                                    recipient: formData.staffEmail,
-                                    to: formData.staffEmail,
-                                    reply_to: user && user.email ? user.email : formData.staffEmail,
-                                    to_name: formData.staffName,
-                                    user_name: formData.staffName,
-                                    message: messageContent,
-                                    report_id: formData.serialNumber || formData.id,
-                                    reporter_name: user ? user.fullname : formData.reporterName,
-                                    reporter_email: user ? user.email : 'Not provided',
-                                    submission_date: new Date(formData.timestamp).toLocaleString('en-MY', {
-                                        dateStyle: 'full',
-                                        timeStyle: 'short'
-                                    }),
-                                    event_date: formData.date,
-                                    facility: formData.facility,
-                                    setting: formData.setting,
-                                    error_detection: formData.detection,
-                                    error_types: errorTypes || 'Not specified',
-                                    outcome: formData.outcome,
-                                    staff_name: formData.staffName,
-                                    staff_category: formData.staffCategory,
-                                    description: formData.description,
-                                    has_image: formData.hasImage ? 'Yes' : 'No'
-                                };
-
-                                await emailjs.send(
-                                    "service_f74vyvs",
-                                    "template_sr0w2pg",
-                                    templateParams
-                                );
-                                console.log('Email notification sent successfully to ' + formData.staffEmail);
-                                return true;
-                            } catch (error) {
-                                console.error('Email sending failed:', error);
-                                emailErrorMessage = error.text || error.message || JSON.stringify(error);
-                                return false;
-                            }
-                        })();
-
-                        // 2. Save to Data Layer (Firebase or LocalStorage) & sync purely row data to Google Sheets
-                        const saveDbPromise = DB.saveReport(formData);
+                        // 2. Save to Data Layer (Firebase or LocalStorage) & dispatch Google Apps Script (Sheet backup + Email with PDF)
+                        const saveDbPromise = DB.saveReport(formData, {
+                            pdfBase64: pdfDataUri,
+                            pdfFilename: pdfResult ? pdfResult.filename : `Laporan_${serialNumber}.pdf`
+                        });
 
                         // 3. Create admin and staff in-app notifications in parallel
                         const sendNotifsPromise = (async () => {
@@ -807,25 +743,23 @@
                             }
                         })();
 
-                        // 4. Wait for background dispatches (EmailJS exclusively for emails, DB / Google Sheet for storage)
-                        const [emailSettled] = await Promise.allSettled([
-                            sendEmailPromise,
+                        // 4. Wait for background dispatches (Google Apps Script Webhook & In-App Notifications)
+                        await Promise.allSettled([
                             saveDbPromise,
                             sendNotifsPromise
                         ]);
-                        const emailSentSuccess = emailSettled.status === 'fulfilled' && emailSettled.value === true;
 
-                        if (!emailSentSuccess && emailErrorMessage) {
-                            UI.showToast('Email sending notice: ' + emailErrorMessage, 'warning', 8000);
-                        }
-
-                        // 5. Download PDF only if user opted in
+                        // 5. Download PDF only if user did not opt out
                         const saveOfflineElement = document.getElementById('save-offline');
                         const isSaveOfflineChecked = saveOfflineElement ? saveOfflineElement.checked : false;
 
                         if (!isSaveOfflineChecked && Security.isOnline()) {
                             try {
-                                await PDFService.generatePDF(formData, false, true);
+                                if (pdfResult && typeof pdfResult.download === 'function') {
+                                    pdfResult.download();
+                                } else {
+                                    await PDFService.generatePDF(formData, false, true);
+                                }
                             } catch (pdfError) {
                                 console.error('Error downloading PDF:', pdfError);
                                 alert('Laporan berjaya dihantar, tetapi PDF gagal dijana.');
@@ -833,13 +767,13 @@
                         }
 
                         // 6. Show success message and redirect
-                        const emailStatus = emailSentSuccess ? ` Email sent to ${formData.staffEmail}.` : '';
+                        const emailNotice = formData.staffEmail ? ` Notification sent to ${formData.staffEmail}.` : '';
                         UI.hideSpinner();
-                        UI.showToast(`Report ${serialNumber} submitted successfully!` + emailStatus, 'success', 5000);
+                        UI.showToast(`Report ${serialNumber} submitted successfully!` + emailNotice, 'success', 5000);
 
                         setTimeout(() => {
                             window.location.href = 'dashboard.html';
-                        }, emailSentSuccess ? 2000 : 3500);
+                        }, 2500);
 
                     } catch (error) {
                         console.error('Submission error:', error);
