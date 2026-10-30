@@ -29,6 +29,16 @@ Your MedSafety Pro application is now a **Progressive Web App** that can be inst
 
 ---
 
+## 🚀 How to Deploy to Vercel (Current Host)
+
+Your GitHub repository () is connected to Vercel.
+
+Whenever a commit is pushed to the  branch:
+1. **Automatic Build & Deploy:** Vercel automatically detects the new commit and deploys the latest version in ~15 seconds.
+2. **Instant Live Updates:** Users opening the app or refreshing will receive the updated PWA files immediately.
+
+---
+
 ## 🚀 How to Deploy to Netlify
 
 ### Step 1: Prepare Your Files

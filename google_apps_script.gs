@@ -43,6 +43,7 @@ function doPost(e) {
         var facility = payload.emailData.facility || "Klinik Kesihatan";
         var incidentDate = payload.emailData.incidentDate || "-";
         var reporterName = payload.emailData.reporterName || "Pegawai Farmasi";
+        var appUrl = (payload.emailData.appUrl || "https://medsafety-pro.vercel.app").replace(/\/+$/, "");
         
         var customMessage = payload.emailData.message || (
           "Assalamualaikum dan Salam Sejahtera,\n\n" +
@@ -89,7 +90,7 @@ function doPost(e) {
                 '<tr style="background-color: #f8fafc;"><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Lampiran PDF:</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0;">' + (attachments.length > 0 ? "✅ Fail PDF disertakan bersama e-mel ini" : "Boleh dimuat turun di aplikasi") + '</td></tr>' +
               '</table>' +
               '<div style="text-align: center; margin: 30px 0 20px 0;">' +
-                '<a href="https://medsafety-pro.netlify.app/feedback.html" style="background-color: #0d9488; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Buka Aplikasi MedSafety Pro &amp; Beri Maklum Balas</a>' +
+                '<a href="' + appUrl + '/feedback.html" style="background-color: #0d9488; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Buka Aplikasi MedSafety Pro &amp; Beri Maklum Balas</a>' +
               '</div>' +
               '<p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 15px;">' +
                 'E-mel ini dijana secara automatik oleh Sistem MedSafety Pro, Unit Farmasi PKD Pasir Mas.' +
@@ -106,7 +107,7 @@ function doPost(e) {
           "Tarikh Kejadian: " + incidentDate + "\n" +
           "Pegawai Pelapor: " + reporterName + "\n" +
           "------------------------------------\n\n" +
-          "Sila layari https://medsafety-pro.netlify.app/feedback.html untuk mengemukakan maklum balas.\n\n" +
+          "Sila layari " + appUrl + "/feedback.html untuk mengemukakan maklum balas.\n\n" +
           "Unit Farmasi, Pejabat Kesihatan Daerah Pasir Mas";
 
         MailApp.sendEmail({

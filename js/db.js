@@ -175,7 +175,8 @@ const DB = {
                         setting: unitSetting,
                         incidentDate: formattedIncidentDate,
                         reporterName: reportData.reporterName || '',
-                        message: customEmailMessage
+                        message: customEmailMessage,
+                        appUrl: (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'https://medsafety-pro.vercel.app'
                     }
                 };
 
