@@ -21,7 +21,7 @@
 
     <!-- App Data Layer -->
     <script src="js/firebase-config.js?v=8"></script>
-    <script src="js/db.js?v=8"></script>
+    <script src="js/db.js?v=9"></script>
 
     <style>
         .form-section {
@@ -767,9 +767,21 @@
                         }
 
                         // 6. Show success message and redirect
-                        const emailNotice = formData.staffEmail ? ` Notification sent to ${formData.staffEmail}.` : '';
+                        const webhookRes = formData._webhookResult;
+                        let emailNotice = '';
+                        let toastType = 'success';
+                        if (formData.staffEmail) {
+                            if (webhookRes && webhookRes.emailSent === true) {
+                                emailNotice = ` Email notification sent to ${formData.staffEmail}.`;
+                            } else if (webhookRes && webhookRes.emailSent === false) {
+                                emailNotice = ` Warning: Email to ${formData.staffEmail} failed (${webhookRes.emailError || 'webhook error'}).`;
+                                toastType = 'warning';
+                            } else {
+                                emailNotice = ` Notification queued for ${formData.staffEmail}.`;
+                            }
+                        }
                         UI.hideSpinner();
-                        UI.showToast(`Report ${serialNumber} submitted successfully!` + emailNotice, 'success', 5000);
+                        UI.showToast(`Report ${serialNumber} submitted!` + emailNotice, toastType, 5000);
 
                         setTimeout(() => {
                             window.location.href = 'dashboard.html';

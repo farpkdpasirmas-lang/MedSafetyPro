@@ -180,28 +180,42 @@ const DB = {
                     }
                 };
 
-                // Send to Google Apps Script with a 12-second timeout guard so it has ample time to log + email
+                // Send to Google Apps Script with a 25-second timeout guard so it has ample time to log + email with PDF
                 const webhookController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-                const webhookTimeout = webhookController ? setTimeout(() => webhookController.abort(), 12000) : null;
+                const webhookTimeout = webhookController ? setTimeout(() => webhookController.abort(), 25000) : null;
 
                 try {
-                    await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                    const response = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
                         method: 'POST',
-                        mode: 'no-cors', // Prevents CORS errors from browser when pushing to Google Apps Script
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify(webhookPayload),
                         signal: webhookController ? webhookController.signal : undefined
                     });
-                    console.log('Google Sheet Sync & Email Webhook completed.');
+                    const rawText = await response.text();
+                    let webhookResult = null;
+                    try {
+                        webhookResult = JSON.parse(rawText);
+                    } catch (parseErr) {
+                        webhookResult = { status: response.ok ? 'unknown' : 'error', raw: rawText };
+                    }
+                    reportData._webhookResult = webhookResult;
+
+                    if (webhookResult && webhookResult.emailSent === false && webhookPayload.emailData.to) {
+                        console.error('Google Apps Script email failed:', webhookResult.emailError || webhookResult);
+                    } else {
+                        console.log('Google Sheet Sync & Email Webhook completed:', webhookResult);
+                    }
                 } finally {
                     if (webhookTimeout) clearTimeout(webhookTimeout);
                 }
 
             } catch (webhookErr) {
                 if (webhookErr && webhookErr.name === 'AbortError') {
-                    console.warn("Google Sheet webhook timed out after 12s (continuing in background without blocking)");
+                    console.warn("Google Sheet webhook timed out after 25s (continuing in background without blocking)");
+                    reportData._webhookResult = { status: 'timeout', emailSent: null, emailError: 'Request timed out after 25s' };
                 } else {
                     console.error("Error sending data to Google Sheet webhook:", webhookErr);
+                    reportData._webhookResult = { status: 'error', emailSent: false, emailError: webhookErr.message || String(webhookErr) };
                 }
             }
         }

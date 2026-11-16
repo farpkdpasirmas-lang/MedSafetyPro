@@ -10,7 +10,10 @@
  * 2. Klik Extensions (Sambungan) > Apps Script.
  * 3. Salin dan gantikan kod di dalam Editor (Code.gs) dengan kod ini.
  * 4. Klik ikon Save (Disket).
- * 5. Klik Deploy (Gunakan) > Manage deployments (Urus penggunaan) > Klik ikon pensel (Edit) >
+ * 5. PENTING (Untuk izin e-mel): Pilih fungsi "testAuthorization" di bar atas editor dan klik "Run" (Jalankan).
+ *    Jika diminta "Authorization required", klik "Review permissions" > pilih akaun Google anda >
+ *    klik "Advanced" > "Go to ... (unsafe)" > "Allow".
+ * 6. Klik Deploy (Gunakan) > Manage deployments (Urus penggunaan) > Klik ikon pensel (Edit) >
  *    Tukar Version kepada "New version" (Versi baharu) > Klik Deploy!
  */
 
@@ -144,4 +147,15 @@ function doPost(e) {
 
 function doGet(e) {
   return ContentService.createTextOutput("MedSafety Pro Google Apps Script Webhook is Active & Ready.");
+}
+
+/**
+ * Jalankan fungsi ini SEKALI di dalam Editor Apps Script untuk memberi kebenaran
+ * menghantar e-mel (MailApp) dan mengakses Google Sheet (SpreadsheetApp).
+ */
+function testAuthorization() {
+  var sheetName = SpreadsheetApp.getActiveSpreadsheet().getName();
+  var quota = MailApp.getRemainingDailyQuota();
+  Logger.log("Authorization OK! Sheet: " + sheetName + " | Baki kuota e-mel harian: " + quota);
+  return "OK - Sheet: " + sheetName + ", Email quota remaining: " + quota;
 }
